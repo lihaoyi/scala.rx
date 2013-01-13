@@ -3,6 +3,7 @@ package rx
 import org.scalatest._
 import util.{Failure, Success}
 import scala.concurrent.Promise
+import AsyncCombinators._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class AdvancedTests extends FreeSpec{
@@ -105,7 +106,7 @@ class AdvancedTests extends FreeSpec{
     "dropping the result of Futures which return out of order" in {
       var p = Seq[Promise[Int]](Promise(), Promise(), Promise())
       val a = Var(0)
-      val b = AsyncSig(10, outFilter = rx.Filter.DiscardLate){ p(a()).future }
+      val b = AsyncSig(10){ p(a()).future }.discardLate
 
       assert(b() === 10)
 

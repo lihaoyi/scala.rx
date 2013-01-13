@@ -3,7 +3,7 @@ package rx
 import util.{Try, Failure, Success}
 
 object Combinators{
-  implicit class pimpedSig[T](source: Signal[T]){
+  implicit class pimpedSig[T](source: Flow.Signal[T]){
 
     def skipFailures = filterSig(source)((oldTry, newTry) => newTry.isSuccess)
 
@@ -41,13 +41,13 @@ object Combinators{
     def map[A](f: T => A) = new WrapSig[A, T](source)((x, y) => y.map(f))
   }
 
-  def filterSig[T](source: Signal[T])(predicate: (Try[T], Try[T]) => Boolean) = {
+  def filterSig[T](source: Flow.Signal[T])(predicate: (Try[T], Try[T]) => Boolean) = {
     new WrapSig(source)((x: Try[T], y: Try[T]) => if (predicate(x, y)) y else x)
   }
 
-  class WrapSig[T, A](source: Signal[A])(transformer: (Try[T], Try[A]) => Try[T])
-  extends Signal[T]
-  with Reactor[Any]{
+  class WrapSig[T, A](source: Flow.Signal[A])(transformer: (Try[T], Try[A]) => Try[T])
+  extends Flow.Signal[T]
+  with Flow.Reactor[Any]{
 
     var lastResult = transformer(Failure(null), source.toTry)
     source.linkChild(this)
@@ -57,7 +57,7 @@ object Combinators{
     def currentValue = lastResult.get
     def toTry = lastResult
     def getParents = Seq(source)
-    def ping(incoming: Seq[Emitter[Any]]) = {
+    def ping(incoming: Seq[Flow.Emitter[Any]]) = {
       val newTry = transformer(lastResult, source.toTry)
       if (newTry == toTry) Nil
       else {

@@ -35,7 +35,7 @@ class CombinatorTests extends FreeSpec{
     "skipDiff" in test[Int](_.skipDiff(_%2 == _%2))
     "filterTry" in test[Int](_.filterTry(_.map(_%2) != _.map(_%2)))
     "skipTry" in test[Int](_.skipTry(_.map(_%2) == _.map(_%2)))
-    def test[T](op: Signal[T] => Signal[T]) = {
+    def test[T](op: Flow.Signal[T] => Flow.Signal[T]) = {
 
       val a = Var{10}
       val b = a.filterDiff{_ % 2 != _ % 2}

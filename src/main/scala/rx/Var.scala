@@ -23,9 +23,10 @@ object Var {
  * @param initValue The initial future of the Var
  * @tparam T The type of the future this Var contains
  */
-case class Var[T](name: String, initValue: T) extends Signal[T] {
+case class Var[T](name: String, initValue: T)
+extends Flow.Signal[T]
+with Call.Reactor[T]{
   val currentValueHolder = new AtomicReference[Try[T]](Success(initValue))
-  type Concrete = Var[T]
   def level = 0L
 
   def currentValue = toTry.get

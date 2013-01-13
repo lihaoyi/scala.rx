@@ -16,9 +16,9 @@ object Sig{
   }
 
   val enclosing = new DynamicVariable[SigState[Any]](null)
-  val enclosingR = new DynamicVariable[Reactor[Any]](null)
+  val enclosingR = new DynamicVariable[Flow.Reactor[Any]](null)
 }
-case class SigState[+T](parents: Seq[Emitter[Any]],
+case class SigState[+T](parents: Seq[Flow.Emitter[Any]],
                         value: Try[T],
                         level: Long)
 /**
@@ -28,7 +28,7 @@ case class SigState[+T](parents: Seq[Emitter[Any]],
  * @param calc The method of calculating the future of this Sig
  * @tparam T The type of the future this contains
  */
-class Sig[+T](val name: String, calc: () => T) extends Signal[T] with Reactor[Any]{
+class Sig[+T](val name: String, calc: () => T) extends Flow.Signal[T] with Flow.Reactor[Any]{
 
   @volatile var active = true
   @volatile private[this] var state: SigState[T] = fullCalc(Option(Sig.enclosing.value).map(_.level + 1).getOrElse(0))
@@ -44,7 +44,7 @@ class Sig[+T](val name: String, calc: () => T) extends Signal[T] with Reactor[An
 
   def getParents = state.parents
 
-  def ping(incoming: Seq[Emitter[Any]]) = {
+  def ping(incoming: Seq[Flow.Emitter[Any]]) = {
     if (active && getParents.intersect(incoming).isDefinedAt(0)){
       val newState = fullCalc()
 
