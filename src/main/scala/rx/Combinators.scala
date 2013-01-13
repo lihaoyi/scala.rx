@@ -1,6 +1,7 @@
 package rx
 
 import util.{Try, Failure, Success}
+import concurrent.{ExecutionContext, Future}
 
 object Combinators{
   implicit class pimpedSig[T](source: Signal[T]){
@@ -39,6 +40,11 @@ object Combinators{
     }
 
     def map[A](f: T => A) = new WrapSig[A, T](source)((x, y) => y.map(f))
+  }
+  implicit class pimpedFutureSig[T](source: Signal[Future[T]]){
+    def async(default: T, target: T => Target[T] = AsyncCombinators.BaseTarget[T])(implicit executor: ExecutionContext) = {
+      new AsyncSig("async " + source.name, default, source, target)
+    }
   }
 
   def filterSig[T](source: Signal[T])(predicate: (Try[T], Try[T]) => Boolean) = {

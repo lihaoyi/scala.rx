@@ -44,55 +44,24 @@ object AsyncCombinators{
   }
 }
 
-case class AsyncNode[T](source: Signal[T])
-extends Call.Emitter[T]
-with Signal[T]
-with Call.Reactor[T]{
-  var count = new AtomicLong(0)
-  val listener = Obs(source){
-    //dostuff
-  }
 
-  def pingChildren() = {
 
-  }
-
-  def level = ???
-
-  def currentValue = ???
-
-  def toTry = ???
-
-  def name = ???
-
-  def update(msg: T) {}
-
-  def update(msg: Try[T]) {}
-}
-
-object AsyncSig{
-  def apply[T](default: T)
-                 (calc: => Future[T])
-                 (implicit executor: ExecutionContext) = {
-    new AsyncSig("name", default, () => calc)
-  }
-}
-
-class AsyncSig[+T](val name: String, default: T, calc: () => Future[T])
+class AsyncSig[+T](val name: String, default: T, source: Signal[Future[T]], target: T => Target[T])
                   (implicit executor: ExecutionContext)
 extends Signal[T]{
 
   val count = new AtomicLong(0)
-  private[this] val thisTarget = BaseTarget(default)
+  private[this] val thisTarget = target(default)
   private[this] var targets = Seq(thisTarget)
-  private[this] val inputSig = Sig{
-
+  private[this] val listener = Obs(source){
+    val future = source()
     val id = count.getAndIncrement
     targets.foreach(_.handleSend(id))
-    calc().onComplete{ x =>
+    future.onComplete{ x =>
       targets.foreach(_.handleReceive(id, x))
     }
   }
+  listener.trigger()
 
   def level = thisTarget.level
   def currentValue = thisTarget.currentValue

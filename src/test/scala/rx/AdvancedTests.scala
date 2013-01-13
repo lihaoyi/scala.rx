@@ -3,7 +3,7 @@ package rx
 import org.scalatest._
 import util.{Failure, Success}
 import scala.concurrent.Promise
-import AsyncCombinators._
+import Combinators._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class AdvancedTests extends FreeSpec{
@@ -37,9 +37,9 @@ class AdvancedTests extends FreeSpec{
     def pause = Thread.sleep(100)
     "basic example" in {
       val p = Promise[Int]()
-      val a = AsyncSig(10){
+      val a = Sig{
         p.future
-      }
+      }.async(10)
       assert(a() === 10)
       p.complete(scala.util.Success(5))
       pause
@@ -49,10 +49,10 @@ class AdvancedTests extends FreeSpec{
     "repeatedly sending out Futures" in {
       var p = Promise[Int]()
       val a = Var(1)
-      val b = AsyncSig(10){
+      val b = Sig{
         val A = a()
-        p.future.map{x => println(x + 1); x + A}
-      }
+        p.future.map{_ + A}
+      }.async(10)
       assert(b() === 10)
       p.complete(scala.util.Success(5))
       pause
@@ -67,10 +67,10 @@ class AdvancedTests extends FreeSpec{
     "the propagation should continue after the AsyncSig" in {
       var p = Promise[Int]()
       val a = Var(1)
-      val b = AsyncSig(10){
+      val b = Sig{
         val A = a()
         p.future.map{x => println(x + 1); x + A}
-      }
+      }.async(10)
       val c = Sig{ b() + 1 }
       assert(c() === 11)
       p.complete(scala.util.Success(5))
@@ -86,7 +86,7 @@ class AdvancedTests extends FreeSpec{
     "ensuring that sent futures that get completed out of order are received out of order" in {
       var p = Seq[Promise[Int]](Promise(), Promise(), Promise())
       val a = Var(0)
-      val b = AsyncSig(10){ p(a()).future }
+      val b = Sig{ p(a()).future }.async(10)
 
       assert(b() === 10)
 
@@ -106,7 +106,7 @@ class AdvancedTests extends FreeSpec{
     "dropping the result of Futures which return out of order" in {
       var p = Seq[Promise[Int]](Promise(), Promise(), Promise())
       val a = Var(0)
-      val b = AsyncSig(10){ p(a()).future }.discardLate
+      val b = Sig{ p(a()).future }.async(10, AsyncCombinators.DiscardLate[Int])
 
       assert(b() === 10)
 

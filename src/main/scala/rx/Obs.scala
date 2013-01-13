@@ -29,4 +29,7 @@ case class Obs(name: String, es: Seq[Flow.Emitter[Any]])(callback: () => Unit) e
     }
     Nil
   }
+  def trigger() = {
+    this.ping(this.getParents)
+  }
 }
