@@ -3,7 +3,7 @@ package rx
 import concurrent.{ExecutionContext, Future}
 import java.util.concurrent.atomic.{AtomicLong, AtomicInteger}
 import util.Try
-import rx.AsyncCombinators.BaseTarget
+
 
 abstract class Target[T](default: T) extends Signal[T]{
 
@@ -17,7 +17,7 @@ abstract class Target[T](default: T) extends Signal[T]{
   def currentValue = outputVar.currentValue
   def toTry = outputVar.toTry
 }
-
+//object AsyncCombinators extends AsyncCombinators
 object AsyncCombinators{
   implicit class pimpedAsyncSig[T](source: AsyncSig[T]){
     def discardLate = DiscardLate(source.currentValue)

@@ -106,7 +106,7 @@ class AdvancedTests extends FreeSpec{
     "dropping the result of Futures which return out of order" in {
       var p = Seq[Promise[Int]](Promise(), Promise(), Promise())
       val a = Var(0)
-      val b = Sig{ p(a()).future }.async(10, AsyncCombinators.DiscardLate[Int])
+      val b = Sig{ p(a()).future }.async(10, _.DiscardLate.apply)
 
       assert(b() === 10)
 
