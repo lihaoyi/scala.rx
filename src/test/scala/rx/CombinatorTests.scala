@@ -31,16 +31,16 @@ class CombinatorTests extends FreeSpec{
       a() = 8
       assert(count === 0)
     }
-    "filterDiff" in test[Int](_.filterDiff(_%2 != _%2))
-    "skipDiff" in test[Int](_.skipDiff(_%2 == _%2))
-    "filterTry" in test[Int](_.filterTry(_.map(_%2) != _.map(_%2)))
-    "skipTry" in test[Int](_.skipTry(_.map(_%2) == _.map(_%2)))
-    def test[T](op: Signal[T] => Signal[T]) = {
+    "filterDiff" in test(x => _.filterDiff(_%x != _%x))
+    "skipDiff" in test(x => _.skipDiff(_%x == _%x))
+    "filterTry" in test(x => _.filterTry(_.map(_%x) != _.map(_%x)))
+    "skipTry" in test(x => _.skipTry(_.map(_%x) == _.map(_%x)))
+    def test(op: Int => Signal[Int] => Signal[Int]) = {
 
       val a = Var{10}
-      val b = a.filterDiff{_ % 2 != _ % 2}
+      val b = op(2)(a)
       val c = Sig{ b() }
-      val d = Sig{ a() }.filterDiff(_ % 3 != _ % 3)
+      val d = op(3)(Sig{ a() })
       a() = 12
       assert(c() === 10)
       assert(d() === 12)

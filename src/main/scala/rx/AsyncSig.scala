@@ -44,14 +44,17 @@ object AsyncCombinators{
   }
 }
 
-
-case class AsyncNode[T](target: Var[T])
+case class AsyncNode[T](source: Signal[T])
 extends Call.Emitter[T]
 with Signal[T]
 with Call.Reactor[T]{
+  var count = new AtomicLong(0)
+  val listener = Obs(source){
+    //dostuff
+  }
 
   def pingChildren() = {
-    target
+
   }
 
   def level = ???
