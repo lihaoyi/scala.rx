@@ -5,6 +5,8 @@ import annotation.tailrec
 
 package object rx {
 
+  object NoInitializedException extends Exception()
+
   @tailrec def propagate(nodes: Seq[(Emitter[Any], Reactor[Nothing])]): Unit = {
     if (nodes.length != 0){
       val minLevel = nodes.minBy(_._2.level)._2.level

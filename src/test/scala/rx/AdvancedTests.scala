@@ -33,7 +33,7 @@ class AdvancedTests extends FreeSpec{
     }
   }
   "async" - {
-    def pause = Thread.sleep(10)
+    def pause = Thread.sleep(100)
     "basic example" in {
       val p = Promise[Int]()
       val a = AsyncSig(10){

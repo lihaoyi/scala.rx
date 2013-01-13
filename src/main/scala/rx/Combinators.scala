@@ -5,22 +5,31 @@ import util.{Try, Failure, Success}
 object Combinators{
   implicit class pimpedSig[T](source: Signal[T]){
 
-    def skipFailures = new FilterSig(source)((oldTry, newTry) => newTry.isSuccess)
+    def skipFailures = filterSig(source)((oldTry, newTry) => newTry.isSuccess)
 
     def skipTry(predicate: (Try[T], Try[T]) => Boolean) = filterTry((x, y) => !predicate(x, y))
-    def filterTry(predicate: (Try[T], Try[T]) => Boolean) = new FilterSig(source)(predicate)
+    def filterTry(predicate: (Try[T], Try[T]) => Boolean) = filterSig(source)(predicate)
 
-    def skip(successPred: (T, T) => Boolean = _!=_,
+    def skipDiff(successPred: (T, T) => Boolean = _!=_,
              failurePred: (Throwable, Throwable) => Boolean = _!=_) = {
-      filter(
+      filterDiff(
         (x, y) => !successPred(x, y) ,
         (x, y) => !failurePred(x, y)
       )
     }
-    def filter(successPred: (T, T) => Boolean = _!=_,
+    def filter(successPred: T => Boolean, failurePred: Throwable => Boolean = x => true) = {
+      new WrapSig[T, T](source)(
+        (x, y) => (x, y) match {
+          case (_, Success(value)) if successPred(value) => Success(value)
+          case (_, Failure(thrown)) if failurePred(thrown) => Failure(thrown)
+          case (old, _) => old
+        }
+      )
+    }
+    def filterDiff(successPred: (T, T) => Boolean = _!=_,
                failurePred: (Throwable, Throwable) => Boolean = _!=_) = {
 
-      new FilterSig[T](source)(
+      filterSig[T](source)(
         (x, y) => (x, y) match {
           case (Success(a), Success(b)) => successPred(a, b)
           case (Failure(a), Failure(b)) => failurePred(a, b)
@@ -32,9 +41,9 @@ object Combinators{
     def map[A](f: T => A) = new WrapSig[A, T](source)((x, y) => y.map(f))
   }
 
-  class FilterSig[T](source: Signal[T])
-                    (predicate: (Try[T], Try[T]) => Boolean)
-  extends WrapSig(source)((x: Try[T], y: Try[T]) => if (predicate(x, y)) y else x)
+  def filterSig[T](source: Signal[T])(predicate: (Try[T], Try[T]) => Boolean) = {
+    new WrapSig(source)((x: Try[T], y: Try[T]) => if (predicate(x, y)) y else x)
+  }
 
   class WrapSig[T, A](source: Signal[A])(transformer: (Try[T], Try[A]) => Try[T])
   extends Signal[T]
@@ -57,5 +66,7 @@ object Combinators{
       }
     }
   }
+
+
 }
-object NoHistoryException extends Exception()
+

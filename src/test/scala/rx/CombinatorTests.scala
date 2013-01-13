@@ -1,6 +1,7 @@
 package rx
 
 import org.scalatest._
+
 import scala.concurrent.Promise
 import scala.concurrent.ExecutionContext.Implicits.global
 import Combinators._
@@ -19,27 +20,27 @@ class CombinatorTests extends FreeSpec{
     assert(z() === 40)
   }
 
-  "filter/skips" - {
+  "filterDiff/skipDiff" - {
     "default" in {
       val a = Var(10)
       var b = 8
       val c = Sig{ a() + b }
       var count = 0
-      val o = Obs(c.filter()){ count += 1 }
+      val o = Obs(c.filterDiff()){ count += 1 }
       b = 10
       a() = 8
       assert(count === 0)
     }
-    "filter" in test[Int](_.filter(_%2 != _%2))
-    "skip" in test[Int](_.skip(_%2 == _%2))
+    "filterDiff" in test[Int](_.filterDiff(_%2 != _%2))
+    "skipDiff" in test[Int](_.skipDiff(_%2 == _%2))
     "filterTry" in test[Int](_.filterTry(_.map(_%2) != _.map(_%2)))
     "skipTry" in test[Int](_.skipTry(_.map(_%2) == _.map(_%2)))
     def test[T](op: Signal[T] => Signal[T]) = {
 
       val a = Var{10}
-      val b = a.filter{_ % 2 != _ % 2}
+      val b = a.filterDiff{_ % 2 != _ % 2}
       val c = Sig{ b() }
-      val d = Sig{ a() }.filter(_ % 3 != _ % 3)
+      val d = Sig{ a() }.filterDiff(_ % 3 != _ % 3)
       a() = 12
       assert(c() === 10)
       assert(d() === 12)
@@ -54,5 +55,28 @@ class CombinatorTests extends FreeSpec{
       assert(d() === 15)
 
     }
+  }
+  "filter" in {
+    val a = Var(10)
+    val b = a.filter(_ > 5)
+    a() = 1
+    assert(b() === 10)
+    a() = 6
+    assert(b() === 6)
+    a() = 2
+    assert(b() === 6)
+    a() = 19
+    assert(b() === 19)
+  }
+  "map" in {
+    val a = Var(10)
+    val b = Sig{ a() + 2 }
+    val c = a.map(_*2)
+    val d = b.map(_+3)
+    assert(c() === 20)
+    assert(d() === 15)
+    a() = 1
+    assert(c() === 2)
+    assert(d() === 6)
   }
 }
