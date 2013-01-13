@@ -3,7 +3,7 @@ package rx
 import util.{Try, Failure, Success}
 
 object Combinators{
-  implicit class pimpedSig[T](source: Flow.Signal[T]){
+  implicit class pimpedSig[T](source: Signal[T]){
 
     def skipFailures = filterSig(source)((oldTry, newTry) => newTry.isSuccess)
 
@@ -41,12 +41,12 @@ object Combinators{
     def map[A](f: T => A) = new WrapSig[A, T](source)((x, y) => y.map(f))
   }
 
-  def filterSig[T](source: Flow.Signal[T])(predicate: (Try[T], Try[T]) => Boolean) = {
+  def filterSig[T](source: Signal[T])(predicate: (Try[T], Try[T]) => Boolean) = {
     new WrapSig(source)((x: Try[T], y: Try[T]) => if (predicate(x, y)) y else x)
   }
 
-  class WrapSig[T, A](source: Flow.Signal[A])(transformer: (Try[T], Try[A]) => Try[T])
-  extends Flow.Signal[T]
+  class WrapSig[T, A](source: Signal[A])(transformer: (Try[T], Try[A]) => Try[T])
+  extends Signal[T]
   with Flow.Reactor[Any]{
 
     var lastResult = transformer(Failure(null), source.toTry)

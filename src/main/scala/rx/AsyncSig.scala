@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.{AtomicLong, AtomicInteger}
 import util.Try
 import rx.AsyncCombinators.BaseTarget
 
-abstract class Target[T](default: T) extends Flow.Signal[T]{
+abstract class Target[T](default: T) extends Signal[T]{
 
   val outputVar = Var(default)
   def handleSend(id: Long): Unit
@@ -44,6 +44,29 @@ object AsyncCombinators{
   }
 }
 
+
+case class AsyncNode[T](target: Var[T])
+extends Call.Emitter[T]
+with Signal[T]
+with Call.Reactor[T]{
+
+  def pingChildren() = {
+    target
+  }
+
+  def level = ???
+
+  def currentValue = ???
+
+  def toTry = ???
+
+  def name = ???
+
+  def update(msg: T) {}
+
+  def update(msg: Try[T]) {}
+}
+
 object AsyncSig{
   def apply[T](default: T)
                  (calc: => Future[T])
@@ -54,7 +77,7 @@ object AsyncSig{
 
 class AsyncSig[+T](val name: String, default: T, calc: () => Future[T])
                   (implicit executor: ExecutionContext)
-extends Flow.Signal[T]{
+extends Signal[T]{
 
   val count = new AtomicLong(0)
   private[this] val thisTarget = BaseTarget(default)

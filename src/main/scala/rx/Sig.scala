@@ -28,7 +28,7 @@ case class SigState[+T](parents: Seq[Flow.Emitter[Any]],
  * @param calc The method of calculating the future of this Sig
  * @tparam T The type of the future this contains
  */
-class Sig[+T](val name: String, calc: () => T) extends Flow.Signal[T] with Flow.Reactor[Any]{
+class Sig[+T](val name: String, calc: () => T) extends Signal[T] with Flow.Reactor[Any]{
 
   @volatile var active = true
   @volatile private[this] var state: SigState[T] = fullCalc(Option(Sig.enclosing.value).map(_.level + 1).getOrElse(0))
