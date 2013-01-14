@@ -21,6 +21,8 @@ object Flow{
     def getChildren: Seq[Reactor[Nothing]] = children.keys.toSeq
 
     def linkChild[R >: T](child: Reactor[R]) = children(child) = ()
+
+    def getEmitter: Emitter[T] = this
   }
 
   /**

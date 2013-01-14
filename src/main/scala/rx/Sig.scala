@@ -50,9 +50,12 @@ class Sig[+T](val name: String, calc: () => T) extends Signal[T] with Flow.React
       val enclosingLevel: Long = Option(Sig.enclosing.value).map(_.level + 1).getOrElse(0)
       val newLevel = math.max(newState.level, enclosingLevel)
 
-      state = newState.copy(newState.parents, newState.value, newLevel)
-      getChildren
-
+      if(newState.value != state.value){
+        state = newState.copy(level = newLevel)
+        getChildren
+      }else{
+        Nil
+      }
     }else {
       Nil
     }

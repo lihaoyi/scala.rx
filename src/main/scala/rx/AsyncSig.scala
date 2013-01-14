@@ -8,17 +8,10 @@ import akka.actor.{Actor, Cancellable, ActorSystem}
 import rx.Flow.Reactor
 
 
-abstract class Target[T](default: T) extends Signal[T]{
-
+abstract class Target[T](default: T){
   val outputVar = Var(default)
   def handleSend(id: Long): Unit
   def handleReceive(id: Long, value: Try[T]): Unit
-
-  override def apply() = outputVar.apply()
-  def level = outputVar.level
-  def name = outputVar.name
-  def currentValue = outputVar.currentValue
-  def toTry = outputVar.toTry
 }
 
 object AsyncCombinators{
@@ -27,7 +20,10 @@ object AsyncCombinators{
   }
   case class BaseTarget[T](default: T) extends Target[T](default){
     def handleSend(id: Long) = ()
-    def handleReceive(id: Long, value: Try[T]) = outputVar() = value
+    def handleReceive(id: Long, value: Try[T]) = {
+      println("handleReceive " + value)
+      outputVar() = value
+    }
   }
 
   case class DiscardLate[T](default: T) extends Target[T](default){
@@ -45,6 +41,7 @@ object AsyncCombinators{
     }
   }
 }
+
 class DebouncedSig[+T](source: Signal[T], interval: FiniteDuration)
                       (implicit system: ActorSystem, ex: ExecutionContext)
 extends Signal[T]{
@@ -54,7 +51,7 @@ extends Signal[T]{
 
   private[this] val outputVar = Var(source.currentValue)
 
-  val listener = Obs(source){
+  private[this] val listener = Obs(source){
 
     def update(value: Try[T]): Unit = {
       if (Deadline.now > nextTime){
@@ -68,9 +65,10 @@ extends Signal[T]{
     update(source.toTry)
   }
 
+  override def getEmitter = outputVar.getEmitter
   override def getChildren = outputVar.getChildren
-
   override def linkChild[R >: T](child: Reactor[R]) = outputVar.linkChild(child)
+  override def apply(): T = outputVar.apply()
   def level = source.level + 1
   def name = "debounced " + source.name
   def currentValue = outputVar.currentValue
@@ -93,9 +91,15 @@ extends Signal[T]{
   }
   listener.trigger()
 
+  override def getEmitter = thisTarget.outputVar.getEmitter
+  override def getChildren = thisTarget.outputVar.getChildren
+  override def linkChild[R >: T](child: Reactor[R]) = {
+    thisTarget.outputVar.linkChild(child)
+  }
+  override def apply(): T = thisTarget.outputVar.apply()
   def name = "async " + source.name
-  def level = thisTarget.level
-  def currentValue = thisTarget.currentValue
-  def toTry = thisTarget.toTry
-  override def apply(): T = thisTarget.apply()
+  def level = thisTarget.outputVar.level
+  def currentValue = thisTarget.outputVar.currentValue
+  def toTry = thisTarget.outputVar.toTry
+
 }

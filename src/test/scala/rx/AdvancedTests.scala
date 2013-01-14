@@ -1,12 +1,16 @@
 package rx
 
 import org.scalatest._
+import concurrent.Eventually
+
 import util.{Failure, Success}
-import scala.concurrent.Promise
+import scala.concurrent.{Future, Promise}
+import scala.concurrent.duration._
 import Combinators._
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class AdvancedTests extends FreeSpec{
+
+class AdvancedTests extends FreeSpec with Eventually{
   "disabling" - {
     "sigs" in {
       val a = Var(1)
@@ -122,6 +126,20 @@ class AdvancedTests extends FreeSpec{
       p(0).complete(scala.util.Success(0))
       pause
       assert(b() === 2)
+    }
+
+    "ensuring apply does the right thing" in {
+      val a = Var(0)
+      val b = Sig{ Future.successful(10 + a()) }.async(10)
+      var count = 0
+      val o = Obs(b){ println("FIRE"); count += 1 }
+      a() = 10
+
+      eventually{
+        println(count)
+        assert(count == 1)
+      }
+
     }
   }
 

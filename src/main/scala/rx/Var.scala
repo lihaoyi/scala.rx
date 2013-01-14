@@ -8,9 +8,7 @@ import java.util.concurrent.atomic.AtomicReference
  * Contains a future that can be updated manually, triggering his children.
  */
 object Var {
-
-  def apply[T](value: T)
-              (implicit name: String = "") = {
+  def apply[T](value: T)(implicit name: String = "") = {
     new Var(name, value)
   }
 }
@@ -25,19 +23,22 @@ object Var {
  */
 case class Var[T](name: String, initValue: T)
 extends Signal[T]{
-  val currentValueHolder = new AtomicReference[Try[T]](Success(initValue))
+  private[this] val currentValueHolder = new AtomicReference[Try[T]](Success(initValue))
   def level = 0L
 
   def currentValue = toTry.get
   def update(newValue: Try[T]): Unit = {
-
-    currentValueHolder.set(newValue)
-    propagate(this.getChildren.map(this -> _))
+    if (newValue != toTry){
+      currentValueHolder.set(newValue)
+      propagate(this.getChildren.map(this -> _))
+    }
   }
 
   def update(newValue: T): Unit = {
-    currentValueHolder.set(Success(newValue))
-    propagate(this.getChildren.map(this -> _))
+    if (Success(newValue) != toTry){
+      currentValueHolder.set(Success(newValue))
+      propagate(this.getChildren.map(this -> _))
+    }
   }
 
   def toTry = currentValueHolder.get
