@@ -27,7 +27,7 @@ case class Var[T](name: String, val initValue: T) extends Settable[T]{
   override def update(calc: T => T) = super.update(calc)
 }
 
-trait Settable[T] extends Signal[T]{
+trait Settable[+T] extends Signal[T]{
 
   def level = 0L
   protected[this] def initValue: T

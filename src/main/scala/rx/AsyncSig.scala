@@ -44,35 +44,31 @@ object AsyncCombinators{
 
 class DebouncedSig[+T](source: Signal[T], interval: FiniteDuration)
                       (implicit system: ActorSystem, ex: ExecutionContext)
-extends Signal[T]{
+extends Settable[T]{
+  protected[this] lazy val initValue = source.currentValue
+  def name = "debounced " + source.name
 
   private[this] var nextTime = Deadline.now
   private[this] var lastOutput: Option[(Try[T], Cancellable)] = None
 
-  private[this] val outputVar = Var(source.currentValue)
 
   private[this] val listener = Obs(source){
 
-    def update(value: Try[T]): Unit = {
+    def updateRecurse(value: Try[T]): Unit = {
       if (Deadline.now > nextTime){
-        outputVar() = value
+        this() = value
         nextTime = Deadline.now + interval
       }else{
         for ((value, cancellable) <- lastOutput) cancellable.cancel()
-        lastOutput = Some(source.toTry -> system.scheduler.scheduleOnce(interval)(update(value)))
+        lastOutput = Some(source.toTry -> system.scheduler.scheduleOnce(interval)(updateRecurse(value)))
       }
     }
-    update(source.toTry)
+    updateRecurse(source.toTry)
   }
 
-  override def getEmitter = outputVar.getEmitter
-  override def getChildren = outputVar.getChildren
-  override def linkChild[R >: T](child: Reactor[R]) = outputVar.linkChild(child)
-  override def apply(): T = outputVar.apply()
-  def level = source.level + 1
-  def name = "debounced " + source.name
-  def currentValue = outputVar.currentValue
-  def toTry = outputVar.toTry
+
+
+
 }
 class AsyncSig[+T](default: T, source: Signal[Future[T]], target: T => Target[T])
                   (implicit executor: ExecutionContext)
