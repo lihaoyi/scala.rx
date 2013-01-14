@@ -12,6 +12,7 @@ import util.Try
  * @tparam T The type of the future this signal contains
  */
 trait Signal[+T] extends Flow.Emitter[T]{
+
   def currentValue: T
 
   def now: T = currentValue

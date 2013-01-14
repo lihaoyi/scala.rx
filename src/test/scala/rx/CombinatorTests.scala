@@ -1,11 +1,15 @@
 package rx
 
 import org.scalatest._
-
 import scala.concurrent.Promise
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import Combinators._
-class CombinatorTests extends FreeSpec{
+import org.scalatest.concurrent.Eventually
+import akka.actor.ActorSystem
+
+class CombinatorTests extends FreeSpec with Eventually{
+  implicit val system = ActorSystem()
   "skipFailure" in {
     val x = Var(10)
     val y = Sig{ 100 / x() }.skipFailures
@@ -78,5 +82,31 @@ class CombinatorTests extends FreeSpec{
     a() = 1
     assert(c() === 2)
     assert(d() === 6)
+  }
+  "debounce" in {
+    val a = Var(10)
+    val b = a.debounce(50 millis)
+    val c = Sig( a() * 2 ).debounce(50 millis)
+    var count = 0
+    val ob = Obs(b){ count += 1 }
+    val oa = Obs(c){ count += 1 }
+
+    a() = 5
+    assert(b() === 5)
+    assert(c() === 10)
+    a() = 2
+    assert(b() === 5)
+    assert(c() === 10)
+    a() = 4
+    assert(b() === 5)
+    assert(c() === 10)
+    a() = 7
+    assert(b() === 5)
+    assert(c() === 10)
+    eventually{
+      assert(b() === 7)
+      assert(c() === 14)
+    }
+
   }
 }

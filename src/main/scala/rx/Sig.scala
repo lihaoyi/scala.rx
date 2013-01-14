@@ -11,7 +11,6 @@ import concurrent.{ExecutionContext, Future}
 object Sig{
 
   def apply[T](calc: => T)(implicit name: String = ""): Sig[T] = {
-
     new Sig(name, () => calc)
   }
 

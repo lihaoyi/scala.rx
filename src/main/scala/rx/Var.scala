@@ -24,8 +24,7 @@ object Var {
  * @tparam T The type of the future this Var contains
  */
 case class Var[T](name: String, initValue: T)
-extends Signal[T]
-with Call.Reactor[T]{
+extends Signal[T]{
   val currentValueHolder = new AtomicReference[Try[T]](Success(initValue))
   def level = 0L
 
