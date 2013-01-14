@@ -21,19 +21,21 @@ object Var {
  * @param initValue The initial future of the Var
  * @tparam T The type of the future this Var contains
  */
-case class Var[T](name: String, val initValue: T) extends Settable[T]{
+case class Var[T](name: String, val initValue: T) extends Settable[T](initValue){
   override def update(newValue: Try[T]) = super.update(newValue)
   override def update(newValue: T) = super.update(newValue)
   override def update(calc: T => T) = super.update(calc)
 }
 
-trait Settable[+T] extends Signal[T]{
+abstract class Settable[+T](initValue: T) extends Signal[T]{
 
   def level = 0L
-  protected[this] def initValue: T
+
   private[this] val currentValueHolder = new AtomicReference[Try[T]](Success(initValue))
   def currentValue = toTry.get
   def toTry = currentValueHolder.get
+
+
   protected[this] def update(newValue: Try[T]): Unit = {
     if (newValue != toTry){
       currentValueHolder.set(newValue)
@@ -50,7 +52,6 @@ trait Settable[+T] extends Signal[T]{
 
 
   protected[this] def update(calc: T => T): Unit = {
-
     val oldValue = currentValue
     val newValue = calc(oldValue)
     if(!currentValueHolder.compareAndSet(Success(oldValue), Success(newValue))) update(calc)

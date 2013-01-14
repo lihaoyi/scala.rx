@@ -26,9 +26,8 @@ case class Obs(name: String, es: Seq[Flow.Emitter[Any]])(callback: () => Unit) e
   def ping(incoming: Seq[Flow.Emitter[Any]]) = {
 
     if (active && getParents.map(_.getEmitter).intersect(incoming.map(_.getEmitter)).isDefinedAt(0)){
-      println("Win")
       util.Try(callback())
-    }else println("Fail")
+    }
     Nil
   }
   def trigger() = {

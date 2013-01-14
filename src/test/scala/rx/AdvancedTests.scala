@@ -73,7 +73,7 @@ class AdvancedTests extends FreeSpec with Eventually{
       val a = Var(1)
       val b = Sig{
         val A = a()
-        p.future.map{x => println(x + 1); x + A}
+        p.future.map{x => x + A}
       }.async(10)
       val c = Sig{ b() + 1 }
       assert(c() === 11)

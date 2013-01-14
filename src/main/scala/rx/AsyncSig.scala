@@ -9,9 +9,8 @@ import rx.Flow.Reactor
 
 
 abstract class Target[T](default: T){
-  val outputVar = Var(default)
   def handleSend(id: Long): Unit
-  def handleReceive(id: Long, value: Try[T]): Unit
+  def handleReceive(id: Long, value: Try[T], callback: Try[T] => Unit): Unit
 }
 
 object AsyncCombinators{
@@ -20,9 +19,8 @@ object AsyncCombinators{
   }
   case class BaseTarget[T](default: T) extends Target[T](default){
     def handleSend(id: Long) = ()
-    def handleReceive(id: Long, value: Try[T]) = {
-      println("handleReceive " + value)
-      outputVar() = value
+    def handleReceive(id: Long, value: Try[T], callback: Try[T] => Unit) = {
+      callback(value)
     }
   }
 
@@ -33,10 +31,10 @@ object AsyncCombinators{
     def handleSend(id: Long) = {
       sendIndex.set(id)
     }
-    def handleReceive(id: Long, value: Try[T]) = {
+    def handleReceive(id: Long, value: Try[T], callback: Try[T] => Unit) = {
       if (id >= receiveIndex.get()){
         receiveIndex.set(id)
-        outputVar() = value
+        callback(value)
       }
     }
   }
@@ -44,8 +42,8 @@ object AsyncCombinators{
 
 class DebouncedSig[+T](source: Signal[T], interval: FiniteDuration)
                       (implicit system: ActorSystem, ex: ExecutionContext)
-extends Settable[T]{
-  protected[this] lazy val initValue = source.currentValue
+extends Settable[T](source.currentValue){
+
   def name = "debounced " + source.name
 
   private[this] var nextTime = Deadline.now
@@ -65,37 +63,25 @@ extends Settable[T]{
     }
     updateRecurse(source.toTry)
   }
-
-
-
-
 }
-class AsyncSig[+T](default: T, source: Signal[Future[T]], target: T => Target[T])
-                  (implicit executor: ExecutionContext)
-extends Signal[T]{
 
-  val count = new AtomicLong(0)
-  private[this] val thisTarget = target(default)
-  private[this] var targets = Seq(thisTarget)
+class AsyncSig[+T](default: T, source: Signal[Future[T]], targetC: T => Target[T])
+                  (implicit executor: ExecutionContext)
+extends Settable[T](default){
+  def name = "async " + source.name
+  private[this] lazy val count = new AtomicLong(0)
+  private[this] lazy val target = targetC(default)
+
   private[this] val listener = Obs(source){
     val future = source()
     val id = count.getAndIncrement
-    targets.foreach(_.handleSend(id))
+    target.handleSend(id)
     future.onComplete{ x =>
-      targets.foreach(_.handleReceive(id, x))
+      target.handleReceive(id, x, this() = _)
     }
   }
   listener.trigger()
 
-  override def getEmitter = thisTarget.outputVar.getEmitter
-  override def getChildren = thisTarget.outputVar.getChildren
-  override def linkChild[R >: T](child: Reactor[R]) = {
-    thisTarget.outputVar.linkChild(child)
-  }
-  override def apply(): T = thisTarget.outputVar.apply()
-  def name = "async " + source.name
-  def level = thisTarget.outputVar.level
-  def currentValue = thisTarget.outputVar.currentValue
-  def toTry = thisTarget.outputVar.toTry
+
 
 }
