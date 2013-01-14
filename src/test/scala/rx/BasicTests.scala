@@ -81,13 +81,13 @@ class BasicTests extends FreeSpec{
         var bS = 0;     val bO = Obs(b){ bS += 1 }
         var cS = 0;     val cO = Obs(c){ cS += 1 }
         var dS = 0;     val dO = Obs(d){ dS += 1 }
-        println("\n1")
+
         a() = 2
-        println("1\n")
+
         assert(bS === 1);   assert(cS === 1);   assert(dS === 1)
-        println("\n2")
+
         a() = 1
-        println("2\n")
+
         assert(bS === 2);   assert(cS === 2);   assert(dS === 2)
       }
     }

@@ -128,15 +128,14 @@ class AdvancedTests extends FreeSpec with Eventually{
       assert(b() === 2)
     }
 
-    "ensuring apply does the right thing" in {
+    "ensuring that events emerge from the .async Sig" in {
       val a = Var(0)
       val b = Sig{ Future.successful(10 + a()) }.async(10)
       var count = 0
-      val o = Obs(b){ println("FIRE"); count += 1 }
+      val o = Obs(b){ count += 1 }
       a() = 10
 
       eventually{
-        println(count)
         assert(count == 1)
       }
 

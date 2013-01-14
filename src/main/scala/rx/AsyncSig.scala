@@ -49,7 +49,6 @@ extends Settable[T](source.currentValue){
   private[this] var nextTime = Deadline.now
   private[this] var lastOutput: Option[(Try[T], Cancellable)] = None
 
-
   private[this] val listener = Obs(source){
 
     def updateRecurse(value: Try[T]): Unit = {
@@ -81,7 +80,4 @@ extends Settable[T](default){
     }
   }
   listener.trigger()
-
-
-
 }
