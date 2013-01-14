@@ -21,28 +21,35 @@ object Var {
  * @param initValue The initial future of the Var
  * @tparam T The type of the future this Var contains
  */
-case class Var[T](name: String, initValue: T)
-extends Signal[T]{
-  private[this] val currentValueHolder = new AtomicReference[Try[T]](Success(initValue))
-  def level = 0L
+case class Var[T](name: String, val initValue: T) extends Settable[T]{
+  override def update(newValue: Try[T]) = super.update(newValue)
+  override def update(newValue: T) = super.update(newValue)
+  override def update(calc: T => T) = super.update(calc)
+}
 
+trait Settable[T] extends Signal[T]{
+
+  def level = 0L
+  protected[this] def initValue: T
+  private[this] val currentValueHolder = new AtomicReference[Try[T]](Success(initValue))
   def currentValue = toTry.get
-  def update(newValue: Try[T]): Unit = {
+  def toTry = currentValueHolder.get
+  protected[this] def update(newValue: Try[T]): Unit = {
     if (newValue != toTry){
       currentValueHolder.set(newValue)
       propagate(this.getChildren.map(this -> _))
     }
   }
 
-  def update(newValue: T): Unit = {
+  protected[this] def update(newValue: T): Unit = {
     if (Success(newValue) != toTry){
       currentValueHolder.set(Success(newValue))
       propagate(this.getChildren.map(this -> _))
     }
   }
 
-  def toTry = currentValueHolder.get
-  def update(calc: T => T): Unit = {
+
+  protected[this] def update(calc: T => T): Unit = {
 
     val oldValue = currentValue
     val newValue = calc(oldValue)
