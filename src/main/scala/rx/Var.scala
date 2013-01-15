@@ -50,7 +50,6 @@ abstract class Settable[+T](initValue: T) extends Signal[T]{
     }
   }
 
-
   protected[this] def update(calc: T => T): Unit = {
     val oldValue = currentValue
     val newValue = calc(oldValue)

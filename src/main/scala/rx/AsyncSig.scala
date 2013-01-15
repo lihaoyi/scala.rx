@@ -42,25 +42,21 @@ object AsyncCombinators{
 
 class DebouncedSig[+T](source: Signal[T], interval: FiniteDuration)
                       (implicit system: ActorSystem, ex: ExecutionContext)
-extends Settable[T](source.currentValue){
-
-  def name = "debounced " + source.name
-
+extends Sig[T]("debounced " + source.name, () => source()){
   private[this] var nextTime = Deadline.now
   private[this] var lastOutput: Option[(Try[T], Cancellable)] = None
 
-  private[this] val listener = Obs(source){
-
-    def updateRecurse(value: Try[T]): Unit = {
+  override def ping(incoming: Seq[Flow.Emitter[Any]]) = {
+    if (active && getParents.intersect(incoming).isDefinedAt(0)){
       if (Deadline.now > nextTime){
-        this() = value
         nextTime = Deadline.now + interval
+        super.ping(incoming)
       }else{
         for ((value, cancellable) <- lastOutput) cancellable.cancel()
-        lastOutput = Some(source.toTry -> system.scheduler.scheduleOnce(interval)(updateRecurse(value)))
+        lastOutput = Some(source.toTry -> system.scheduler.scheduleOnce(interval)(ping(incoming)))
+        Nil
       }
-    }
-    updateRecurse(source.toTry)
+    } else Nil
   }
 }
 
