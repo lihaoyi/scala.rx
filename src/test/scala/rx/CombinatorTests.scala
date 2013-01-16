@@ -4,7 +4,6 @@ import org.scalatest._
 import scala.concurrent.Promise
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
-import Combinators._
 import org.scalatest.concurrent.Eventually
 import akka.actor.ActorSystem
 

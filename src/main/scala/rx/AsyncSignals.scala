@@ -9,6 +9,11 @@ import rx.Flow.{Settable, Reactor, Signal}
 import rx.SyncSignals.DynamicSignal
 
 
+/**
+ * A collection of Signals which may spontaneously update itself asynchronously,
+ * even when nothing is going on. Use the extension methods in Combinators to
+ * create these from other Rxs
+ */
 object AsyncSignals{
   implicit class pimpedAsyncSig[T](source: AsyncSig[T]){
     def discardLate = DiscardLate(source.currentValue)
@@ -39,6 +44,23 @@ object AsyncSignals{
     }
   }
 
+  class AsyncSig[+T](default: T, source: Signal[Future[T]], targetC: T => Target[T])
+                    (implicit executor: ExecutionContext)
+    extends Settable[T](default){
+    def name = "async " + source.name
+    private[this] lazy val count = new AtomicLong(0)
+    private[this] lazy val target = targetC(default)
+
+    private[this] val listener = Obs(source){
+      val future = source()
+      val id = count.getAndIncrement
+      target.handleSend(id)
+      future.onComplete{ x =>
+        target.handleReceive(id, x, this() = _)
+      }
+    }
+    listener.trigger()
+  }
   class DebouncedSig[+T](source: Signal[T], interval: FiniteDuration)
                         (implicit system: ActorSystem, ex: ExecutionContext)
     extends DynamicSignal[T]("debounced " + source.name, () => source()){
@@ -57,23 +79,5 @@ object AsyncSignals{
         }
       } else Nil
     }
-  }
-
-  class AsyncSig[+T](default: T, source: Signal[Future[T]], targetC: T => Target[T])
-                    (implicit executor: ExecutionContext)
-    extends Settable[T](default){
-    def name = "async " + source.name
-    private[this] lazy val count = new AtomicLong(0)
-    private[this] lazy val target = targetC(default)
-
-    private[this] val listener = Obs(source){
-      val future = source()
-      val id = count.getAndIncrement
-      target.handleSend(id)
-      future.onComplete{ x =>
-        target.handleReceive(id, x, this() = _)
-      }
-    }
-    listener.trigger()
   }
 }

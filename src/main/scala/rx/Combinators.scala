@@ -8,9 +8,12 @@ import Flow.Signal
 import AsyncSignals._
 import SyncSignals._
 
-
+/**
+ * A collection of methods which allow you to construct Rxs from other
+ * Rxs using method chaining
+ */
 object Combinators{
-  implicit class pimpedSig[T](source: Signal[T]){
+  implicit class pimpedSig[T](source: Signal[T]) {
 
     def skipFailures = filterSig(source)((oldTry, newTry) => newTry.isSuccess)
 

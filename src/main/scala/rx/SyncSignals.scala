@@ -4,20 +4,26 @@ import rx.Flow.Signal
 import util.{DynamicVariable, Failure, Try}
 import rx.SyncSignals.DynamicSignal.SigState
 
+/**
+ * A collection of Signals that update immediately when pinged. These should
+ * generally not be created directly; instead use the alias Rx in the package
+ * to construct DynamicSignals, and the extension methods defined in Combinators
+ * to build SyncSignals from other Rxs.
+ */
 object SyncSignals {
-  /**
-   * Contains a future that is kept up to date whenever the node's dependencies
-   * change
-   */
   object DynamicSignal{
 
+    /**
+     * Provides a nice wrapper to use to create DynamicSignals
+     */
     def apply[T](calc: => T)(implicit name: String = ""): DynamicSignal[T] = {
       new DynamicSignal(name, () => calc)
     }
 
-    val enclosing = new DynamicVariable[SigState[Any]](null)
-    val enclosingR = new DynamicVariable[Flow.Reactor[Any]](null)
-    case class SigState[+T](parents: Seq[Flow.Emitter[Any]],
+    private[rx] val enclosing = new DynamicVariable[SigState[Any]](null)
+    private[rx] val enclosingR = new DynamicVariable[Flow.Reactor[Any]](null)
+
+    private[rx]  case class SigState[+T](parents: Seq[Flow.Emitter[Any]],
                             value: Try[T],
                             level: Long)
   }

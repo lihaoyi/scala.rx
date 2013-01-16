@@ -2,11 +2,7 @@ package rx
 
 import org.scalatest._
 import concurrent.Eventually
-
-import util.{Failure, Success}
 import scala.concurrent.{Future, Promise}
-import scala.concurrent.duration._
-import Combinators._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 

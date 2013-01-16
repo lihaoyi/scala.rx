@@ -2,7 +2,6 @@ package rx
 import org.scalatest._
 import util.{Failure, Success}
 import scala.concurrent.{Promise, Future}
-import scala.concurrent.ExecutionContext.Implicits.global
 class BasicTests extends FreeSpec{
 
 
