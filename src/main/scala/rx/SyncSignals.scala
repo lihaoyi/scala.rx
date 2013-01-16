@@ -23,14 +23,19 @@ object SyncSignals {
     private[rx] val enclosing = new DynamicVariable[SigState[Any]](null)
     private[rx] val enclosingR = new DynamicVariable[Flow.Reactor[Any]](null)
 
-    private[rx]  case class SigState[+T](parents: Seq[Flow.Emitter[Any]],
+    case class SigState[+T](parents: Seq[Flow.Emitter[Any]],
                             value: Try[T],
                             level: Long)
   }
 
   /**
-   * A DynamicSignal is a signal that is defined relative to other signals, and updates
-   * automatically when they change.
+   * A DynamicSignal is a signal that is defined relative to other signals, and
+   * updates automatically when they change.
+   *
+   * Note that while the propagation tries to minimize the number of times a
+   * DynamicSignal needs to be recalculated, there is always going to be some
+   * redundant recalculation. Since this is unpredictable, the body of a
+   * DynamicSignal should always be side-effect free
    *
    * @param calc The method of calculating the future of this DynamicSignal
    * @tparam T The type of the future this contains
@@ -80,6 +85,11 @@ object SyncSignals {
     new WrapSig(source)((x: Try[T], y: Try[T]) => if (predicate(x, y)) y else x)
   }
 
+  /**
+   * A Signal which wraps a source Signal and allows you to specify a transform
+   * which will be applied whenever the source value changes. This decides on
+   * a new value to take based on both the old and new values of the source.
+   */
   class WrapSig[T, A](source: Signal[A])(transformer: (Try[T], Try[A]) => Try[T])
     extends Signal[T]
     with Flow.Reactor[Any]{

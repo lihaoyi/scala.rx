@@ -5,9 +5,6 @@ import java.util.concurrent.atomic.AtomicReference
 import Flow.Settable
 
 
-/**
- * Contains a future that can be updated manually, triggering his children.
- */
 object Var {
   def apply[T](value: T)(implicit name: String = "") = {
     new Var(name, value)
@@ -15,9 +12,7 @@ object Var {
 }
 
 /**
- * A Var is a Signal which can be changed manually via assignment. Setting
- * the future is thread-safe as the semantics are controlled by the `ready`
- * AtomicBoolean.
+ * A Var is a Signal which can be changed manually via assignment.
  *
  * @param initValue The initial future of the Var
  * @tparam T The type of the future this Var contains
@@ -39,9 +34,11 @@ object Obs{
 }
 
 /**
- * An Obs is something that reacts to pings and performs side effects.
+ * An Obs is something that produces side-effects when the source Signal
+ * changes. an Obs is always run right at the end of every propagation cycle,
+ * ensuring it is only called once per cycle (in contrast with Signal[T]s, which
+ * may update multiple times before settling)
  *
-
  * @param callback a callback to run when this Obs is pinged
  */
 case class Obs(name: String, source: Flow.Emitter[Any])(callback: () => Unit) extends Flow.Reactor[Any]{

@@ -8,17 +8,19 @@ import util.Try
 import scala.util.{Failure, Success}
 import java.util.concurrent.atomic.AtomicReference
 import rx.SyncSignals.DynamicSignal
+import annotation.tailrec
 
+/**
+ * Contains all the basic traits which are used throughout the construction
+ * of a dataflow graph
+ */
 object Flow{
 
   /**
-   * A Signal is a Val that can change over time, emitting pings whenever it
-   * changes. It can be thought of as an extension of Futures: a Future
-   * can only be completed once, and emit one event. A Signal, while also
-   * possibly starting-off un-set, can be set as many times as you want,
-   * generating an arbitrary number of events.
+   * A Signal is a value that can change over time, emitting pings whenever it
+   * changes.
    *
-   * @tparam T The type of the future this signal contains
+   * This trait is normally accessed by its alias Rx
    */
   trait Signal[+T] extends Flow.Emitter[T]{
 
@@ -39,10 +41,33 @@ object Flow{
       currentValue
     }
 
+    def poke() = {
+      Signal.propagate(this.getChildren.map(this -> _))
+    }
+
     def toTry: Try[T]
   }
+  object Signal{
+    @tailrec def propagate(nodes: Seq[(Flow.Emitter[Any], Flow.Reactor[Nothing])]): Unit = {
+      if (nodes.length != 0){
+        val minLevel = nodes.minBy(_._2.level)._2.level
+        val (now, later) = nodes.partition(_._2.level == minLevel)
+        val next = for{
+          (target, pingers) <- now.groupBy(_._2).mapValues(_.map(_._1).distinct).toSeq
+          nextTarget <- target.ping(pingers)
+        } yield {
+          target.asInstanceOf[Flow.Emitter[Any]] -> nextTarget
+        }
 
+        propagate(next ++ later)
+      }
+    }
+  }
 
+  /**
+   * Something which contains an initial value and who can update (its own)
+   * value, pinging its children.
+   */
   abstract class Settable[+T](initValue: T) extends Signal[T]{
 
     def level = 0L
@@ -55,14 +80,14 @@ object Flow{
     protected[this] def update(newValue: Try[T]): Unit = {
       if (newValue != toTry){
         currentValueHolder.set(newValue)
-        propagate(this.getChildren.map(this -> _))
+        poke()
       }
     }
 
     protected[this] def update(newValue: T): Unit = {
       if (Success(newValue) != toTry){
         currentValueHolder.set(Success(newValue))
-        propagate(this.getChildren.map(this -> _))
+        poke()
       }
     }
 
@@ -70,16 +95,14 @@ object Flow{
       val oldValue = currentValue
       val newValue = calc(oldValue)
       if(!currentValueHolder.compareAndSet(Success(oldValue), Success(newValue))) update(calc)
-      propagate(this.getChildren.map(this -> _))
+      poke()
     }
   }
 
 
   /**
-   * Something that emits events. Manages a list of WeakReferences containing
+   * Something that emits pings. Manages a list of WeakReferences containing
    * listeners which need to be pinged when an event is fired.
-   *
-   * @tparam T The type of the events emitted
    */
   trait Emitter[+T] extends Node{
 
@@ -93,9 +116,7 @@ object Flow{
   }
 
   /**
-   * Something that can receive events
-   *
-   * @tparam T The type of the event received
+   * Something that can receive pings
    */
   trait Reactor[-T] extends Node{
 
