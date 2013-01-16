@@ -6,7 +6,74 @@ import collection.mutable
 
 import util.Try
 import scala.util.{Failure, Success}
+import java.util.concurrent.atomic.AtomicReference
+import rx.SyncSignals.DynamicSignal
+
 object Flow{
+
+  /**
+   * A Signal is a Val that can change over time, emitting pings whenever it
+   * changes. It can be thought of as an extension of Futures: a Future
+   * can only be completed once, and emit one event. A Signal, while also
+   * possibly starting-off un-set, can be set as many times as you want,
+   * generating an arbitrary number of events.
+   *
+   * @tparam T The type of the future this signal contains
+   */
+  trait Signal[+T] extends Flow.Emitter[T]{
+
+    def currentValue: T
+
+    def now: T = currentValue
+
+    def apply(): T = {
+      val current = DynamicSignal.enclosing.value
+
+      if (current != null){
+        this.linkChild(DynamicSignal.enclosingR.value)
+        DynamicSignal.enclosing.value = current.copy(
+          level = math.max(this.level + 1, current.level),
+          parents = this +: current.parents
+        )
+      }
+      currentValue
+    }
+
+    def toTry: Try[T]
+  }
+
+
+  abstract class Settable[+T](initValue: T) extends Signal[T]{
+
+    def level = 0L
+
+    private[this] val currentValueHolder = new AtomicReference[Try[T]](Success(initValue))
+    def currentValue = toTry.get
+    def toTry = currentValueHolder.get
+
+
+    protected[this] def update(newValue: Try[T]): Unit = {
+      if (newValue != toTry){
+        currentValueHolder.set(newValue)
+        propagate(this.getChildren.map(this -> _))
+      }
+    }
+
+    protected[this] def update(newValue: T): Unit = {
+      if (Success(newValue) != toTry){
+        currentValueHolder.set(Success(newValue))
+        propagate(this.getChildren.map(this -> _))
+      }
+    }
+
+    protected[this] def update(calc: T => T): Unit = {
+      val oldValue = currentValue
+      val newValue = calc(oldValue)
+      if(!currentValueHolder.compareAndSet(Success(oldValue), Success(newValue))) update(calc)
+      propagate(this.getChildren.map(this -> _))
+    }
+  }
+
 
   /**
    * Something that emits events. Manages a list of WeakReferences containing

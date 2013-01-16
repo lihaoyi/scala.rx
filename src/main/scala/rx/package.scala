@@ -1,10 +1,12 @@
 
 
 import annotation.tailrec
+import concurrent.Future
+import rx.SyncSignals.DynamicSignal
 
 
 package object rx {
-
+  import Flow.Signal
   object NoInitializedException extends Exception()
 
   @tailrec def propagate(nodes: Seq[(Flow.Emitter[Any], Flow.Reactor[Nothing])]): Unit = {
@@ -21,5 +23,11 @@ package object rx {
       propagate(next ++ later)
     }
   }
+
+  type Rx[T] = Signal[T]
+  val Rx = DynamicSignal
+
+  implicit def pimpedSig[T](source: Rx[T]) = Combinators.pimpedSig(source)
+  implicit def pimpedFutureSig[T](source: Rx[Future[T]]) = Combinators.pimpedFutureSig(source)
 }
 

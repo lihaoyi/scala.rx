@@ -4,6 +4,10 @@ import util.{Try, Failure, Success}
 import concurrent.{ExecutionContext, Future}
 import concurrent.duration.{FiniteDuration, Duration}
 import akka.actor.ActorSystem
+import Flow.Signal
+import AsyncSignals._
+import SyncSignals._
+
 
 object Combinators{
   implicit class pimpedSig[T](source: Signal[T]){
@@ -48,36 +52,11 @@ object Combinators{
     }
   }
   implicit class pimpedFutureSig[T](source: Signal[Future[T]]){
-    def async(default: T, target: AsyncCombinators.type => T => Target[T] = xml => AsyncCombinators.BaseTarget[T])(implicit executor: ExecutionContext) = {
-      new AsyncSig(default, source, target(AsyncCombinators))
+    def async(default: T, target: AsyncSignals.type => T => AsyncSignals.Target[T] = xml => AsyncSignals.BaseTarget[T])(implicit executor: ExecutionContext) = {
+      new AsyncSig(default, source, target(AsyncSignals))
     }
   }
 
-  def filterSig[T](source: Signal[T])(predicate: (Try[T], Try[T]) => Boolean) = {
-    new WrapSig(source)((x: Try[T], y: Try[T]) => if (predicate(x, y)) y else x)
-  }
-
-  class WrapSig[T, A](source: Signal[A])(transformer: (Try[T], Try[A]) => Try[T])
-  extends Signal[T]
-  with Flow.Reactor[Any]{
-
-    var lastResult = transformer(Failure(null), source.toTry)
-    source.linkChild(this)
-
-    def level = source.level + 1
-    def name = "SkipFailure " + source.name
-    def currentValue = lastResult.get
-    def toTry = lastResult
-    def getParents = Seq(source)
-    def ping(incoming: Seq[Flow.Emitter[Any]]) = {
-      val newTry = transformer(lastResult, source.toTry)
-      if (newTry == toTry) Nil
-      else {
-        lastResult = newTry
-        getChildren
-      }
-    }
-  }
 
 
 }

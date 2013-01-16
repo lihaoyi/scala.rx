@@ -2,6 +2,7 @@ package rx
 
 import util.{Try, Success}
 import java.util.concurrent.atomic.AtomicReference
+import Flow.Settable
 
 
 /**
@@ -27,33 +28,36 @@ case class Var[T](name: String, val initValue: T) extends Settable[T](initValue)
   override def update(calc: T => T) = super.update(calc)
 }
 
-abstract class Settable[+T](initValue: T) extends Signal[T]{
 
-  def level = 0L
-
-  private[this] val currentValueHolder = new AtomicReference[Try[T]](Success(initValue))
-  def currentValue = toTry.get
-  def toTry = currentValueHolder.get
-
-
-  protected[this] def update(newValue: Try[T]): Unit = {
-    if (newValue != toTry){
-      currentValueHolder.set(newValue)
-      propagate(this.getChildren.map(this -> _))
-    }
+object Obs{
+  def apply[T](es: Flow.Emitter[Any])(callback: => Unit) = {
+    new Obs("", es)(() => callback)
   }
-
-  protected[this] def update(newValue: T): Unit = {
-    if (Success(newValue) != toTry){
-      currentValueHolder.set(Success(newValue))
-      propagate(this.getChildren.map(this -> _))
-    }
+  def cfg[T](name: String)(es: Flow.Emitter[Any])(callback: => Unit) = {
+    new Obs(name, es)(() => callback)
   }
+}
 
-  protected[this] def update(calc: T => T): Unit = {
-    val oldValue = currentValue
-    val newValue = calc(oldValue)
-    if(!currentValueHolder.compareAndSet(Success(oldValue), Success(newValue))) update(calc)
-    propagate(this.getChildren.map(this -> _))
+/**
+ * An Obs is something that reacts to pings and performs side effects.
+ *
+
+ * @param callback a callback to run when this Obs is pinged
+ */
+case class Obs(name: String, source: Flow.Emitter[Any])(callback: () => Unit) extends Flow.Reactor[Any]{
+  @volatile var active = true
+  source.linkChild(this)
+  def getParents = Seq(source)
+  def level = Long.MaxValue
+
+  def ping(incoming: Seq[Flow.Emitter[Any]]) = {
+
+    if (active && getParents.map(_.getEmitter).intersect(incoming.map(_.getEmitter)).isDefinedAt(0)){
+      util.Try(callback())
+    }
+    Nil
+  }
+  def trigger() = {
+    this.ping(this.getParents)
   }
 }

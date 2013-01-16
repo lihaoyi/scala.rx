@@ -12,8 +12,8 @@ class CombinatorTests extends FreeSpec with Eventually{
   implicit val system = ActorSystem()
   "skipFailure" in {
     val x = Var(10)
-    val y = Sig{ 100 / x() }.skipFailures
-    val z = Sig{ y() + 20 }
+    val y = Rx{ 100 / x() }.skipFailures
+    val z = Rx{ y() + 20 }
     assert(y() === 10)
     assert(z() === 30)
     x() = 0
@@ -28,7 +28,7 @@ class CombinatorTests extends FreeSpec with Eventually{
     "default" in {
       val a = Var(10)
       var b = 8
-      val c = Sig{ a() + b }
+      val c = Rx{ a() + b }
       var count = 0
       val o = Obs(c.filterDiff()){ count += 1 }
       b = 10
@@ -39,12 +39,12 @@ class CombinatorTests extends FreeSpec with Eventually{
     "skipDiff" in test(x => _.skipDiff(_%x == _%x))
     "filterTry" in test(x => _.filterTry(_.map(_%x) != _.map(_%x)))
     "skipTry" in test(x => _.skipTry(_.map(_%x) == _.map(_%x)))
-    def test(op: Int => Signal[Int] => Signal[Int]) = {
+    def test(op: Int => Rx[Int] => Rx[Int]) = {
 
       val a = Var{10}
       val b = op(2)(a)
-      val c = Sig{ b() }
-      val d = op(3)(Sig{ a() })
+      val c = Rx{ b() }
+      val d = op(3)(Rx{ a() })
       a() = 12
       assert(c() === 10)
       assert(d() === 12)
@@ -74,7 +74,7 @@ class CombinatorTests extends FreeSpec with Eventually{
   }
   "map" in {
     val a = Var(10)
-    val b = Sig{ a() + 2 }
+    val b = Rx{ a() + 2 }
     val c = a.map(_*2)
     val d = b.map(_+3)
     assert(c() === 20)
@@ -86,7 +86,7 @@ class CombinatorTests extends FreeSpec with Eventually{
   "debounce" in {
     val a = Var(10)
     val b = a.debounce(50 millis)
-    val c = Sig( a() * 2 ).debounce(50 millis)
+    val c = Rx( a() * 2 ).debounce(50 millis)
     var count = 0
     val ob = Obs(b){ count += 1 }
     val oa = Obs(c){ count += 1 }

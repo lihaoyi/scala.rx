@@ -14,7 +14,7 @@ class AdvancedTests extends FreeSpec with Eventually{
   "disabling" - {
     "sigs" in {
       val a = Var(1)
-      val b = Sig{ 2 * a() }
+      val b = Rx{ 2 * a() }
       assert(b() === 2)
       a() = 2
       assert(b() === 4)
@@ -24,7 +24,7 @@ class AdvancedTests extends FreeSpec with Eventually{
     }
     "obs" in {
       val a = Var(1)
-      val b = Sig{ 2 * a() }
+      val b = Rx{ 2 * a() }
       var target = 0
       val o = Obs(b){
         target = b()
@@ -41,7 +41,7 @@ class AdvancedTests extends FreeSpec with Eventually{
     def pause = Thread.sleep(100)
     "basic example" in {
       val p = Promise[Int]()
-      val a = Sig{
+      val a = Rx{
         p.future
       }.async(10)
       assert(a() === 10)
@@ -53,7 +53,7 @@ class AdvancedTests extends FreeSpec with Eventually{
     "repeatedly sending out Futures" in {
       var p = Promise[Int]()
       val a = Var(1)
-      val b = Sig{
+      val b = Rx{
         val A = a()
         p.future.map{_ + A}
       }.async(10)
@@ -68,14 +68,14 @@ class AdvancedTests extends FreeSpec with Eventually{
       pause
       assert(b() === 9)
     }
-    "the propagation should continue after the AsyncSig" in {
+    "the propagation should continue after the AsyncRx" in {
       var p = Promise[Int]()
       val a = Var(1)
-      val b = Sig{
+      val b = Rx{
         val A = a()
         p.future.map{x => x + A}
       }.async(10)
-      val c = Sig{ b() + 1 }
+      val c = Rx{ b() + 1 }
       assert(c() === 11)
       p.complete(scala.util.Success(5))
       pause
@@ -90,7 +90,7 @@ class AdvancedTests extends FreeSpec with Eventually{
     "ensuring that sent futures that get completed out of order are received out of order" in {
       var p = Seq[Promise[Int]](Promise(), Promise(), Promise())
       val a = Var(0)
-      val b = Sig{ p(a()).future }.async(10)
+      val b = Rx{ p(a()).future }.async(10)
 
       assert(b() === 10)
 
@@ -110,7 +110,7 @@ class AdvancedTests extends FreeSpec with Eventually{
     "dropping the result of Futures which return out of order" in {
       var p = Seq[Promise[Int]](Promise(), Promise(), Promise())
       val a = Var(0)
-      val b = Sig{ p(a()).future }.async(10, _.DiscardLate.apply)
+      val b = Rx{ p(a()).future }.async(10, _.DiscardLate.apply)
 
       assert(b() === 10)
 
@@ -128,9 +128,9 @@ class AdvancedTests extends FreeSpec with Eventually{
       assert(b() === 2)
     }
 
-    "ensuring that events emerge from the .async Sig" in {
+    "ensuring that events emerge from the .async DynamicRxnal" in {
       val a = Var(0)
-      val b = Sig{ Future.successful(10 + a()) }.async(10)
+      val b = Rx{ Future.successful(10 + a()) }.async(10)
       var count = 0
       val o = Obs(b){ count += 1 }
       a() = 10
