@@ -8,7 +8,6 @@ import akka.actor.{Actor, Cancellable, ActorSystem}
 import rx.Flow.{Settable, Reactor, Signal}
 import rx.SyncSignals.DynamicSignal
 
-
 /**
  * A collection of Rxs which may spontaneously update itself asynchronously,
  * even when nothing is going on. Use the extension methods in Combinators to

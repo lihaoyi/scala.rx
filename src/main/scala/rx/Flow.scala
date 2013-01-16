@@ -41,7 +41,7 @@ object Flow{
       currentValue
     }
 
-    def poke() = {
+    def propagate() = {
       Signal.propagate(this.getChildren.map(this -> _))
     }
 
@@ -80,14 +80,14 @@ object Flow{
     protected[this] def update(newValue: Try[T]): Unit = {
       if (newValue != toTry){
         currentValueHolder.set(newValue)
-        poke()
+        propagate()
       }
     }
 
     protected[this] def update(newValue: T): Unit = {
       if (Success(newValue) != toTry){
         currentValueHolder.set(Success(newValue))
-        poke()
+        propagate()
       }
     }
 
@@ -95,7 +95,7 @@ object Flow{
       val oldValue = currentValue
       val newValue = calc(oldValue)
       if(!currentValueHolder.compareAndSet(Success(oldValue), Success(newValue))) update(calc)
-      poke()
+      propagate()
     }
   }
 
