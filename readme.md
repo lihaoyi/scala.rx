@@ -440,3 +440,9 @@ Build on Standards
 This means using scala.concurrent and Akka (and ScalaSTM) as much as possible. Not only does it mean that I don't need to spend effort implementing my own (probably buggy and inferior) algorithms and techniques, it means that any users who have experience with these existing systems will already be familiar with their characteristics.
 
 For example, to make Scala.React to run in a single thread, you simply need to define the the right ExecutionContext, which a user is more likely to be familiar with (since its what you would use to make *any* `Future` using program run in a single thread) than with some special home-brewed system.
+
+No Delimited Continuations
+--------------------------
+Using the delimited continuations plugin would in theory have solved many problems. For example, using it, we would be able to pause the execution of any `Rx` at any time, which would mean we could completely avoid redundantly-recomputing the body of a `Rx`. It also should bring many other benefits, such as seamless integration with `Future`s and the Akka Dataflow.
+
+However, the continuations plugin proved to be far too rough around the edges, when I actually implemented Scala.Rx using it. It plays badly (e.g. does not work at all) with higher-order functions and by-name parameters, which form a huge portion of the standard library. It also caused bugs with implicit-resolutions and run-time ClassCastExceptions. In general, it added far more pain than it relieved.
