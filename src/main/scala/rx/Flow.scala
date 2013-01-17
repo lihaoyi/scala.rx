@@ -9,8 +9,9 @@ import scala.util.{Failure, Success}
 import java.util.concurrent.atomic.AtomicReference
 import rx.SyncSignals.DynamicSignal
 import annotation.tailrec
-import concurrent.stm.Ref
+import concurrent.stm._
 import java.security.cert.TrustAnchor
+import ref.WeakReference
 
 /**
  * Contains all the basic traits which are used throughout the construction
@@ -31,16 +32,15 @@ object Flow{
     def now: T = currentValue
 
     def apply(): T = {
-      implicit val txn = DynamicSignal.enclosingT.value
-      val current = DynamicSignal.enclosingR.value
-
-      if (current != null){
-        this.linkChild(DynamicSignal.enclosingR.value)
-
-        DynamicSignal.enclosingR.value.incrementLevel(this.level + 1)
-        DynamicSignal.enclosingR.value.addParent(this)
-
+      DynamicSignal.enclosing.value match{
+        case Some(enclosing) =>
+          implicit val (current, txn) = enclosing
+          this.linkChild(current)
+          current.incrementLevel(this.level + 1)
+          current.addParent(this)
+        case None => ()
       }
+
       currentValue
     }
 
@@ -52,7 +52,6 @@ object Flow{
   }
   object Signal{
     @tailrec def propagate(nodes: Seq[(Flow.Emitter[Any], Flow.Reactor[Nothing])]): Unit = {
-      println("Propagate " + nodes)
       if (nodes.length != 0){
         val minLevel = nodes.minBy(_._2.level)._2.level
         val (now, later) = nodes.partition(_._2.level == minLevel)
@@ -84,28 +83,21 @@ object Flow{
 
 
     protected[this] def updateS(newValue: Try[T]): Unit = {
-
       if (newValue != toTry){
-        currentValueHolder.single() = newValue
-        propagate()
+        if (!atomic{ implicit txn =>
+          val old = currentValueHolder.single()
+          currentValueHolder.single() = newValue
+          old == newValue
+        }) propagate()
       }
     }
 
-    protected[this] def updateS(newValue: T): Unit = {
-      println("A")
-      if (Success(newValue) != toTry){
-        println("B")
-        currentValueHolder.single() = Success(newValue)
-        propagate()
-      }
-    }
+    protected[this] def updateS(newValue: T): Unit = updateS(Success(newValue))
 
-    final protected[this] def updateS(calc: T => T): Unit = {
-      currentValueHolder.single.transform{
+    protected[this] def updateS(calc: T => T): Unit = {
+      if(!currentValueHolder.single.transformIfDefined{
         case Success(v) => Success(calc(v))
-        case Failure(x) => Failure(x)
-      }
-      propagate()
+      }) propagate()
     }
   }
 
@@ -115,12 +107,13 @@ object Flow{
    * listeners which need to be pinged when an event is fired.
    */
   trait Emitter[+T] extends Node{
+    private[this] val children = Ref(Seq[WeakReference[Reactor[T]]]())
 
-    private[this] val children: mutable.WeakHashMap[Reactor[T], Unit] = new mutable.WeakHashMap()
+    def getChildren: Seq[Reactor[Nothing]] =
+      children.single().flatMap(_.get)
 
-    def getChildren: Seq[Reactor[Nothing]] = children.keys.toSeq
-
-    def linkChild[R >: T](child: Reactor[R]) = children(child) = ()
+    def linkChild[R >: T](child: Reactor[R]) =
+      children.single.transform(_.filter(_.get.isDefined) :+ WeakReference(child))
 
   }
 
@@ -134,7 +127,6 @@ object Flow{
     def ping(incoming: Seq[Emitter[Any]]): Seq[Reactor[Nothing]]
 
   }
-
 
   trait Node{
     def level: Long

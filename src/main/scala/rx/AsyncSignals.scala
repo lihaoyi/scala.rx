@@ -7,6 +7,7 @@ import concurrent.duration._
 import akka.actor.{Actor, Cancellable, ActorSystem}
 import rx.Flow.{Settable, Reactor, Signal}
 import rx.SyncSignals.DynamicSignal
+import concurrent.stm._
 
 /**
  * A collection of Rxs which may spontaneously update itself asynchronously,
@@ -30,7 +31,9 @@ object AsyncSignals{
    * Future[T].
    */
   case class RunAlways[T](default: T) extends Target[T](default){
+
     def handleSend(id: Long) = ()
+
     def handleReceive(id: Long, value: Try[T], callback: Try[T] => Unit) = {
       callback(value)
     }
@@ -69,8 +72,8 @@ object AsyncSignals{
                     (implicit executor: ExecutionContext)
     extends Settable[T](default){
     def name = "async " + source.name
-    private[this] lazy val count = new AtomicLong(0)
-    private[this] lazy val target = targetC(default)
+    private[this] val count = new AtomicLong(0)
+    private[this] val target = targetC(default)
 
     private[this] val listener = Obs(source){
       val future = source()
@@ -92,29 +95,36 @@ object AsyncSignals{
                         (implicit system: ActorSystem, ex: ExecutionContext)
     extends DynamicSignal[T]("debounced " + source.name, () => source()){
 
-    @volatile private[this] var nextTime = Deadline.now
-    @volatile private[this] var lastOutput: Option[Cancellable] = None
+    private[this] val nextTime = Ref(Deadline.now)
+    private[this] val lastOutput: Ref[Option[Cancellable]] = Ref(None)
 
     override def ping(incoming: Seq[Flow.Emitter[Any]]) = {
       if (active && getParents.intersect(incoming).isDefinedAt(0)){
-        val timeLeft = nextTime - Deadline.now
-        (timeLeft.toMillis, lastOutput) match{
-          case (t, _) if t < 0 =>
-            nextTime = Deadline.now + interval
-            super.ping(incoming)
-          case (t, None) =>
-            if (lastOutput.isEmpty) {
-              lastOutput = Some(system.scheduler.scheduleOnce(timeLeft){
-                super.ping(incoming)
-                this.propagate()
-              })
-            }
-            Nil
-          case (t, Some(_)) =>
-            Nil
+        val (pingOut, schedule) = atomic{ implicit txn =>
+          val timeLeft = nextTime() - Deadline.now
 
+          (timeLeft.toMillis, lastOutput()) match{
+            case (t, _) if t < 0 =>
+              nextTime() = Deadline.now + interval
+              super.ping(incoming) -> None
+            case (t, None) =>
+              lastOutput() = Some(null)
+              Nil -> Some(timeLeft)
+            case (t, Some(_)) =>
+              Nil -> None
+          }
         }
+        schedule match{
+          case Some(timeLeft) =>
+            lastOutput.single() = Some(system.scheduler.scheduleOnce(timeLeft){
+              super.ping(incoming)
+              this.propagate()
+            })
+          case _ => ()
+        }
+        pingOut
       } else Nil
+
     }
   }
 
@@ -123,20 +133,29 @@ object AsyncSignals{
   extends Settable(source.now){
     def name = "delayedDebounce " + source.name
 
-    @volatile private[this] var nextTime = Deadline.now
-    @volatile private[this] var lastOutput: Option[Cancellable] = None
+    private[this] val counter = new AtomicLong(0)
+    private[this] val nextTime = Ref(Deadline.now)
+    private[this] val lastOutput: Ref[Option[Long]] = Ref(None)
 
-    private val listener = Obs(source){
-      val timeLeft = nextTime - Deadline.now
-      lastOutput match {
-        case (Some(_)) => Nil
-        case (None) =>
-          lastOutput = Some(system.scheduler.scheduleOnce(if (timeLeft < 0.seconds) delay else timeLeft){
-            lastOutput = None
-            nextTime = Deadline.now + interval
-            this.updateS(source.now)
-          })
-          Nil
+    private[this] val listener = Obs(source){
+      val id = counter.getAndIncrement
+      atomic{ implicit txn =>
+        (lastOutput(), nextTime() - Deadline.now)  match {
+          case (Some(_), _) => None
+          case (None, timeLeft) =>
+            lastOutput() = Some(id)
+            Some(if (timeLeft < 0.seconds) delay else timeLeft)
+        }
+      } match {
+        case None => ()
+        case Some(next) =>
+        system.scheduler.scheduleOnce(next){
+          atomic{ implicit txn =>
+            lastOutput() = None
+            nextTime() = Deadline.now + interval
+          }
+          this.updateS(source.now)
+        }
       }
     }
   }
