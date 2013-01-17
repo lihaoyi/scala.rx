@@ -1,7 +1,7 @@
 Scala.Rx
 ========
 
-Scala.Rx is an experimental change propagation library for Scala. Scala.Rx gives you time varying Rxnals (`Rx`s), which are like smart variables who auto-update themselves when the values they depend on change. The underlying implementation is push-based FRP based on the ideas in [Deprecating the Observer Pattern](http://infoscience.epfl.ch/record/176887/files/DeprecatingObservers2012.pdf).
+Scala.Rx is an experimental change propagation library for Scala. Scala.Rx gives you Reactive variables (`Rx`s), which are smart variables who auto-update themselves when the values they depend on change. The underlying implementation is push-based FRP based on the ideas in [Deprecating the Observer Pattern](http://infoscience.epfl.ch/record/176887/files/DeprecatingObservers2012.pdf).
 
 A simple example which demonstrates the behavior is:
 
@@ -23,13 +23,13 @@ Basic Use
 
 The above example is an executable program. In general, `import rx._` is enough to get you started with Scala.Rx, and it will be assumed in all further examples. These examples are all taken from the unit tests.
 
-The basic entities you have to care about are `Var`s, `Rx`s and `Obs`s:
+The basic entities you have to care about are `Var`, `Rx` and `Obs`:
 
 - a `Var` is a smart variable which you can get using `a()` and set using `a() = ...`. Whenever its value changes, it notifies any downstream entity which needs to be recalculated.
-- a `Rx` is a reactive definition which automatically captures any `Var`s or other `Rx`s which get called in its body, flagging them as dependencies and re-calculating whenever one of them changes.
-- a `Obs` is an observer which looks at a single `Var` or `Rx`, performing some side-effecting function when it changes value
+- a `Rx` is a reactive definition which automatically captures any `Var`s or other `Rx`s which get called in its body, flagging them as dependencies and re-calculating whenever one of them changes. Like a `Var`, you can use the `a()` syntax to retrieve its value, and it also notifies downstream entities when the value changes.
+- a `Obs` is an observer which looks at a single `Var` or `Rx`, performing some side-effecting function when it changes value.
 
-Apart from using the value of `Var`s in a `Rx`, as shown above, `Rx`s themselves can be used in other `Rx`s
+Apart from using the value of a `Var` in a `Rx`, as shown above, the `Rx` itself can be used in another `Rx`:
 
 ```scala
 val a = Var(1) // 1
@@ -46,7 +46,9 @@ a() = 3
 println(f.now()) // 38
 ```
 
-And they behave as you'd expect. As can be seen above, changing the value of `a` causes the change to propagate all the way through `c` `d` `e` to `f`. You can use `Var`s and `Rx`s anywhere you an use a normal variable.
+And they behave as you'd expect. As can be seen above, changing the value of `a` causes the change to propagate all the way through `c` `d` `e` to `f`. You can use a `Var` and `Rx` anywhere you an use a normal variable.
+
+The changes propagate through the dependency graph in *cycles*. Each update to a `Var` touches off a propagation cycle, which pushes the changes from that `Var` to any `Rx` which is (directly or indirectly) dependent on its value. In the process, it is possible for a `Rx` to be re-calculated more than once.
 
 `Obs`s can be used to observe `Rx`s and `Var`s and perform side effects when they change:
 
@@ -83,7 +85,7 @@ inside(b.toTry){ case Failure(_) => () }
 
 Initially, the value of `a` is `1` and so the value of `b` also is `1`. You can also extract the internal `Try` using `b.toTry`, which at first is `Success(1)`.
 
-However, when the value of `a` becomes `0`, the body of `b` throws an `ArithmeticException`. This is caught by `b` and only released if you try to extract the value from `b` using `b()`. You can extract the entire `Try` using `toTry` and pattern match on it to handle both the `Success` case as well as the `Failure` case.
+However, when the value of `a` becomes `0`, the body of `b` throws an `ArithmeticException`. This is caught by `b` and re-thrown if you try to extract the value from `b` using `b()`. You can extract the entire `Try` using `toTry` and pattern match on it to handle both the `Success` case as well as the `Failure` case.
 
 When you have many `Rx`s chained together, exceptions propagate forward following the dependency graph, as you would expect:
 
@@ -119,6 +121,7 @@ Nesting
 
 `Rx`s can contain other `Rx`s, arbitrarily deeply. This example shows the `Rx`s nested two deep:
 
+```scala
 val a = Var(1)
 val b = Rx{
     Rx{ a() } -> Rx{ math.random }
@@ -126,6 +129,7 @@ val b = Rx{
 val r = b()._2()
 a() = 2
 assert(b()._2() === r)
+```
 
 In general, nested `Rx`s behave as you would expect.
 
@@ -226,7 +230,7 @@ eventually {
 
 The `async` conbinator only applies to `Rx[Future[_]]`s. It takes an initial value, which will be the value of the `Rx` until the `Future` completes, at which point the the value will become the value of the `Future`.
 
-`async` can `Future`s as many times as necessary:
+`async` can create `Future`s as many times as necessary. This example shows it creating two distinct `Future`s:
 
 ```scala
 var p = Promise[Int]()
@@ -250,7 +254,9 @@ eventually{
 }
 ```
 
-Making it handy if your dependency graph contains some asynchronous elements. For example, you could have a `Rx` which depends on another `Rx`, but requires an asynchronous web request to calculate. With `async`, the results from the asynchronous web request will be pushed back into the change propagation graph automatically when the `Future` completes, conveniently updating the rest of the graph with the result without the programmer having to do a thing.
+The value of `b()` updates as you would expect as the series of `Future`s complete (in this case, manually using `Promise`s).
+
+This is handy if your dependency graph contains some asynchronous elements. For example, you could have a `Rx` which depends on another `Rx`, but requires an asynchronous web request to calculate its final value. With `async`, the results from the asynchronous web request will be pushed back into the change propagation graph automatically when the `Future` completes, starting off another propagation cycle and conveniently updating the rest of the graph which depends on the new result.
 
 `async` optionally takes a second argument which causes out-of-order `Future`s to be dropped. This is useful if you always want to have the result of the most recently-created `Future` which completed.
 
@@ -306,7 +312,7 @@ val c = Rx{ a() + b() }
 println(c.now()) // 3
 ```
 
-The `Rx` function wraps the resultant `Int` in a `Rx[Int]`. The parenthesis `()` after `a` and `b` mean you want to extract the `Int` out of the `Var[Int]` and add `c` to the list of things notified everytime `a` or `b` change, and should only be used within a `Rx{}` block. On the other hand, the `now()` means you want to extract the `Int` out of the `Var[Int]` but don't want to notify anybody, and can be used anywhere.
+The `Rx` function wraps the resultant `Int` in a `Rx[Int]`. The parenthesis `()` after `a` and `b` calls the `.apply()` method, extracting the `Int` out of the `Var[Int]` and adding `c` to the list of things notified everytime `a` or `b` change. If you want the value but do not want to define a dependency, `.now()` lets you extract the `Int` without doing so. The two functions are equivalent when used outside of a `Rx{}` block.
 
 This is somewhat more verbose, but it means that you no longer need to remember to update `c` when `a` or `b` change; Scala.Rx will do it for you automatically. Hence, in:
 
