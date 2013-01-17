@@ -80,30 +80,64 @@ class CombinatorTests extends FreeSpec with Eventually{
     assert(c() === 2)
     assert(d() === 6)
   }
-  "debounce" in {
-    val a = Var(10)
-    val b = a.debounce(50 millis)
-    val c = Rx( a() * 2 ).debounce(50 millis)
-    var count = 0
-    val ob = Obs(b){ count += 1 }
-    val oa = Obs(c){ count += 1 }
+  "debounce" - {
+    "immediate" in {
+      val a = Var(10)
+      val b = a.debounce(50 millis)
+      val c = Rx( a() * 2 ).debounce(50 millis)
+      var count = 0
+      val ob = Obs(b){ count += 1 }
+      val oa = Obs(c){ count += 1 }
 
-    a() = 5
-    assert(b() === 5)
-    assert(c() === 10)
-    a() = 2
-    assert(b() === 5)
-    assert(c() === 10)
-    a() = 4
-    assert(b() === 5)
-    assert(c() === 10)
-    a() = 7
-    assert(b() === 5)
-    assert(c() === 10)
-    eventually{
-      assert(b() === 7)
-      assert(c() === 14)
+      a() = 5
+      assert(b() === 5)
+      assert(c() === 10)
+      a() = 2
+      assert(b() === 5)
+      assert(c() === 10)
+      a() = 4
+      assert(b() === 5)
+      assert(c() === 10)
+      a() = 7
+      assert(b() === 5)
+      assert(c() === 10)
+      eventually{
+        assert(b() === 7)
+        assert(c() === 14)
+      }
     }
+    "delayed" in {
+      val a = Var(10)
+      val b = a.debounce(50 millis, 25 millis)
+      val c = Rx( a() * 2 ).debounce(50 millis, 25 millis)
+      var count = 0
+      val ob = Obs(b){ count += 1 }
+      val oa = Obs(c){ count += 1 }
 
+      a() = 5
+      assert(b() === 10)
+      assert(c() === 20)
+      eventually{
+        assert(b() === 5)
+        assert(c() === 10)
+      }
+      a() = 2
+      assert(b() === 5)
+      assert(c() === 10)
+      a() = 4
+      assert(b() === 5)
+      assert(c() === 10)
+      eventually{
+        assert(b() === 4)
+        assert(c() === 8)
+      }
+      a() = 7
+      assert(b() === 4)
+      assert(c() === 8)
+      eventually{
+        assert(b() === 7)
+        assert(c() === 14)
+      }
+    }
   }
 }

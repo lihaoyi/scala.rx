@@ -3,7 +3,7 @@ package rx
 import concurrent.{ExecutionContext, Future}
 import java.util.concurrent.atomic.{AtomicLong, AtomicInteger}
 import util.Try
-import concurrent.duration.{FiniteDuration, Deadline, Duration}
+import concurrent.duration._
 import akka.actor.{Actor, Cancellable, ActorSystem}
 import rx.Flow.{Settable, Reactor, Signal}
 import rx.SyncSignals.DynamicSignal
@@ -17,9 +17,7 @@ import rx.SyncSignals.DynamicSignal
  * to properly schedule and fire the asynchronous operations.
  */
 object AsyncSignals{
-  implicit class pimpedAsyncSig[T](source: AsyncSig[T]){
-    def discardLate = DiscardLate(source.currentValue)
-  }
+
   abstract class Target[T](default: T){
     def handleSend(id: Long): Unit
     def handleReceive(id: Long, value: Try[T], callback: Try[T] => Unit): Unit
@@ -79,7 +77,7 @@ object AsyncSignals{
       val id = count.getAndIncrement
       target.handleSend(id)
       future.onComplete{ x =>
-        target.handleReceive(id, x, this() = _)
+        target.handleReceive(id, x, updateS(_))
       }
     }
     listener.trigger()
@@ -90,23 +88,57 @@ object AsyncSignals{
    * can cause it to change asynchronously, as an update which is ignored (due to
    * coming in before the interval has passed) will get spontaneously.
    */
-  class DebouncedSig[+T](source: Signal[T], interval: FiniteDuration)
+  class ImmediateDebouncedSignal[+T](source: Signal[T], interval: FiniteDuration)
                         (implicit system: ActorSystem, ex: ExecutionContext)
     extends DynamicSignal[T]("debounced " + source.name, () => source()){
-    private[this] var nextTime = Deadline.now
-    private[this] var lastOutput: Option[(Try[T], Cancellable)] = None
+
+    @volatile private[this] var nextTime = Deadline.now
+    @volatile private[this] var lastOutput: Option[Cancellable] = None
 
     override def ping(incoming: Seq[Flow.Emitter[Any]]) = {
       if (active && getParents.intersect(incoming).isDefinedAt(0)){
-        if (Deadline.now > nextTime){
-          nextTime = Deadline.now + interval
-          super.ping(incoming)
-        }else{
-          for ((value, cancellable) <- lastOutput) cancellable.cancel()
-          lastOutput = Some(source.toTry -> system.scheduler.scheduleOnce(interval)(ping(incoming)))
-          Nil
+        val timeLeft = nextTime - Deadline.now
+        (timeLeft.toMillis, lastOutput) match{
+          case (t, _) if t < 0 =>
+            nextTime = Deadline.now + interval
+            super.ping(incoming)
+          case (t, None) =>
+            if (lastOutput.isEmpty) {
+              lastOutput = Some(system.scheduler.scheduleOnce(timeLeft){
+                super.ping(incoming)
+                this.propagate()
+              })
+            }
+            Nil
+          case (t, Some(_)) =>
+            Nil
+
         }
       } else Nil
     }
   }
+
+  class DelayedRebounceSignal[+T](source: Signal[T], interval: FiniteDuration, delay: FiniteDuration)
+                                  (implicit system: ActorSystem, ex: ExecutionContext)
+  extends Settable(source.now){
+    def name = "delayedDebounce " + source.name
+
+    @volatile private[this] var nextTime = Deadline.now
+    @volatile private[this] var lastOutput: Option[Cancellable] = None
+
+    private val listener = Obs(source){
+      val timeLeft = nextTime - Deadline.now
+      lastOutput match {
+        case (Some(_)) => Nil
+        case (None) =>
+          lastOutput = Some(system.scheduler.scheduleOnce(if (timeLeft < 0.seconds) delay else timeLeft){
+            lastOutput = None
+            nextTime = Deadline.now + interval
+            this.updateS(source.now)
+          })
+          Nil
+      }
+    }
+  }
+
 }

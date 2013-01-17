@@ -82,7 +82,7 @@ object SyncSignals {
   }
 
   def filterSig[T](source: Signal[T])(predicate: (Try[T], Try[T]) => Boolean) = {
-    new WrapSig(source)((x: Try[T], y: Try[T]) => if (predicate(x, y)) y else x)
+    new WrapSignal(source)((x: Try[T], y: Try[T]) => if (predicate(x, y)) y else x)
   }
 
   /**
@@ -90,7 +90,7 @@ object SyncSignals {
    * which will be applied whenever the source value changes. This decides on
    * a new value to take based on both the old and new values of the source.
    */
-  class WrapSig[T, A](source: Signal[A])(transformer: (Try[T], Try[A]) => Try[T])
+  class WrapSignal[T, A](source: Signal[A])(transformer: (Try[T], Try[A]) => Try[T])
     extends Signal[T]
     with Flow.Reactor[Any]{
 

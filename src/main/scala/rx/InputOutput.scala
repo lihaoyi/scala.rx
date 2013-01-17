@@ -18,18 +18,16 @@ object Var {
  * @tparam T The type of the future this Var contains
  */
 case class Var[T](name: String, val initValue: T) extends Settable[T](initValue){
-  override def update(newValue: Try[T]) = super.update(newValue)
-  override def update(newValue: T) = super.update(newValue)
-  override def update(calc: T => T) = super.update(calc)
+  def update(newValue: Try[T]) = updateS(newValue)
+  def update(newValue: T) = updateS(newValue)
+  def update(calc: T => T) = updateS(calc)
+
 }
 
 
 object Obs{
   def apply[T](es: Flow.Emitter[Any])(callback: => Unit) = {
     new Obs("", es)(() => callback)
-  }
-  def cfg[T](name: String)(es: Flow.Emitter[Any])(callback: => Unit) = {
-    new Obs(name, es)(() => callback)
   }
 }
 
@@ -48,7 +46,6 @@ case class Obs(name: String, source: Flow.Emitter[Any])(callback: () => Unit) ex
   def level = Long.MaxValue
 
   def ping(incoming: Seq[Flow.Emitter[Any]]) = {
-
     if (active && getParents.map(_.getEmitter).intersect(incoming.map(_.getEmitter)).isDefinedAt(0)){
       util.Try(callback())
     }

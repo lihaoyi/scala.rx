@@ -2,10 +2,11 @@ package rx
 
 import util.{Try, Failure, Success}
 import concurrent.{ExecutionContext, Future}
-import concurrent.duration.{FiniteDuration, Duration}
+import concurrent.duration._
 import akka.actor.ActorSystem
 import Flow.Signal
 import AsyncSignals._
+import concurrent.duration._
 import SyncSignals._
 
 /**
@@ -13,7 +14,7 @@ import SyncSignals._
  * Rxs using method chaining
  */
 object Combinators{
-  implicit class pimpedSig[T](source: Signal[T]) {
+  implicit class pimpedSignal[T](source: Signal[T]) {
 
     /**
      * Creates a new Rx which ignores Failure conditions of the source Rx; it
@@ -36,7 +37,7 @@ object Combinators{
      * it to filter the Failure conditions as well.
      */
     def filter(successPred: T => Boolean, failurePred: Throwable => Boolean = x => true) = {
-      new WrapSig[T, T](source)(
+      new WrapSignal[T, T](source)(
         (x, y) => (x, y) match {
           case (_, Success(value)) if successPred(value) => Success(value)
           case (_, Failure(thrown)) if failurePred(thrown) => Failure(thrown)
@@ -69,18 +70,19 @@ object Combinators{
      * Creates a new Rx which contains the value of the old Rx, except transformed by some
      * function.
      */
-    def map[A](f: T => A) = new WrapSig[A, T](source)((x, y) => y.map(f))
+    def map[A](f: T => A) = new WrapSignal[A, T](source)((x, y) => y.map(f))
 
     /**
      * Creates a new Rx which debounces the old Rx; updates coming in within `interval`
      * of a previous update get ignored. After the `interval` has passed, the last
      * un-applied update (if any) will be applied to update the value of the Rx
      */
-    def debounce(interval: FiniteDuration)(implicit system: ActorSystem, ex: ExecutionContext): Rx[T] = {
-      new DebouncedSig[T](source, interval)
+    def debounce(interval: FiniteDuration, delay: FiniteDuration = 0 seconds)(implicit system: ActorSystem, ex: ExecutionContext): Rx[T] = {
+      if (delay == 0.seconds) new ImmediateDebouncedSignal[T](source, interval)
+      else new DelayedRebounceSignal[T](source, interval, delay)
     }
   }
-  implicit class pimpedFutureSig[T](source: Signal[Future[T]]){
+  implicit class pimpedFutureSignal[T](source: Signal[Future[T]]){
     /**
      * Flattens out an Rx[Future[T]] into a Rx[T]. If the first
      * Future has not yet arrived, the AsyncSig contains its default value.

@@ -52,8 +52,10 @@ object Flow{
       if (nodes.length != 0){
         val minLevel = nodes.minBy(_._2.level)._2.level
         val (now, later) = nodes.partition(_._2.level == minLevel)
-        val next = for{
-          (target, pingers) <- now.groupBy(_._2).mapValues(_.map(_._1).distinct).toSeq
+        val next = for {
+          (target, pingers) <- now.groupBy(_._2)
+                                  .mapValues(_.map(_._1).distinct)
+                                  .toSeq
           nextTarget <- target.ping(pingers)
         } yield {
           target.asInstanceOf[Flow.Emitter[Any]] -> nextTarget
@@ -77,25 +79,27 @@ object Flow{
     def toTry = currentValueHolder.get
 
 
-    protected[this] def update(newValue: Try[T]): Unit = {
+    protected[this] def updateS(newValue: Try[T]): Unit = {
       if (newValue != toTry){
         currentValueHolder.set(newValue)
         propagate()
       }
     }
 
-    protected[this] def update(newValue: T): Unit = {
+    protected[this] def updateS(newValue: T): Unit = {
       if (Success(newValue) != toTry){
         currentValueHolder.set(Success(newValue))
         propagate()
       }
     }
 
-    protected[this] def update(calc: T => T): Unit = {
+    @tailrec final protected[this] def updateS(calc: T => T): Unit = {
       val oldValue = currentValue
       val newValue = calc(oldValue)
-      if(!currentValueHolder.compareAndSet(Success(oldValue), Success(newValue))) update(calc)
-      propagate()
+      if(!currentValueHolder.compareAndSet(Success(oldValue), Success(newValue))) {
+        updateS(calc)
+      }
+      else propagate()
     }
   }
 

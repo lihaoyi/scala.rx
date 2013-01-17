@@ -11,7 +11,8 @@ package object rx {
 
   type Rx[T] = Flow.Signal[T]
   val Rx = DynamicSignal
-  implicit def pimpedSig[T](source: Rx[T]) = Combinators.pimpedSig(source)
-  implicit def pimpedFutureSig[T](source: Rx[Future[T]]) = Combinators.pimpedFutureSig(source)
+  implicit def pimpedSignal[T](source: Rx[T]) = Combinators.pimpedSignal(source)
+  implicit def pimpedFutureSignal[T](source: Rx[Future[T]]) = Combinators.pimpedFutureSignal(source)
+
 }
 
