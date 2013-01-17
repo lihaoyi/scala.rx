@@ -107,8 +107,10 @@ object Flow{
   trait Emitter[+T] extends Node{
     private[this] val children = Ref(Seq[WeakReference[Reactor[T]]]())
 
-    def getChildren: Seq[Reactor[Nothing]] =
+    def getChildren: Seq[Reactor[Nothing]] = {
+      children.single.transform(_.filter(_.get.isDefined))
       children.single().flatMap(_.get)
+    }
 
     def linkChild[R >: T](child: Reactor[R]) =
       children.single.transform(_.filter(_.get.isDefined) :+ WeakReference(child))

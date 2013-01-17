@@ -79,7 +79,9 @@ object Combinators{
      * of a previous update get ignored. After the `interval` has passed, the last
      * un-applied update (if any) will be applied to update the value of the Rx
      */
-    def debounce(interval: FiniteDuration, delay: FiniteDuration = 0 seconds)(implicit system: ActorSystem, ex: ExecutionContext): Rx[T] = {
+    def debounce(interval: FiniteDuration, delay: FiniteDuration = 0 seconds)
+                (implicit system: ActorSystem, ex: ExecutionContext): Rx[T] = {
+
       if (delay == 0.seconds) new ImmediateDebouncedSignal[T](source, interval)
       else new DelayedRebounceSignal[T](source, interval, delay)
     }
@@ -87,6 +89,7 @@ object Combinators{
     def filterSig(predicate: (Try[T], Try[T]) => Boolean): Signal[T] = {
       new FilterSignal(source)((x, y) => if (predicate(x, y)) y else x)
     }
+
   }
   implicit class pimpedFutureSignal[T](source: Signal[Future[T]]){
     /**

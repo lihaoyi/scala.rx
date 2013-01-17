@@ -4,9 +4,12 @@ import org.scalatest._
 import concurrent.Eventually
 import scala.concurrent.{Future, Promise}
 import scala.concurrent.ExecutionContext.Implicits.global
-
+import rx.AsyncSignals.Timer
+import scala.concurrent.duration._
+import akka.actor.ActorSystem
 
 class AdvancedTests extends FreeSpec with Eventually{
+  implicit val system = ActorSystem()
   "disabling" - {
     "sigs" in {
       val a = Var(1)
@@ -145,6 +148,19 @@ class AdvancedTests extends FreeSpec with Eventually{
       }
 
     }
+  }
+  "timer" in {
+    val t = Timer(20 millis)
+    var count = 0
+    val o = Obs(t){
+      count = count + 1
+    }
+
+    for(i <- 0 to 10){
+      eventually{ assert(t() > i) }
+    }
+
+    assert(count >= 10)
   }
 
 }

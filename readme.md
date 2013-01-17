@@ -387,6 +387,7 @@ a() = 4 // Value of C changed!
 
 and attach listeners to the `Rx`, which fire when the `Rx`'s value changes. This is something you cannot do with memoized functions, short of repeatedly polling and checking over and over whether the value of `c` has changed. The ability to listen for changes makes it easy, for example, to allow changes to propagate over the network in order to keep some remote application in sync.
 
+
 How it Works
 ============
 
@@ -399,6 +400,7 @@ In general, Scala.Rx keeps track of the topological order dynamically, such that
 Hence, it is possible that an `Rx` will get evaluated more than once, even if only a single `Var` is updated. You should ensure that the body of any `Rx`s can tolerate being run more than once without harm. If you need to perform side effects, use an `Obs`, which only executes its side effects once per propagation cycle after the values for all `Rx`s have stabilized.
 
 The asynchronous combinators may spontaneously trigger propagation cycles when their async operations complete. These are all run on your standard `scala.concurrent.ExecutionContext`s, using a `akka.actor.ActorSystem` for scheduled tasks (e.g. for debouncing).
+
 
 Related Work
 ============
@@ -439,10 +441,10 @@ Build on Standards
 ------------------
 This means using [scala.concurrent.Future](http://docs.scala-lang.org/sips/pending/futures-promises.html) and [Akka](http://akka.io/) (and [ScalaSTM](http://nbronson.github.com/scala-stm/)) as much as possible. Not only does it mean that I don't need to spend effort implementing my own (probably buggy and inferior) algorithms and techniques, it means that any users who have experience with these existing systems will already be familiar with their characteristics.
 
-For example, to make Scala.Rx to run in a single thread, you simply need to define the the right ExecutionContext, which a user is more likely to be familiar with (since its what you would use to make *any* `Future` using program run in a single thread) than with some special home-brewed system.
+For example, to make Scala.Rx to run in a single thread, you simply need to define the the right [ExecutionContext](http://www.scala-lang.org/archives/downloads/distrib/files/nightly/docs/library/index.html#scala.concurrent.ExecutionContext), which a user is more likely to be familiar with (since its what you would use to make *any* `Future` using program run in a single thread) than with some special home-brewed system.
 
 No Delimited Continuations
 --------------------------
-Using the delimited continuations plugin would in theory have solved many problems. For example, using it, we would be able to pause the execution of any `Rx` at any time, which would mean we could completely avoid redundantly-recomputing the body of a `Rx`. It also should bring many other benefits, such as seamless integration with `Future`s and the Akka Dataflow.
+Using the delimited continuations plugin would in theory have solved many problems. For example, using it, we would be able to pause the execution of any `Rx` at any time, which would mean we could completely avoid redundantly-recomputing the body of a `Rx`. It also should bring many other benefits, such as seamless integration with `Future`s and the [Akka Dataflow](http://doc.akka.io/docs/akka/snapshot/scala/dataflow.html).
 
 However, the continuations plugin proved to be far too rough around the edges, when I actually implemented Scala.Rx using it. It plays badly (e.g. does not work at all) with higher-order functions and by-name parameters, which form a huge portion of the standard library. It also caused bugs with implicit-resolutions and run-time ClassCastExceptions. In general, it added far more pain than it relieved.

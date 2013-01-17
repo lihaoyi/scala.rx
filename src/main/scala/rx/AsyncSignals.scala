@@ -2,12 +2,13 @@ package rx
 
 import concurrent.{ExecutionContext, Future}
 import java.util.concurrent.atomic.{AtomicLong, AtomicInteger}
-import util.Try
+import util.{Success, Try}
 import concurrent.duration._
 import akka.actor.{Actor, Cancellable, ActorSystem}
-import rx.Flow.{Settable, Reactor, Signal}
+import rx.Flow.{Emitter, Settable, Reactor, Signal}
 import rx.SyncSignals.DynamicSignal
 import concurrent.stm._
+import java.lang.ref.WeakReference
 
 /**
  * A collection of Rxs which may spontaneously update itself asynchronously,
@@ -159,5 +160,42 @@ object AsyncSignals{
       }
     }
   }
+  object Timer{
+    def apply(interval: FiniteDuration, delay: FiniteDuration = 0 seconds)
+             (implicit system: ActorSystem, ex: ExecutionContext) = {
 
+      new Timer(interval, delay)
+    }
+
+  }
+  class Timer(interval: FiniteDuration, delay: FiniteDuration)
+             (implicit system: ActorSystem, ex: ExecutionContext)
+  extends Settable[Long](0){
+
+    val count = new AtomicLong(0L)
+    val holder = new WeakTimerHolder(new WeakReference(this), interval, delay)
+
+    def name = "Timer"
+
+    def timerPing() = {
+      val newV = count.getAndIncrement
+      println("ping " + newV)
+      updateS(newV)
+    }
+  }
+  class WeakTimerHolder(val target: WeakReference[Timer], interval: FiniteDuration, delay: FiniteDuration)
+                       (implicit system: ActorSystem, ex: ExecutionContext){
+
+    val scheduledTask: Cancellable = system.scheduler.schedule(delay, interval){
+      target.get() match{
+        case null =>
+          println("Cancelled")
+          scheduledTask.cancel()
+        case timer =>
+          println("Ping")
+          timer.timerPing()
+      }
+
+    }
+  }
 }

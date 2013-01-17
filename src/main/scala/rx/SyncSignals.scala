@@ -112,6 +112,7 @@ object SyncSignals {
       }
     }
   }
+
   class MapSignal[T, A](source: Signal[T])(transformer: Try[T] => Try[A])
     extends WrapSignal[T, A](source, "MapSignal"){
 
