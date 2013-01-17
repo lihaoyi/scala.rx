@@ -116,7 +116,6 @@ object Flow{
 
     def linkChild[R >: T](child: Reactor[R]) = children(child) = ()
 
-    def getEmitter: Emitter[T] = this
   }
 
   /**
