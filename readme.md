@@ -266,6 +266,26 @@ This is handy if your dependency graph contains some asynchronous elements. For 
 
 `async` optionally takes a second argument which causes out-of-order `Future`s to be dropped. This is useful if you always want to have the result of the most recently-created `Future` which completed.
 
+###Timer
+
+```scala
+val t = Timer(100 millis)
+var count = 0
+val o = Obs(t){
+    count = count + 1
+}
+
+for(i <- 0 to 5){
+    eventually{ assert(t() == i) }
+}
+
+assert(count >= 5)
+```
+
+A `Timer` is a `Rx` that generates events on a regular basis. The events are based on the `scheduler` of the implicit `ActorSystem`, which defaults to a maximum precision of about 100 milliseconds. In the example above, the `for`-loop checks that the value of the timer `t()` increases over time from 0 to 5, and then checks that `count` has been incremented at least that many times
+
+It automatically cancels the scheduled task when the `Timer` object becomes unreachable, so it can be garbage collected, so you don't need to worry about managing the life-cycle of the `Timer`.
+
 Why Scala.Rx
 ============
 

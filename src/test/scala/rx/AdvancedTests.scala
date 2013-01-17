@@ -156,7 +156,7 @@ class AdvancedTests extends FreeSpec with Eventually{
     }
 
     for(i <- 0 to 5){
-      eventually{ assert(t() >= i) }
+      eventually{ assert(t() == i) }
     }
 
     assert(count >= 5)
