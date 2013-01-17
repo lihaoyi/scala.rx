@@ -31,14 +31,15 @@ object Flow{
     def now: T = currentValue
 
     def apply(): T = {
-      val current = DynamicSignal.enclosing.value
+      implicit val txn = DynamicSignal.enclosingT.value
+      val current = DynamicSignal.enclosingR.value
 
       if (current != null){
         this.linkChild(DynamicSignal.enclosingR.value)
-        DynamicSignal.enclosing.value = current.copy(
-          level = math.max(this.level + 1, current.level),
-          parents = this +: current.parents
-        )
+
+        DynamicSignal.enclosingR.value.incrementLevel(this.level + 1)
+        DynamicSignal.enclosingR.value.addParent(this)
+
       }
       currentValue
     }
@@ -131,6 +132,7 @@ object Flow{
     def getParents: Seq[Emitter[Any]]
 
     def ping(incoming: Seq[Emitter[Any]]): Seq[Reactor[Nothing]]
+
   }
 
 

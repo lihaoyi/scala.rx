@@ -1,8 +1,7 @@
 package rx
 
-import rx.Flow.Signal
+import rx.Flow.{Emitter, Signal}
 import util.{DynamicVariable, Failure, Try}
-import rx.SyncSignals.DynamicSignal.SigState
 import java.util.concurrent.atomic.AtomicReference
 import annotation.tailrec
 import scala.concurrent.stm._
@@ -23,13 +22,10 @@ object SyncSignals {
       new DynamicSignal(name, () => calc)
     }
 
-    private[rx] val enclosing = new DynamicVariable[SigState[Any]](null)
-    private[rx] val enclosingR = new DynamicVariable[Flow.Reactor[Any]](null)
+    private[rx] val enclosingR = new DynamicVariable[DynamicSignal[Any]](null)
+    private[rx] val enclosingT = new DynamicVariable[InTxn](null)
 
-    case class SigState[+T](parents: Seq[Flow.Emitter[Any]],
-                            value: Try[T],
-                            level: Long,
-                            timeStamp: Long = System.nanoTime())
+
   }
 
   /**
@@ -47,38 +43,53 @@ object SyncSignals {
   class DynamicSignal[+T](val name: String, calc: () => T) extends Flow.Signal[T] with Flow.Reactor[Any]{
 
     @volatile var active = true
-    private[this] val state = Ref(fullCalc(Option(DynamicSignal.enclosing.value).map(_.level + 1).getOrElse(0)))
 
-    def fullCalc(lvl: Long = level): SigState[T] = {
-      DynamicSignal.enclosing.withValue(SigState(Nil, null, lvl)){
-        DynamicSignal.enclosingR.withValue(this){
-          val newValue = Try(calc())
-          DynamicSignal.enclosing.value.copy(value = newValue)
+    private[this] val parents = Ref[Seq[Flow.Emitter[Any]]](Nil)
+
+    private[this] val levelRef: Ref[Long] = Ref(0L)
+    private[this] val timeStamp = Ref(System.nanoTime())
+    private[this] val value: Ref[Try[T]] = Ref(fullCalc())
+
+    def fullCalc() = {
+      DynamicSignal.enclosingR.withValue(this){
+        atomic{ txn =>
+          DynamicSignal.enclosingT.withValue(txn){
+            Try(calc())
+          }
         }
       }
+
     }
 
-    def getParents = state.single().parents
+    def getParents = parents.single()
 
     def ping(incoming: Seq[Flow.Emitter[Any]]) = {
       if (active && getParents.intersect(incoming).isDefinedAt(0)){
 
-        lazy val newState: SigState[T] = fullCalc()
-
+        val newValue = fullCalc()
 
         atomic{ implicit txn =>
-          state() = newState
-          if (state().timeStamp < newState.timeStamp) getChildren
-          else Nil
+          if (value() != newValue){
+            value() = newValue
+           getChildren
+          }else Nil
         }
       }else {
         Nil
       }
     }
 
-    def toTry = state.single().value
+    def toTry = value.single()
 
-    def level = state.single().level
+    def level = levelRef.single()
+
+    def addParent(e: Emitter[Any]) = atomic{ implicit txn =>
+      parents() = parents() :+ e
+    }
+
+    def incrementLevel(l: Long) = atomic{ implicit txn =>
+      levelRef() = math.max(l, levelRef())
+    }
   }
 
 
@@ -106,6 +117,10 @@ object SyncSignals {
         }
       }
     }
+
+    def addParent(e: Emitter[Any]) {}
+
+    def incrementLevel(l: Long) {}
   }
   class MapSignal[T, A](source: Signal[T])(transformer: Try[T] => Try[A])
     extends Signal[A]
