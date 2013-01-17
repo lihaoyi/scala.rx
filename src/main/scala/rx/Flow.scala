@@ -9,6 +9,8 @@ import scala.util.{Failure, Success}
 import java.util.concurrent.atomic.AtomicReference
 import rx.SyncSignals.DynamicSignal
 import annotation.tailrec
+import concurrent.stm.Ref
+import java.security.cert.TrustAnchor
 
 /**
  * Contains all the basic traits which are used throughout the construction
@@ -24,7 +26,7 @@ object Flow{
    */
   trait Signal[+T] extends Flow.Emitter[T] with Combinators.SignalMethods[T]{
 
-    def currentValue: T
+    def currentValue: T = toTry.get
 
     def now: T = currentValue
 
@@ -49,6 +51,7 @@ object Flow{
   }
   object Signal{
     @tailrec def propagate(nodes: Seq[(Flow.Emitter[Any], Flow.Reactor[Nothing])]): Unit = {
+      println("Propagate " + nodes)
       if (nodes.length != 0){
         val minLevel = nodes.minBy(_._2.level)._2.level
         val (now, later) = nodes.partition(_._2.level == minLevel)
@@ -74,32 +77,34 @@ object Flow{
 
     def level = 0L
 
-    private[this] val currentValueHolder = new AtomicReference[Try[T]](Success(initValue))
-    def currentValue = toTry.get
-    def toTry = currentValueHolder.get
+    private[this] val currentValueHolder = Ref[Try[T]](Success(initValue))
+
+    def toTry = currentValueHolder.single()
 
 
     protected[this] def updateS(newValue: Try[T]): Unit = {
+
       if (newValue != toTry){
-        currentValueHolder.set(newValue)
+        currentValueHolder.single() = newValue
         propagate()
       }
     }
 
     protected[this] def updateS(newValue: T): Unit = {
+      println("A")
       if (Success(newValue) != toTry){
-        currentValueHolder.set(Success(newValue))
+        println("B")
+        currentValueHolder.single() = Success(newValue)
         propagate()
       }
     }
 
-    @tailrec final protected[this] def updateS(calc: T => T): Unit = {
-      val oldValue = currentValue
-      val newValue = calc(oldValue)
-      if(!currentValueHolder.compareAndSet(Success(oldValue), Success(newValue))) {
-        updateS(calc)
+    final protected[this] def updateS(calc: T => T): Unit = {
+      currentValueHolder.single.transform{
+        case Success(v) => Success(calc(v))
+        case Failure(x) => Failure(x)
       }
-      else propagate()
+      propagate()
     }
   }
 

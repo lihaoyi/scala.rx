@@ -3,6 +3,9 @@ package rx
 import rx.Flow.Signal
 import util.{DynamicVariable, Failure, Try}
 import rx.SyncSignals.DynamicSignal.SigState
+import java.util.concurrent.atomic.AtomicReference
+import annotation.tailrec
+import scala.concurrent.stm._
 
 /**
  * A collection of Signals that update immediately when pinged. These should
@@ -25,7 +28,8 @@ object SyncSignals {
 
     case class SigState[+T](parents: Seq[Flow.Emitter[Any]],
                             value: Try[T],
-                            level: Long)
+                            level: Long,
+                            timeStamp: Long = System.nanoTime())
   }
 
   /**
@@ -43,7 +47,7 @@ object SyncSignals {
   class DynamicSignal[+T](val name: String, calc: () => T) extends Flow.Signal[T] with Flow.Reactor[Any]{
 
     @volatile var active = true
-    @volatile private[this] var state: SigState[T] = fullCalc(Option(DynamicSignal.enclosing.value).map(_.level + 1).getOrElse(0))
+    private[this] val state = Ref(fullCalc(Option(DynamicSignal.enclosing.value).map(_.level + 1).getOrElse(0)))
 
     def fullCalc(lvl: Long = level): SigState[T] = {
       DynamicSignal.enclosing.withValue(SigState(Nil, null, lvl)){
@@ -54,52 +58,52 @@ object SyncSignals {
       }
     }
 
-    def getParents = state.parents
+    def getParents = state.single().parents
 
     def ping(incoming: Seq[Flow.Emitter[Any]]) = {
       if (active && getParents.intersect(incoming).isDefinedAt(0)){
-        val newState = fullCalc()
 
-        val enclosingLevel: Long = Option(DynamicSignal.enclosing.value).map(_.level + 1).getOrElse(0)
-        val newLevel = math.max(newState.level, enclosingLevel)
+        lazy val newState: SigState[T] = fullCalc()
 
-        if(newState.value != state.value){
-          state = newState.copy(level = newLevel)
-          getChildren
-        }else{
-          Nil
+
+        atomic{ implicit txn =>
+          state() = newState
+          if (state().timeStamp < newState.timeStamp) getChildren
+          else Nil
         }
       }else {
         Nil
       }
     }
 
-    def toTry = state.value
+    def toTry = state.single().value
 
-    def level = state.level
-
-    def currentValue = state.value.get
+    def level = state.single().level
   }
 
 
-  class FilterSignal[T, A >: T](source: Signal[T])(transformer: (Try[A], Try[A]) => Try[T])
+  class FilterSignal[T](source: Signal[T])(transformer: (Try[T], Try[T]) => Try[T])
     extends Signal[T]
     with Flow.Reactor[Any]{
 
-    private[this] var lastResult = transformer(Failure(null), source.toTry)
+    private[this] val lastResult = Ref(transformer(Failure(null), source.toTry))
+    println(source.getChildren)
     source.linkChild(this)
-
     def level = source.level + 1
     def name = "FilterSignal " + source.name
-    def currentValue = lastResult.get
-    def toTry = lastResult
+    def toTry = lastResult.single()
     def getParents = Seq(source)
     def ping(incoming: Seq[Flow.Emitter[Any]]) = {
-      val newTry = transformer(lastResult, source.toTry)
-      if (newTry == toTry) Nil
-      else {
-        lastResult = newTry
-        getChildren
+      println("FilterSignal")
+      val newTime = System.nanoTime()
+      val newValue = transformer(lastResult.single(), source.toTry)
+
+      atomic{ implicit txn =>
+        if (lastResult() == newValue) Nil
+        else {
+          lastResult() = newValue
+          getChildren
+        }
       }
     }
   }
@@ -107,17 +111,24 @@ object SyncSignals {
     extends Signal[A]
     with Flow.Reactor[Any]{
 
+    private[this] val lastValue = Ref(transformer(source.toTry))
+    private[this] val lastTime = Ref(System.nanoTime())
     source.linkChild(this)
 
     def level = source.level + 1
     def name = "MapSignal " + source.name
-    def currentValue = transformer(source.toTry).get
-    def toTry = transformer(source.toTry)
+    def toTry = lastValue.single()
     def getParents = Seq(source)
     def ping(incoming: Seq[Flow.Emitter[Any]]) = {
-      val newTry = transformer(source.toTry)
-      if (newTry == toTry) Nil
-      else getChildren
+      val newTime = System.nanoTime()
+      val newValue = transformer(source.toTry)
+      atomic{ implicit txn =>
+        if (newTime > lastTime()){
+          lastValue() = newValue
+          lastTime() = newTime
+          getChildren
+        }else Nil
+      }
     }
   }
 

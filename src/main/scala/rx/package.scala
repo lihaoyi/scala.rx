@@ -2,6 +2,7 @@
 
 import annotation.tailrec
 import concurrent.Future
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
 import rx.SyncSignals.DynamicSignal
 
 

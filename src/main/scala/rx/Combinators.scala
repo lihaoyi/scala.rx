@@ -15,12 +15,8 @@ import SyncSignals._
  */
 object Combinators{
   trait EmitterMethods[+T]{ source: Flow.Emitter[T] =>
-
   }
   trait SignalMethods[+T]{ source: Signal[T] =>
-
-
-
 
     /**
      * Creates a new Rx which ignores Failure conditions of the source Rx; it

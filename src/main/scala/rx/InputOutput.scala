@@ -24,7 +24,6 @@ case class Var[T](name: String, val initValue: T) extends Settable[T](initValue)
 
 }
 
-
 object Obs{
   def apply[T](es: Flow.Emitter[Any])(callback: => Unit) = {
     new Obs("", es)(() => callback)
