@@ -9,9 +9,8 @@ package object rx {
 
   object NoInitializedException extends Exception()
 
-  type Rx[T] = Flow.Signal[T]
+  type Rx[+T] = Flow.Signal[T]
   val Rx = DynamicSignal
-  implicit def pimpedSignal[T](source: Rx[T]) = Combinators.pimpedSignal(source)
   implicit def pimpedFutureSignal[T](source: Rx[Future[T]]) = Combinators.pimpedFutureSignal(source)
 
 }

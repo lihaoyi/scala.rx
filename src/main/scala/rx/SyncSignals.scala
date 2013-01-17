@@ -81,24 +81,16 @@ object SyncSignals {
     def currentValue = state.value.get
   }
 
-  def filterSig[T](source: Signal[T])(predicate: (Try[T], Try[T]) => Boolean) = {
-    new WrapSignal(source)((x: Try[T], y: Try[T]) => if (predicate(x, y)) y else x)
-  }
 
-  /**
-   * A Signal which wraps a source Signal and allows you to specify a transform
-   * which will be applied whenever the source value changes. This decides on
-   * a new value to take based on both the old and new values of the source.
-   */
-  class WrapSignal[T, A](source: Signal[A])(transformer: (Try[T], Try[A]) => Try[T])
+  class FilterSignal[T, A >: T](source: Signal[T])(transformer: (Try[A], Try[A]) => Try[T])
     extends Signal[T]
     with Flow.Reactor[Any]{
 
-    var lastResult = transformer(Failure(null), source.toTry)
+    private[this] var lastResult = transformer(Failure(null), source.toTry)
     source.linkChild(this)
 
     def level = source.level + 1
-    def name = "SkipFailure " + source.name
+    def name = "FilterSignal " + source.name
     def currentValue = lastResult.get
     def toTry = lastResult
     def getParents = Seq(source)
@@ -111,5 +103,23 @@ object SyncSignals {
       }
     }
   }
+  class MapSignal[T, A](source: Signal[T])(transformer: Try[T] => Try[A])
+    extends Signal[A]
+    with Flow.Reactor[Any]{
+
+    source.linkChild(this)
+
+    def level = source.level + 1
+    def name = "MapSignal " + source.name
+    def currentValue = transformer(source.toTry).get
+    def toTry = transformer(source.toTry)
+    def getParents = Seq(source)
+    def ping(incoming: Seq[Flow.Emitter[Any]]) = {
+      val newTry = transformer(source.toTry)
+      if (newTry == toTry) Nil
+      else getChildren
+    }
+  }
+
 
 }

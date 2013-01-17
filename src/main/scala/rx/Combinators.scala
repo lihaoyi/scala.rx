@@ -14,21 +14,27 @@ import SyncSignals._
  * Rxs using method chaining
  */
 object Combinators{
-  implicit class pimpedSignal[T](source: Signal[T]) {
+  trait EmitterMethods[+T]{ source: Flow.Emitter[T] =>
+
+  }
+  trait SignalMethods[+T]{ source: Signal[T] =>
+
+
+
 
     /**
      * Creates a new Rx which ignores Failure conditions of the source Rx; it
      * will not propagate the changes, and simply remain holding on to its last
      * value
      */
-    def skipFailures = filterSig(source)((oldTry, newTry) => newTry.isSuccess)
+    def skipFailures = filterSig((oldTry, newTry) => newTry.isSuccess)
 
     /**
      * Creates a new Rx which filters the updates to the old Rx, giving you
      * access to both the old Try[T] and the new Try[T] in deciding whether
      * or not you want to accept the update
      */
-    def filterTry(predicate: (Try[T], Try[T]) => Boolean) = filterSig(source)(predicate)
+    def filterTry(predicate: (Try[T], Try[T]) => Boolean) = filterSig(predicate)
 
     /**
      * Creates a new Rx which ignores specific Success conditions of the source Rx; it
@@ -36,8 +42,8 @@ object Combinators{
      * value if the new value fails the filter. Optionally takes a failurePred, allowing
      * it to filter the Failure conditions as well.
      */
-    def filter(successPred: T => Boolean, failurePred: Throwable => Boolean = x => true) = {
-      new WrapSignal[T, T](source)(
+    def filter(successPred: T => Boolean, failurePred: Throwable => Boolean = x => true): Signal[T] = {
+      new FilterSignal(source)(
         (x, y) => (x, y) match {
           case (_, Success(value)) if successPred(value) => Success(value)
           case (_, Failure(thrown)) if failurePred(thrown) => Failure(thrown)
@@ -57,7 +63,7 @@ object Combinators{
     def filterDiff(successPred: (T, T) => Boolean = _!=_,
                failurePred: (Throwable, Throwable) => Boolean = _!=_) = {
 
-      filterSig[T](source)(
+      filterSig(
         (x, y) => (x, y) match {
           case (Success(a), Success(b)) => successPred(a, b)
           case (Failure(a), Failure(b)) => failurePred(a, b)
@@ -70,7 +76,7 @@ object Combinators{
      * Creates a new Rx which contains the value of the old Rx, except transformed by some
      * function.
      */
-    def map[A](f: T => A) = new WrapSignal[A, T](source)((x, y) => y.map(f))
+    def map[A](f: T => A): Signal[A] = new MapSignal[T, A](source)(y => y.map(f))
 
     /**
      * Creates a new Rx which debounces the old Rx; updates coming in within `interval`
@@ -81,6 +87,13 @@ object Combinators{
       if (delay == 0.seconds) new ImmediateDebouncedSignal[T](source, interval)
       else new DelayedRebounceSignal[T](source, interval, delay)
     }
+
+    def filterSig(predicate: (Try[T], Try[T]) => Boolean): Signal[T] = {
+      new FilterSignal(source)((x, y) => if (predicate(x, y)) y else x)
+    }
+
+
+
   }
   implicit class pimpedFutureSignal[T](source: Signal[Future[T]]){
     /**

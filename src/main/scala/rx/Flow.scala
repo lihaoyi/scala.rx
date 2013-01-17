@@ -22,7 +22,7 @@ object Flow{
    *
    * This trait is normally accessed by its alias Rx
    */
-  trait Signal[+T] extends Flow.Emitter[T]{
+  trait Signal[+T] extends Flow.Emitter[T] with Combinators.SignalMethods[T]{
 
     def currentValue: T
 
