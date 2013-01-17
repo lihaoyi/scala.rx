@@ -34,7 +34,6 @@ class AdvancedTests extends FreeSpec with Eventually{
     }
   }
   "async" - {
-    def pause = Thread.sleep(100)
     "basic example" in {
       val p = Promise[Int]()
       val a = Rx{
@@ -42,9 +41,9 @@ class AdvancedTests extends FreeSpec with Eventually{
       }.async(10)
       assert(a() === 10)
       p.complete(scala.util.Success(5))
-      pause
-      assert(a() === 5)
-
+      eventually {
+        assert(a() === 5)
+      }
     }
     "repeatedly sending out Futures" in {
       var p = Promise[Int]()
@@ -55,14 +54,16 @@ class AdvancedTests extends FreeSpec with Eventually{
       }.async(10)
       assert(b() === 10)
       p.complete(scala.util.Success(5))
-      pause
-      assert(b() === 6)
+      eventually{
+        assert(b() === 6)
+      }
       p = Promise[Int]()
       a() = 2
       assert(b() === 6)
       p.complete(scala.util.Success(7))
-      pause
-      assert(b() === 9)
+      eventually{
+        assert(b() === 9)
+      }
     }
     "the propagation should continue after the AsyncRx" in {
       var p = Promise[Int]()
@@ -74,14 +75,16 @@ class AdvancedTests extends FreeSpec with Eventually{
       val c = Rx{ b() + 1 }
       assert(c() === 11)
       p.complete(scala.util.Success(5))
-      pause
-      assert(c() === 7)
+      eventually{
+        assert(c() === 7)
+      }
       p = Promise[Int]()
       a() = 2
       assert(c() === 7)
       p.complete(scala.util.Success(7))
-      pause
-      assert(c() === 10)
+      eventually{
+        assert(c() === 10)
+      }
     }
     "ensuring that sent futures that get completed out of order are received out of order" in {
       var p = Seq[Promise[Int]](Promise(), Promise(), Promise())
@@ -94,14 +97,17 @@ class AdvancedTests extends FreeSpec with Eventually{
       a() = 2
 
       p(2).complete(scala.util.Success(2))
-      pause
-      assert(b() === 2)
+      eventually{
+        assert(b() === 2)
+      }
       p(1).complete(scala.util.Success(1))
-      pause
-      assert(b() === 1)
+      eventually{
+        assert(b() === 1)
+      }
       p(0).complete(scala.util.Success(0))
-      pause
-      assert(b() === 0)
+      eventually{
+        assert(b() === 0)
+      }
     }
     "dropping the result of Futures which return out of order" in {
       var p = Seq[Promise[Int]](Promise(), Promise(), Promise())
@@ -114,14 +120,17 @@ class AdvancedTests extends FreeSpec with Eventually{
       a() = 2
 
       p(2).complete(scala.util.Success(2))
-      pause
-      assert(b() === 2)
+      eventually{
+        assert(b() === 2)
+      }
       p(1).complete(scala.util.Success(1))
-      pause
-      assert(b() === 2)
+      eventually{
+        assert(b() === 2)
+      }
       p(0).complete(scala.util.Success(0))
-      pause
-      assert(b() === 2)
+      eventually{
+        assert(b() === 2)
+      }
     }
 
     "ensuring that events emerge from the .async DynamicRxnal" in {

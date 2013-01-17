@@ -57,9 +57,7 @@ object SyncSignals {
 
     def ping(incoming: Seq[Flow.Emitter[Any]]) = {
       if (active && getParents.intersect(incoming).isDefinedAt(0)){
-
         val newValue = fullCalc()
-
         atomic{ implicit txn =>
           if (value() != newValue){
             value() = newValue
@@ -90,10 +88,12 @@ object SyncSignals {
     def getParents = Seq(source)
     def name = prefix + " " + source.name
   }
+
   class FilterSignal[T](source: Signal[T])(transformer: (Try[T], Try[T]) => Try[T])
     extends WrapSignal[T, T](source, "FilterSignal"){
 
     private[this] val lastResult = Ref(transformer(Failure(null), source.toTry))
+    private[this] val lastTime = Ref(System.nanoTime())
 
     def toTry = lastResult.single()
 
@@ -103,8 +103,10 @@ object SyncSignals {
 
       atomic{ implicit txn =>
         if (lastResult() == newValue) Nil
+        else if (newTime < lastTime()) Nil
         else {
           lastResult() = newValue
+          lastTime() = newTime
           getChildren
         }
       }
@@ -121,11 +123,12 @@ object SyncSignals {
       val newTime = System.nanoTime()
       val newValue = transformer(source.toTry)
       atomic{ implicit txn =>
-        if (newTime > lastTime()){
+        if (newTime < lastTime()) Nil
+        else{
           lastValue() = newValue
           lastTime() = newTime
           getChildren
-        }else Nil
+        }
       }
     }
   }

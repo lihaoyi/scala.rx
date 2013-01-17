@@ -63,7 +63,6 @@ object Flow{
         } yield {
           target.asInstanceOf[Flow.Emitter[Any]] -> nextTarget
         }
-
         propagate(next ++ later)
       }
     }
@@ -80,7 +79,6 @@ object Flow{
     private[this] val currentValueHolder = Ref[Try[T]](Success(initValue))
 
     def toTry = currentValueHolder.single()
-
 
     protected[this] def updateS(newValue: Try[T]): Unit = {
       if (newValue != toTry){

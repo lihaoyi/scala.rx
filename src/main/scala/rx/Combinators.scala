@@ -87,9 +87,6 @@ object Combinators{
     def filterSig(predicate: (Try[T], Try[T]) => Boolean): Signal[T] = {
       new FilterSignal(source)((x, y) => if (predicate(x, y)) y else x)
     }
-
-
-
   }
   implicit class pimpedFutureSignal[T](source: Signal[Future[T]]){
     /**

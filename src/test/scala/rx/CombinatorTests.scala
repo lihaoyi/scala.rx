@@ -23,7 +23,7 @@ class CombinatorTests extends FreeSpec with Eventually{
     assert(z() === 40)
   }
 
-  "filterDiff/skipDiff" - {
+  "filterDiff" - {
     "default" in {
       val a = Var(10)
       var b = 8

@@ -65,12 +65,12 @@ class BasicTests extends FreeSpec with Inside{
   "obs tests" - {
     "obs Hello World" in {
       val a = Var(1)
-      var s = 0
+      var count = 0
       val o = Obs(a){
-        s = s + 1
+        count = count + 1
       }
       a() = 2
-      assert(s === 1)
+      assert(count === 1)
     }
     "obs simple example" in {
       val a = Var(1)
@@ -95,13 +95,16 @@ class BasicTests extends FreeSpec with Inside{
     "simple catch" in {
       val a = Var(1)
       val b = Rx{ 1 / a() }
-      assert(b.toTry == Success(1))
+      assert(b() === 1)
+      assert(b.toTry === Success(1))
       a() = 0
-      inside(b.toTry){ case Failure(_) => true }
+      intercept[Exception]{
+        b()
+      }
+      inside(b.toTry){ case Failure(_) => () }
     }
     "long chain" in {
       val a = Var(1)
-
       val b = Var(2)
 
       val c = Rx{ a() / b() }
@@ -110,25 +113,25 @@ class BasicTests extends FreeSpec with Inside{
       val f = Rx{ a() + b() + 2 }
       val g = Rx{ f() + c() }
 
-      inside(c.toTry){case Success(_) => true }
-      inside(d.toTry){case Success(_) => true }
-      inside(e.toTry){case Success(_) => true }
-      inside(f.toTry){case Success(_) => true }
-      inside(g.toTry){case Success(_) => true }
+      inside(c.toTry){case Success(0) => () }
+      inside(d.toTry){case Success(5) => () }
+      inside(e.toTry){case Success(2) => () }
+      inside(f.toTry){case Success(5) => () }
+      inside(g.toTry){case Success(5) => () }
 
       b() = 0
 
-      inside(c.toTry){case Failure(_) => true }
-      inside(d.toTry){case Success(_) => true }
-      inside(e.toTry){case Failure(_) => true }
-      inside(f.toTry){case Success(_) => true }
-      inside(g.toTry){case Failure(_) => true }
+      inside(c.toTry){case Failure(_) => () }
+      inside(d.toTry){case Success(5) => () }
+      inside(e.toTry){case Failure(_) => () }
+      inside(f.toTry){case Success(3) => () }
+      inside(g.toTry){case Failure(_) => () }
     }
   }
   "nested Rxs" - {
     val a = Var(1)
     val b = Rx{
-      Rx{a()} -> Rx{math.random}
+      Rx{ a() } -> Rx{ math.random }
     }
     val r = b()._2()
     a() = 2
