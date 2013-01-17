@@ -195,15 +195,19 @@ val oa = Obs(c){ count += 1 }
 a() = 5
 assert(b() === 5)
 assert(c() === 10)
+
 a() = 2
 assert(b() === 5)
 assert(c() === 10)
+
 a() = 4
 assert(b() === 5)
 assert(c() === 10)
+
 a() = 7
 assert(b() === 5)
 assert(c() === 10)
+
 eventually{
     assert(b() === 7)
     assert(c() === 14)
@@ -212,7 +216,9 @@ eventually{
 
 `debounce` creates a new `Rx` which does not change more than once every `interval` units of time. No matter how many times the original `Rx` changes, the `debounced` version will only update once every interval, and the last un-applied change will be stored and applied at the end of the interval if need be.
 
-Optionally takes a second parameter `delay`, which is an initial lag before any updates happen.
+In this example, you can see that after initially setting `a() = 5`, with `b() === 5, c() === 10`, subsequent changes to a() have no effect on `b` or `c` until the `eventually{}` block at the bottom. At that point, the interval will have passed, and `b` and `c` will update to use the most recent value of `a`.
+
+`debounce` optionally takes a second parameter `delay`, which is an initial lag before any updates happen.
 
 ###Async
 
@@ -386,9 +392,51 @@ How it Works
 
 Scala.Rx is based of a subset of the ideas in [Deprecating the Observer Pattern](http://infoscience.epfl.ch/record/176887/files/DeprecatingObservers2012.pdf), in particular their definition of "Opaque Signals". The implementation follows it reasonably closely: each time an `Rx` is evaluated (or re-evaluated), it is put into a `DynamicVariable`. Any calls to the `.apply()` methods of other `Rx`s then inspect this stack to determine who (if any) is `Rx` who called, creating a dependency between them. Thus a dependency graph is implicitly created without any action on the part of the programmer.
 
-The actual propagation of changes is done in a breadth-first, topologically-sorted order, similar to that described in the paper. Nodes earlier in the dependency graph being evaluated before those down the line. However, due to the fact that the dependencies of a `Rx` are not known until it is evaluated, it is impossible to strictly maintain this invariant at all times, since the underlying graph could change unpredictably.
+The actual propagation of changes is done in a breadth-first, topologically-sorted order, similar to that described in the paper. Nodes earlier in the dependency graph are evaluated before those down the line. However, due to the fact that the dependencies of a `Rx` are not known until it is evaluated, it is impossible to strictly maintain this invariant at all times, since the underlying graph could change unpredictably.
 
-In general, Scala.Rx keeps track of the topological order dynamically, such that after initialization, if the dependency graph does not change to radically, most nodes *should* be evaluated only once per propagation, but this is not a hard guarantee. Furthermore, Scala.Rx makes extensive use of [ScalaSTM](http://nbronson.github.com/scala-stm/) to handle concurrency. This means that the body of `Rx`s could be executed by multiple threads in parallel (in different transactions), and re-executed if there is contention.
+In general, Scala.Rx keeps track of the topological order dynamically, such that after initialization, if the dependency graph does not change too radically, most nodes *should* be evaluated only once per propagation, but this is not a hard guarantee. Furthermore, Scala.Rx makes extensive use of [ScalaSTM](http://nbronson.github.com/scala-stm/) to handle concurrency. This means that the body of `Rx`s could be executed by multiple threads in parallel (in different transactions), and re-executed if there is contention.
 
 Hence, it is possible that an `Rx` will get evaluated more than once, even if only a single `Var` is updated. You should ensure that the body of any `Rx`s can tolerate being run more than once without harm. If you need to perform side effects, use an `Obs`, which only executes its side effects once per propagation cycle after the values for all `Rx`s have stabilized.
 
+The asynchronous combinators may spontaneously trigger propagation cycles when their async operations complete. These are all run on your standard `scala.concurrent.ExecutionContext`s, using a `akka.actor.ActorSystem` for scheduled tasks (e.g. for debouncing).
+
+Related Work
+============
+
+Scala.React
+-----------
+Scala.React, as described in [Deprecating the Observer Pattern](http://infoscience.epfl.ch/record/176887/files/DeprecatingObservers2012.pdf), contains the reactive change propagation portion (there called `Signal`s) which is similar to what Scala.Rx does. However, it does much more than that with its event-streams and multiple DSLs using delimited continuations to do fancy things.
+
+However, I found it a pain to set up, requiring a bunch of global configuration, having its own custom-executor, even running its own thread pools. Overall, I thought it required far too much effort to get even partially working, and introduced far too much complexity for what it does.
+
+reactive-web
+------------
+[reactive-web](https://github.com/nafg/reactive) was another inspiration. It is somewhat orthogonal to Scala.Rx, focusing more on eventstreams while Scala.Rx focuses on time-varying values and integration with [Lift](http://liftweb.net/).
+
+I did not like the fact that you had to program in a monadic style (i.e. living in `.map()` and `.flatMap()` and `for{}` comprehensions all the time) in order to take advantage of the change propagation.
+
+Knockout.js
+-----------
+[Knockout.js](http://knockoutjs.com/) does something similar for javascript, along with some other extra goodies like DOM-binding. In fact, the design and implementation and developer experience of the automatic-dependency-tracking is virtually identical (except for the greater verbosity of javascript)
+
+
+Design Considerations
+=====================
+
+Simple to Use
+-------------
+This meant that the syntax to write programs in a dependency-tracking way had to be as light weight as possible, and the programs had to *look* like their normal, old-fashioned, imperative counterparts. This meant using `DynamicVariable` instead of implicits to automatically pass arguments, sacrificing proper lexical scoping for nice syntax.
+
+I ruled out using a purely monadic style (like reactive-web), as although it would be far easier to implement the library in that way, it would be a far greater pain to actually use it. Although I am happy to use for-comprehensions as loops and in specialized queries (e.g. ScalaQuery) I'm not quite prepared to write my entire program in for-comprehensions, and still like the old-fashioned imperative style.
+
+No Globals
+----------
+This greatly simplifies just about everything: as someone using the library, you no longer need to reason about different parts of your program interacting through the library. Using Scala.Rx in different parts of a large program is completely fine, they are completely independent.
+
+However, it also means that there can be no special-threads, no global contention manager, no global propagation scheduler. These are the things which I found most confusing trying to understand the workings of Scala.React, and even though it makes implementing the library somewhat trickier, I think they are a worthy omission.
+
+Build on Standards
+------------------
+This means using scala.concurrent and Akka (and ScalaSTM) as much as possible. Not only does it mean that I don't need to spend effort implementing my own (probably buggy and inferior) algorithms and techniques, it means that any users who have experience with these existing systems will already be familiar with their characteristics.
+
+For example, to make Scala.React to run in a single thread, you simply need to define the the right ExecutionContext, which a user is more likely to be familiar with (since its what you would use to make *any* `Future` using program run in a single thread) than with some special home-brewed system.
