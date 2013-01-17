@@ -12,6 +12,8 @@ package object rx {
 
   type Rx[+T] = Flow.Signal[T]
   val Rx = DynamicSignal
+
+  val Timer = AsyncSignals.Timer
   implicit def pimpedFutureSignal[T](source: Rx[Future[T]]) = Combinators.pimpedFutureSignal(source)
 
 }

@@ -160,14 +160,15 @@ object AsyncSignals{
       }
     }
   }
+
   object Timer{
     def apply(interval: FiniteDuration, delay: FiniteDuration = 0 seconds)
              (implicit system: ActorSystem, ex: ExecutionContext) = {
 
       new Timer(interval, delay)
     }
-
   }
+
   class Timer(interval: FiniteDuration, delay: FiniteDuration)
              (implicit system: ActorSystem, ex: ExecutionContext)
   extends Settable[Long](0){
@@ -179,23 +180,18 @@ object AsyncSignals{
 
     def timerPing() = {
       val newV = count.getAndIncrement
-      println("ping " + newV)
       updateS(newV)
     }
   }
+
   class WeakTimerHolder(val target: WeakReference[Timer], interval: FiniteDuration, delay: FiniteDuration)
                        (implicit system: ActorSystem, ex: ExecutionContext){
 
     val scheduledTask: Cancellable = system.scheduler.schedule(delay, interval){
       target.get() match{
-        case null =>
-          println("Cancelled")
-          scheduledTask.cancel()
-        case timer =>
-          println("Ping")
-          timer.timerPing()
+        case null => scheduledTask.cancel()
+        case timer => timer.timerPing()
       }
-
     }
   }
 }
