@@ -411,7 +411,7 @@ However, I found it a pain to set up, requiring a bunch of global configuration,
 
 reactive-web
 ------------
-[reactive-web](https://github.com/nafg/reactive) was another inspiration. It is somewhat orthogonal to Scala.Rx, focusing more on eventstreams while Scala.Rx focuses on time-varying values and integration with [Lift](http://liftweb.net/).
+[reactive-web](https://github.com/nafg/reactive) was another inspiration. It is somewhat orthogonal to Scala.Rx, focusing more on eventstreams and integration with [Lift](http://liftweb.net/) while Scala.Rx focuses purely on time-varying values.
 
 I did not like the fact that you had to program in a monadic style (i.e. living in `.map()` and `.flatMap()` and `for{}` comprehensions all the time) in order to take advantage of the change propagation.
 
@@ -427,19 +427,19 @@ Simple to Use
 -------------
 This meant that the syntax to write programs in a dependency-tracking way had to be as light weight as possible, and the programs had to *look* like their normal, old-fashioned, imperative counterparts. This meant using `DynamicVariable` instead of implicits to automatically pass arguments, sacrificing proper lexical scoping for nice syntax.
 
-I ruled out using a purely monadic style (like reactive-web), as although it would be far easier to implement the library in that way, it would be a far greater pain to actually use it. Although I am happy to use for-comprehensions as loops and in specialized queries (e.g. ScalaQuery) I'm not quite prepared to write my entire program in for-comprehensions, and still like the old-fashioned imperative style.
+I ruled out using a purely monadic style (like [reactive-web](https://github.com/nafg/reactive)), as although it would be far easier to implement the library in that way, it would be a far greater pain to actually use it. Although I am happy to use for-comprehensions as loops and in specialized queries (e.g. [ScalaQuery](http://scalaquery.org/)) I'm not quite prepared to write my entire program in for-comprehensions, and still like the old-fashioned imperative style.
 
 No Globals
 ----------
-This greatly simplifies just about everything: as someone using the library, you no longer need to reason about different parts of your program interacting through the library. Using Scala.Rx in different parts of a large program is completely fine, they are completely independent.
+This greatly simplifies many things: as someone using the library, you no longer need to reason about different parts of your program interacting through the library. Using Scala.Rx in different parts of a large program is completely fine; they are completely independent.
 
-However, it also means that there can be no special-threads, no global contention manager, no global propagation scheduler. These are the things which I found most confusing trying to understand the workings of Scala.React, and even though it makes implementing the library somewhat trickier, I think they are a worthy omission.
+However, it also means that there can be no special-threads, no global contention manager, no global propagation scheduler. These are the things which I found most confusing trying to understand the workings of Scala.React, and took the longest time in setting up properly to work. Even though it makes implementing the library somewhat trickier to work without globals, I think they are a worthy omission.
 
 Build on Standards
 ------------------
-This means using scala.concurrent and Akka (and ScalaSTM) as much as possible. Not only does it mean that I don't need to spend effort implementing my own (probably buggy and inferior) algorithms and techniques, it means that any users who have experience with these existing systems will already be familiar with their characteristics.
+This means using [scala.concurrent.Future](http://docs.scala-lang.org/sips/pending/futures-promises.html) and [Akka](http://akka.io/) (and [ScalaSTM](http://nbronson.github.com/scala-stm/)) as much as possible. Not only does it mean that I don't need to spend effort implementing my own (probably buggy and inferior) algorithms and techniques, it means that any users who have experience with these existing systems will already be familiar with their characteristics.
 
-For example, to make Scala.React to run in a single thread, you simply need to define the the right ExecutionContext, which a user is more likely to be familiar with (since its what you would use to make *any* `Future` using program run in a single thread) than with some special home-brewed system.
+For example, to make Scala.Rx to run in a single thread, you simply need to define the the right ExecutionContext, which a user is more likely to be familiar with (since its what you would use to make *any* `Future` using program run in a single thread) than with some special home-brewed system.
 
 No Delimited Continuations
 --------------------------
