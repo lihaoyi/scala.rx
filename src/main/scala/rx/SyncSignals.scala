@@ -5,6 +5,7 @@ import util.{DynamicVariable, Failure, Try}
 import java.util.concurrent.atomic.AtomicReference
 import annotation.tailrec
 import akka.agent.Agent
+import concurrent.Future
 
 /**
  * A collection of Signals that update immediately when pinged. These should
@@ -46,8 +47,6 @@ object SyncSignals {
 
     private[this] val state = {
       val (value, deps) = fullCalc()
-      println("Deps " + deps)
-
       Agent(State(
         deps,
         (0l :: deps.map(_.level)).max,
@@ -65,18 +64,15 @@ object SyncSignals {
     def getParents = state().parents
 
     def ping(incoming: Seq[Flow.Emitter[Any]]) = {
-      println("Pinged")
       if (active && getParents.intersect(incoming).isDefinedAt(0)){
         val (newValue, deps) = fullCalc()
-        state.send(State(
+        state alter State(
           deps,
           (level :: deps.map(_.level)).max,
           newValue
-        ))
-        getChildren
-      }else {
-        Nil
-      }
+        ) map (x => getChildren)
+
+      }else Future.successful(Nil)
     }
 
     def toTry = state().value
@@ -107,10 +103,9 @@ object SyncSignals {
       val newTime = System.nanoTime()
       val newValue = transformer(state(), source.toTry)
 
-      if (state() == newValue) Nil
+      if (state() == newValue) Future.successful(Nil)
       else {
-        state send newValue
-        getChildren
+        state alter newValue map (x => getChildren)
       }
     }
   }
@@ -128,8 +123,7 @@ object SyncSignals {
     def ping(incoming: Seq[Flow.Emitter[Any]]) = {
       val newTime = System.nanoTime()
       val newValue = transformer(source.toTry)
-      state send newValue
-      getChildren
+      state alter newValue map  (x => getChildren)
     }
   }
 

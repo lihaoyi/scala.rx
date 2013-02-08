@@ -70,7 +70,7 @@ object Flow{
 
     def getParents: Seq[Emitter[Any]]
 
-    def ping(incoming: Seq[Emitter[Any]]): Seq[Reactor[Nothing]]
+    def ping(incoming: Seq[Emitter[Any]]): Future[Seq[Reactor[Nothing]]]
 
   }
 

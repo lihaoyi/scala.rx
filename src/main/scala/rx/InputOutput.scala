@@ -3,6 +3,7 @@ package rx
 import util.{Try, Success}
 import java.util.concurrent.atomic.AtomicReference
 import akka.agent.Agent
+import concurrent.Future
 
 
 object Var {
@@ -20,9 +21,10 @@ object Var {
 class Var[T](val name: String, initValue: => T)(implicit p: Propagator) extends Flow.Signal[T]{
   import p.executionContext
   val state = Agent(Try(initValue))
-  def update(newValue: => T) = state.alter(Try(newValue)).onComplete{x =>
-    println("Updated")
-    propagate()}
+  def update(newValue: => T) =
+    state.alter(Try(newValue))
+         .andThen{ case x => propagate()}
+
   def level = 0
   def toTry = state()
 }
@@ -49,9 +51,9 @@ case class Obs(name: String, source: Flow.Emitter[Any])(callback: () => Unit) ex
 
   def ping(incoming: Seq[Flow.Emitter[Any]]) = {
     if (active && getParents.intersect(incoming).isDefinedAt(0)){
-      util.Try(callback())
+      Future.successful(util.Try(callback()))
     }
-    Nil
+    Future.successful(Nil)
   }
   def trigger() = {
     this.ping(this.getParents)

@@ -1,26 +1,29 @@
 package rx
 
 import annotation.tailrec
-import concurrent.ExecutionContext
+import concurrent.{Future, ExecutionContext}
 
 object Propagator{
   implicit object Immediate extends Propagator{
-    @tailrec def propagate(nodes: Seq[(Flow.Emitter[Any], Flow.Reactor[Nothing])]): Unit = {
+    def propagate(nodes: Seq[(Flow.Emitter[Any], Flow.Reactor[Nothing])]): Future[Unit] = {
       if (nodes.length != 0){
         val minLevel = nodes.minBy(_._2.level)._2.level
         val (now, later) = nodes.partition(_._2.level == minLevel)
         val next = for {
           (target, pingers) <- now.groupBy(_._2)
-            .mapValues(_.map(_._1).distinct)
-            .toSeq
-          nextTarget <- target.ping(pingers)
+                                  .mapValues(_.map(_._1).distinct)
+                                  .toSeq
+
+
         } yield {
-          target.asInstanceOf[Flow.Emitter[Any]] -> nextTarget
+          target.ping(pingers).map(_.map(target.asInstanceOf[Flow.Emitter[Any]] -> _))
         }
-        propagate(next ++ later)
+        Future.sequence(next).map(_.flatten ++ later).flatMap(propagate)
+      } else {
+        Future.successful(())
       }
     }
-    def executionContext = new ExecutionContext {
+    implicit def executionContext = new ExecutionContext {
       def reportFailure(t: Throwable) { t.printStackTrace() }
       def execute(runnable: Runnable) {runnable.run()}
     }
@@ -28,6 +31,6 @@ object Propagator{
 
 }
 trait Propagator{
-  def propagate(nodes: Seq[(Flow.Emitter[Any], Flow.Reactor[Nothing])]): Unit
+  def propagate(nodes: Seq[(Flow.Emitter[Any], Flow.Reactor[Nothing])]): Future[Unit]
   implicit def executionContext: ExecutionContext
 }
