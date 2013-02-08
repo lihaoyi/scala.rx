@@ -10,6 +10,7 @@ import Propagator.Immediate
 import time.{Millis, Span}
 
 class AdvancedTests extends FreeSpec with Eventually{
+  implicit val patience = (PatienceConfig(Span(500, Millis)))
   implicit val system = ActorSystem()
   "disabling" - {
     "sigs" in {
@@ -116,7 +117,7 @@ class AdvancedTests extends FreeSpec with Eventually{
     "dropping the result of Futures which return out of order" in {
       var p = Seq[Promise[Int]](Promise(), Promise(), Promise())
       val a = Var(0)
-      val b = Rx{ p(a()).future }.async(10, _.DiscardLate.apply)
+      val b = Rx{ p(a()).future }.async(10, AsyncSignals.DiscardLate())
 
       assert(b() === 10)
 
@@ -135,6 +136,7 @@ class AdvancedTests extends FreeSpec with Eventually{
       eventually{
         assert(b() === 2)
       }
+
     }
 
     "ensuring that events emerge from the .async DynamicRxnal" in {
@@ -157,8 +159,8 @@ class AdvancedTests extends FreeSpec with Eventually{
       count = count + 1
     }
 
-    for(i <- 0 to 5){
-      eventually{ assert(t() == i) }(PatienceConfig(Span(200, Millis)))
+    for(i <- 3 to 10){
+      eventually{ assert(t() == i) }
     }
 
     assert(count >= 5)

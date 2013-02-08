@@ -20,9 +20,9 @@ import akka.agent.Agent
  */
 object AsyncSignals{
 
-  abstract class Target[T](default: T){
+  abstract class Target[T]{
     def handleSend(id: Long): Unit
-    def handleReceive(id: Long, value: Try[T], callback: Try[T] => Unit): Unit
+    def handleReceive(id: Long, value: Try[T])(callback: Try[T] => Unit): Unit
   }
 
   /**
@@ -31,11 +31,11 @@ object AsyncSignals{
    * order, and the last-applied value may not be the result of the last-dispatched
    * Future[T].
    */
-  case class RunAlways[T](default: T) extends Target[T](default){
+  case class RunAlways[T]() extends Target[T]{
 
     def handleSend(id: Long) = ()
 
-    def handleReceive(id: Long, value: Try[T], callback: Try[T] => Unit) = {
+    def handleReceive(id: Long, value: Try[T])(callback: Try[T] => Unit) = {
       callback(value)
     }
   }
@@ -45,14 +45,16 @@ object AsyncSignals{
    * after the Future[T] which created the current value. Future[T]s which
    * were the result of earlier dispatches are ignored.
    */
-  case class DiscardLate[T](default: T) extends Target[T](default){
+  case class DiscardLate[T]() extends Target[T]{
     val sendIndex = new AtomicLong(0)
     val receiveIndex = new AtomicLong(0)
 
     def handleSend(id: Long) = {
+      println("Send " + id)
       sendIndex.set(id)
     }
-    def handleReceive(id: Long, value: Try[T], callback: Try[T] => Unit) = {
+    def handleReceive(id: Long, value: Try[T])(callback: Try[T] => Unit) = {
+      println("Receive " + id)
       if (id >= receiveIndex.get()){
         receiveIndex.set(id)
         callback(value)
@@ -69,36 +71,40 @@ object AsyncSignals{
    * The AsyncSig can be configured with a variety of Targets, to configure
    * its handling of Futures which complete out of order (RunAlways, DiscardLate)
    */
-  class AsyncSig[+T](default: => T, source: Signal[Future[T]], targetC: T => Target[T])
-                    (implicit executor: ExecutionContext, p: Propagator)
+  class AsyncSig[+T](default: => T, source: Signal[Future[T]], target: Target[T])
+                    (implicit p: Propagator)
                     extends Signal[T]{
 
+    import p.executionContext
     def name = "async " + source.name
 
     private[this] case class State[A](count: Long, lastValue: Try[A])
     private[this] val state = Agent(State(0, Try(default)))
 
-    private[this] val target = targetC(default)
 
     private[this] val listener = Obs(source){
+
       state alter State(
         state().count + 1,
         state().lastValue
-      )
-
-      target.handleSend(state().count)
-      source().onComplete{ x =>
-        target.handleReceive(state().count, x, result =>
-          state alter State(
-            state().count,
-            result
-          )
-        )
+      ) onSuccess{ case newState =>
+        target.handleSend(newState.count)
+        source().onComplete{ x =>
+          target.handleReceive(newState.count, x){result =>
+            state alter State(
+              state().count,
+              result
+            )
+            propagate()
+          }
+        }
       }
+
+
     }
     listener.trigger()
 
-    def level = ???
+    def level = source.level + 1
 
     def toTry = state().lastValue
   }
@@ -186,9 +192,9 @@ object AsyncSignals{
   }
 
   class Timer(interval: FiniteDuration, delay: FiniteDuration)
-             (implicit system: ActorSystem, ex: ExecutionContext, p: Propagator)
+             (implicit system: ActorSystem, p: Propagator)
              extends Signal[Long]{
-
+    import p.executionContext
     val count = new AtomicLong(0L)
     val holder = new WeakTimerHolder(new WeakReference(this), interval, delay)
 
@@ -196,14 +202,15 @@ object AsyncSignals{
 
     def timerPing() = {
       count.getAndIncrement
+      propagate()
     }
     def level = 0
     def toTry = Success(count.get)
   }
 
   class WeakTimerHolder(val target: WeakReference[Timer], interval: FiniteDuration, delay: FiniteDuration)
-                       (implicit system: ActorSystem, ex: ExecutionContext, p: Propagator){
-
+                       (implicit system: ActorSystem, p: Propagator){
+    import p.executionContext
     val scheduledTask: Cancellable = system.scheduler.schedule(delay, interval){
       target.get() match{
         case null => scheduledTask.cancel()
