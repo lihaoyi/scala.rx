@@ -2,13 +2,11 @@ package rx
 
 import org.scalatest._
 import concurrent.Eventually
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.{ExecutionContext, Await, Future, Promise}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import akka.actor.ActorSystem
-import Propagator.Immediate
 import time.{Millis, Span}
-
 class AdvancedTests extends FreeSpec with Eventually{
   implicit val patience = (PatienceConfig(Span(500, Millis)))
   implicit val system = ActorSystem()
@@ -167,4 +165,32 @@ class AdvancedTests extends FreeSpec with Eventually{
 
   }
 
+  "parallelism" in {
+    def time(implicit p: Propagator) = {
+      println("Timing")
+      def spinner(a: Flow.Signal[Int]) = Rx{
+        var count = 0
+        for(x <- 0 until 500000000){
+          count += 1
+        }
+        count + a()
+      }
+      val a = Var(0)
+      val b = spinner(a)
+      val c = spinner(a)
+      val d = spinner(a)
+      val start = System.currentTimeMillis()
+      Await.result(a() = 10, 10 seconds)
+      val end = System.currentTimeMillis()
+      (b() + " " + c() + " " +d() + " " + (end - start))
+    }
+
+
+    val data = Seq(
+      time(Propagator.Immediate),
+      time(new BreadthFirstPropagator(ExecutionContext.global))
+
+    )
+    data.foreach(println)
+  }
 }

@@ -65,12 +65,16 @@ object SyncSignals {
 
     def ping(incoming: Seq[Flow.Emitter[Any]]) = {
       if (active && getParents.intersect(incoming).isDefinedAt(0)){
-        val (newValue, deps) = fullCalc()
-        state alter State(
-          deps,
-          (level :: deps.map(_.level)).max,
-          newValue
-        ) map (x => getChildren)
+        println("Ping " + executionContext)
+
+        state alter {x =>
+          val (newValue, deps) = fullCalc()
+          State(
+            deps,
+            (level :: deps.map(_.level)).max,
+            newValue
+          )
+        } map {x => println("Done"); getChildren}
 
       }else Future.successful(Nil)
     }
