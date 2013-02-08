@@ -2,12 +2,12 @@ package rx
 
 import util.{Try, Success}
 import java.util.concurrent.atomic.AtomicReference
-import Flow.Settable
+import akka.agent.Agent
 
 
 object Var {
-  def apply[T](value: T)(implicit name: String = "") = {
-    new Var(name, value)
+  def apply[T](value: => T)(implicit p: Propagator) = {
+    new Var("", value)
   }
 }
 
@@ -17,11 +17,14 @@ object Var {
  * @param initValue The initial future of the Var
  * @tparam T The type of the future this Var contains
  */
-case class Var[T](name: String, val initValue: T) extends Settable[T](initValue){
-  def update(newValue: Try[T]) = updateS(newValue)
-  def update(newValue: T) = updateS(newValue)
-  def update(calc: T => T) = updateS(calc)
-
+class Var[T](val name: String, initValue: => T)(implicit p: Propagator) extends Flow.Signal[T]{
+  import p.executionContext
+  val state = Agent(Try(initValue))
+  def update(newValue: => T) = state.alter(Try(newValue)).onComplete{x =>
+    println("Updated")
+    propagate()}
+  def level = 0
+  def toTry = state()
 }
 
 object Obs{

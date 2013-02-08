@@ -1,10 +1,10 @@
 package rx
 
-import rx.Flow.{Emitter, Signal}
+import rx.Flow.{Reactor, Emitter, Signal}
 import util.{DynamicVariable, Failure, Try}
 import java.util.concurrent.atomic.AtomicReference
 import annotation.tailrec
-import scala.concurrent.stm._
+import akka.agent.Agent
 
 /**
  * A collection of Signals that update immediately when pinged. These should
@@ -17,11 +17,11 @@ object SyncSignals {
     /**
      * Provides a nice wrapper to use to create DynamicSignals
      */
-    def apply[T](calc: => T)(implicit name: String = ""): DynamicSignal[T] = {
-      new DynamicSignal(name, () => calc)
+    def apply[T](calc: => T)(implicit p: Propagator): DynamicSignal[T] = {
+      new DynamicSignal("", () => calc)
     }
 
-    private[rx] val enclosing = new DynamicVariable[Option[(DynamicSignal[Any], InTxn)]](None)
+    private[rx] val enclosing = new DynamicVariable[Option[(DynamicSignal[Any], List[Signal[Any]])]](None)
   }
 
   /**
@@ -36,101 +36,100 @@ object SyncSignals {
    * @param calc The method of calculating the future of this DynamicSignal
    * @tparam T The type of the future this contains
    */
-  class DynamicSignal[+T](val name: String, calc: () => T) extends Flow.Signal[T] with Flow.Reactor[Any]{
+  class DynamicSignal[+T](val name: String, calc: () => T)(implicit p: Propagator) extends Flow.Signal[T] with Flow.Reactor[Any]{
+    import p.executionContext
 
     @volatile var active = true
+    private[this] case class State[A](parents: Seq[Flow.Emitter[Any]],
+                                   level: Long,
+                                   value: Try[A])
 
-    private[this] val parents   = Ref[Seq[Flow.Emitter[Any]]](Nil)
-    private[this] val levelRef  = Ref(0L)
-    private[this] val timeStamp = Ref(System.nanoTime())
-    private[this] val value     = Ref(fullCalc())
+    private[this] val state = {
+      val (value, deps) = fullCalc()
+      println("Deps " + deps)
 
-    def fullCalc(): Try[T] = {
-      atomic{ txn =>
-        DynamicSignal.enclosing.withValue(Some(this -> txn)){
-          Try(calc())
-        }
+      Agent(State(
+        deps,
+        (0l :: deps.map(_.level)).max,
+        value
+      ))
+    }
+
+
+    def fullCalc() = {
+      DynamicSignal.enclosing.withValue(Some(this -> Nil)){
+        (Try(calc()), DynamicSignal.enclosing.value.get._2)
       }
     }
 
-    def getParents = parents.single()
+    def getParents = state().parents
 
     def ping(incoming: Seq[Flow.Emitter[Any]]) = {
+      println("Pinged")
       if (active && getParents.intersect(incoming).isDefinedAt(0)){
-        val newValue = fullCalc()
-        atomic{ implicit txn =>
-          if (value() != newValue){
-            value() = newValue
-           getChildren
-          }else Nil
-        }
+        val (newValue, deps) = fullCalc()
+        state.send(State(
+          deps,
+          (level :: deps.map(_.level)).max,
+          newValue
+        ))
+        getChildren
       }else {
         Nil
       }
     }
 
-    def toTry = value.single()
+    def toTry = state().value
 
-    def level = levelRef.single()
-
-    def addParent(e: Emitter[Any]) = {
-      parents.single.transform(_ :+ e)
-    }
-
-    def incrementLevel(l: Long) = {
-      levelRef.single.transform(old => math.max(l, old))
-    }
+    def level = state().level
   }
 
-  abstract class WrapSignal[T, A](source: Signal[T], prefix: String) extends Signal[A] with Flow.Reactor[Any]{
+  abstract class WrapSignal[T, A](source: Signal[T], prefix: String)
+                                 (implicit p: Propagator)
+                                  extends Signal[A] with Flow.Reactor[Any]{
     source.linkChild(this)
     def level = source.level + 1
     def getParents = Seq(source)
     def name = prefix + " " + source.name
   }
 
-  class FilterSignal[T](source: Signal[T])(transformer: (Try[T], Try[T]) => Try[T])
-    extends WrapSignal[T, T](source, "FilterSignal"){
+  class FilterSignal[T](source: Signal[T])
+                       (transformer: (Try[T], Try[T]) => Try[T])
+                       (implicit p: Propagator)
+                        extends WrapSignal[T, T](source, "FilterSignal"){
+    import p.executionContext
 
-    private[this] val lastResult = Ref(transformer(Failure(null), source.toTry))
-    private[this] val lastTime = Ref(System.nanoTime())
+    private[this] val state = Agent(transformer(Failure(null), source.toTry))
 
-    def toTry = lastResult.single()
+    def toTry = state()
 
     def ping(incoming: Seq[Flow.Emitter[Any]]) = {
       val newTime = System.nanoTime()
-      val newValue = transformer(lastResult.single(), source.toTry)
+      val newValue = transformer(state(), source.toTry)
 
-      atomic{ implicit txn =>
-        if (lastResult() == newValue) Nil
-        else if (newTime < lastTime()) Nil
-        else {
-          lastResult() = newValue
-          lastTime() = newTime
-          getChildren
-        }
+      if (state() == newValue) Nil
+      else {
+        state send newValue
+        getChildren
       }
     }
   }
 
-  class MapSignal[T, A](source: Signal[T])(transformer: Try[T] => Try[A])
-    extends WrapSignal[T, A](source, "MapSignal"){
+  class MapSignal[T, A](source: Signal[T])
+                       (transformer: Try[T] => Try[A])
+                       (implicit p: Propagator)
+                        extends WrapSignal[T, A](source, "MapSignal"){
 
-    private[this] val lastValue = Ref(transformer(source.toTry))
-    private[this] val lastTime = Ref(System.nanoTime())
+    import p.executionContext
 
-    def toTry = lastValue.single()
+    private[this] val state = Agent(transformer(source.toTry))
+
+    def toTry = state()
     def ping(incoming: Seq[Flow.Emitter[Any]]) = {
       val newTime = System.nanoTime()
       val newValue = transformer(source.toTry)
-      atomic{ implicit txn =>
-        if (newTime < lastTime()) Nil
-        else{
-          lastValue() = newValue
-          lastTime() = newTime
-          getChildren
-        }
-      }
+      state send newValue
+      getChildren
     }
   }
 

@@ -1,9 +1,7 @@
 package rx
 import org.scalatest._
 import util.{Failure, Success}
-import scala.concurrent.{Promise, Future}
 class BasicTests extends FreeSpec with Inside{
-
 
   "sig tests" - {
     "basic" - {

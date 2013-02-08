@@ -16,6 +16,7 @@ import SyncSignals._
 object Combinators{
   trait EmitterMethods[+T]{ source: Flow.Emitter[T] =>
   }
+
   trait SignalMethods[+T]{ source: Signal[T] =>
 
     /**
@@ -79,12 +80,12 @@ object Combinators{
      * of a previous update get ignored. After the `interval` has passed, the last
      * un-applied update (if any) will be applied to update the value of the Rx
      */
-    def debounce(interval: FiniteDuration, delay: FiniteDuration = 0 seconds)
-                (implicit system: ActorSystem, ex: ExecutionContext): Rx[T] = {
+    /*def debounce(interval: FiniteDuration, delay: FiniteDuration = 0 seconds)
+                (implicit system: ActorSystem, ex: ExecutionContext, p: Propagator): Rx[T] = {
 
       if (delay == 0.seconds) new ImmediateDebouncedSignal[T](source, interval)
       else new DelayedRebounceSignal[T](source, interval, delay)
-    }
+    }*/
 
     def filterSig(predicate: (Try[T], Try[T]) => Boolean): Signal[T] = {
       new FilterSignal(source)((x, y) => if (predicate(x, y)) y else x)
@@ -103,7 +104,7 @@ object Combinators{
      */
     def async(default: T,
               target: AsyncSignals.type => T => AsyncSignals.Target[T] = x => AsyncSignals.RunAlways[T])
-             (implicit executor: ExecutionContext): Rx[T] = {
+             (implicit executor: ExecutionContext, p: Propagator): Rx[T] = {
       new AsyncSig(default, source, target(AsyncSignals))
     }
   }

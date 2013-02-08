@@ -5,10 +5,10 @@ import java.util.concurrent.atomic.{AtomicLong, AtomicInteger}
 import util.{Success, Try}
 import concurrent.duration._
 import akka.actor.{Actor, Cancellable, ActorSystem}
-import rx.Flow.{Emitter, Settable, Reactor, Signal}
+import rx.Flow.{Emitter, Reactor, Signal}
 import rx.SyncSignals.DynamicSignal
-import concurrent.stm._
 import java.lang.ref.WeakReference
+import akka.agent.Agent
 
 /**
  * A collection of Rxs which may spontaneously update itself asynchronously,
@@ -69,42 +69,58 @@ object AsyncSignals{
    * The AsyncSig can be configured with a variety of Targets, to configure
    * its handling of Futures which complete out of order (RunAlways, DiscardLate)
    */
-  class AsyncSig[+T](default: T, source: Signal[Future[T]], targetC: T => Target[T])
-                    (implicit executor: ExecutionContext)
-    extends Settable[T](default){
+  class AsyncSig[+T](default: => T, source: Signal[Future[T]], targetC: T => Target[T])
+                    (implicit executor: ExecutionContext, p: Propagator)
+                    extends Signal[T]{
+
     def name = "async " + source.name
-    private[this] val count = new AtomicLong(0)
+
+    private[this] case class State[A](count: Long, lastValue: Try[A])
+    private[this] val state = Agent(State(0, Try(default)))
+
     private[this] val target = targetC(default)
 
     private[this] val listener = Obs(source){
-      val future = source()
-      val id = count.getAndIncrement
-      target.handleSend(id)
-      future.onComplete{ x =>
-        target.handleReceive(id, x, updateS(_))
+      state alter State(
+        state().count + 1,
+        state().lastValue
+      )
+
+      target.handleSend(state().count)
+      source().onComplete{ x =>
+        target.handleReceive(state().count, x, result =>
+          state alter State(
+            state().count,
+            result
+          )
+        )
       }
     }
     listener.trigger()
-  }
 
+    def level = ???
+
+    def toTry = state().lastValue
+  }
+/*
   /**
    * A Rx which does not change more than once per `interval` units of time. This
    * can cause it to change asynchronously, as an update which is ignored (due to
    * coming in before the interval has passed) will get spontaneously.
    */
   class ImmediateDebouncedSignal[+T](source: Signal[T], interval: FiniteDuration)
-                        (implicit system: ActorSystem, ex: ExecutionContext)
-    extends DynamicSignal[T]("debounced " + source.name, () => source()){
-
-    private[this] val nextTime = Ref(Deadline.now)
-    private[this] val lastOutput: Ref[Option[Cancellable]] = Ref(None)
+                                    (implicit system: ActorSystem, ex: ExecutionContext, p: Propagator)
+                                    extends DynamicSignal[T]("debounced " + source.name, () => source()){
+    private[this] case class State(nextTime: Deadline, lastOutput: Option[Cancellable])
+    val state = Agent(State(Deadline.now, None))
 
     override def ping(incoming: Seq[Flow.Emitter[Any]]) = {
       if (active && getParents.intersect(incoming).isDefinedAt(0)){
-        val (pingOut, schedule) = atomic{ implicit txn =>
-          val timeLeft = nextTime() - Deadline.now
 
-          (timeLeft.toMillis, lastOutput()) match{
+        val (pingOut, schedule) = {
+          val timeLeft = state().nextTime - Deadline.now
+
+          (timeLeft.toMillis, state().lastOutput) match{
             case (t, _) if t < 0 =>
               nextTime() = Deadline.now + interval
               super.ping(incoming) -> None
@@ -130,7 +146,7 @@ object AsyncSignals{
   }
 
   class DelayedRebounceSignal[+T](source: Signal[T], interval: FiniteDuration, delay: FiniteDuration)
-                                  (implicit system: ActorSystem, ex: ExecutionContext)
+                                  (implicit system: ActorSystem, ex: ExecutionContext, p: Propagator)
   extends Settable(source.now){
     def name = "delayedDebounce " + source.name
 
@@ -159,19 +175,19 @@ object AsyncSignals{
         }
       }
     }
-  }
+  }*/
 
   object Timer{
     def apply(interval: FiniteDuration, delay: FiniteDuration = 0 seconds)
-             (implicit system: ActorSystem, ex: ExecutionContext) = {
+             (implicit system: ActorSystem, ex: ExecutionContext, p: Propagator) = {
 
       new Timer(interval, delay)
     }
   }
 
   class Timer(interval: FiniteDuration, delay: FiniteDuration)
-             (implicit system: ActorSystem, ex: ExecutionContext)
-  extends Settable[Long](0){
+             (implicit system: ActorSystem, ex: ExecutionContext, p: Propagator)
+             extends Signal[Long]{
 
     val count = new AtomicLong(0L)
     val holder = new WeakTimerHolder(new WeakReference(this), interval, delay)
@@ -179,13 +195,14 @@ object AsyncSignals{
     def name = "Timer"
 
     def timerPing() = {
-      val newV = count.getAndIncrement
-      updateS(newV)
+      count.getAndIncrement
     }
+    def level = 0
+    def toTry = Success(count.get)
   }
 
   class WeakTimerHolder(val target: WeakReference[Timer], interval: FiniteDuration, delay: FiniteDuration)
-                       (implicit system: ActorSystem, ex: ExecutionContext){
+                       (implicit system: ActorSystem, ex: ExecutionContext, p: Propagator){
 
     val scheduledTask: Cancellable = system.scheduler.schedule(delay, interval){
       target.get() match{

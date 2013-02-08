@@ -255,8 +255,7 @@ p = Promise[Int]()
 a() = 2
 assert(b() === 6)
 p.complete(scala.util.Success(7))
-eventually{
-    assert(b() === 9)
+eventually{99)
 }
 ```
 
@@ -453,7 +452,7 @@ I ruled out using a purely monadic style (like [reactive-web](https://github.com
 
 No Globals
 ----------
-This greatly simplifies many things: as someone using the library, you no longer need to reason about different parts of your program interacting through the library. Using Scala.Rx in different parts of a large program is completely fine; they are completely independent.
+This greatly simplifies many things for someone using the library, as you no longer need to reason about different parts of your program interacting through the library. Using Scala.Rx in different parts of a large program is completely fine; they are completely independent.
 
 However, it also means that there can be no special-threads, no global contention manager, no global propagation scheduler. These are the things which I found most confusing trying to understand the workings of Scala.React, and took the longest time in setting up properly to work. Even though it makes implementing the library somewhat trickier to work without globals, I think they are a worthy omission.
 

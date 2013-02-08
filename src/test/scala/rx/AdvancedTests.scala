@@ -6,6 +6,8 @@ import scala.concurrent.{Future, Promise}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import akka.actor.ActorSystem
+import Propagator.Immediate
+import time.{Millis, Span}
 
 class AdvancedTests extends FreeSpec with Eventually{
   implicit val system = ActorSystem()
@@ -156,7 +158,7 @@ class AdvancedTests extends FreeSpec with Eventually{
     }
 
     for(i <- 0 to 5){
-      eventually{ assert(t() == i) }
+      eventually{ assert(t() == i) }(PatienceConfig(Span(200, Millis)))
     }
 
     assert(count >= 5)
