@@ -50,11 +50,9 @@ object AsyncSignals{
     val receiveIndex = new AtomicLong(0)
 
     def handleSend(id: Long) = {
-      println("Send " + id)
       sendIndex.set(id)
     }
     def handleReceive(id: Long, value: Try[T])(callback: Try[T] => Unit) = {
-      println("Receive " + id)
       if (id >= receiveIndex.get()){
         receiveIndex.set(id)
         callback(value)

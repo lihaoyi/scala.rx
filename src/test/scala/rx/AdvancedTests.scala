@@ -150,7 +150,7 @@ class AdvancedTests extends FreeSpec with Eventually{
 
     }
   }
-  "timer" in {
+  "a Timer should work properly and give off events on its own" in {
     val t = Timer(100 millis)
     var count = 0
     val o = Obs(t){
@@ -165,12 +165,12 @@ class AdvancedTests extends FreeSpec with Eventually{
 
   }
 
-  "parallelism" in {
+  "swapping in a parallelizing Propagator should speed things up significantly" in {
+
     def time(implicit p: Propagator) = {
-      println("Timing")
       def spinner(a: Flow.Signal[Int]) = Rx{
         var count = 0
-        for(x <- 0 until 500000000){
+        for(x <- 0 until 200000000){
           count += 1
         }
         count + a()
@@ -182,15 +182,26 @@ class AdvancedTests extends FreeSpec with Eventually{
       val start = System.currentTimeMillis()
       Await.result(a() = 10, 10 seconds)
       val end = System.currentTimeMillis()
-      (b() + " " + c() + " " +d() + " " + (end - start))
+      (b(), c(), d(), (end - start))
     }
 
 
-    val data = Seq(
-      time(Propagator.Immediate),
-      time(new BreadthFirstPropagator(ExecutionContext.global))
+    val serialResult = time(Propagator.Immediate)
+    val parallelResult = time(new BreadthFirstPropagator(ExecutionContext.global))
 
-    )
-    data.foreach(println)
+    (serialResult, parallelResult) patternMatches {
+      case ((200000010, 200000010, 200000010, serialTime),
+            (200000010, 200000010, 200000010, parallelTime))
+        if serialTime * 1.0 / parallelTime > 1.5 =>
+    }
   }
+  implicit class MatchPimp[T](value: T){
+    def patternMatches(f: PartialFunction[T, Any]) = {
+      assert(
+        f.isDefinedAt(value),
+        s"patternMatch failed: $value does not match pattern"
+      )
+    }
+  }
+
 }

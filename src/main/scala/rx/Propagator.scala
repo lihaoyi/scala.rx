@@ -8,7 +8,6 @@ class BreadthFirstPropagator(val executionContext: ExecutionContext) extends Pro
   def propagate(nodes: Seq[(Flow.Emitter[Any], Flow.Reactor[Nothing])]): Future[Unit] = {
 
     if (nodes.length != 0){
-      println("Propagate!")
       val minLevel = nodes.minBy(_._2.level)._2.level
       val (now, later) = nodes.partition(_._2.level == minLevel)
       val next = for {
@@ -16,14 +15,10 @@ class BreadthFirstPropagator(val executionContext: ExecutionContext) extends Pro
                                 .mapValues(_.map(_._1).distinct)
                                 .toSeq
       } yield {
-        println("A " + executionContext)
-        val x = target.ping(pingers).map(_.map(target.asInstanceOf[Flow.Emitter[Any]] -> _))
-        println("B")
-        x
+        target.ping(pingers).map(_.map(target.asInstanceOf[Flow.Emitter[Any]] -> _))
       }
-      Future.sequence(next).andThen{case c => println("Rar")}.map(_.flatten ++ later).flatMap(propagate)
+      Future.sequence(next).map(_.flatten ++ later).flatMap(propagate)
     } else {
-      println("Successful")
       Future.successful(())
     }
   }
