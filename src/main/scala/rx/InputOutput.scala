@@ -21,7 +21,7 @@ object Var {
 class Var[T](val name: String, initValue: => T)(implicit p: Propagator) extends Flow.Signal[T]{
   import p.executionContext
   val state = Agent(Try(initValue))
-  def update(newValue: => T) = for {
+  def update(newValue: => T): Future[Unit] = for {
     altered <- state.alter(Try(newValue))
     done <- propagate()
   } yield done

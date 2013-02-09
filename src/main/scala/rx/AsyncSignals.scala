@@ -183,7 +183,7 @@ object AsyncSignals{
 
   object Timer{
     def apply(interval: FiniteDuration, delay: FiniteDuration = 0 seconds)
-             (implicit system: ActorSystem, ex: ExecutionContext, p: Propagator) = {
+             (implicit system: ActorSystem, p: Propagator) = {
 
       new Timer(interval, delay)
     }
@@ -192,7 +192,6 @@ object AsyncSignals{
   class Timer(interval: FiniteDuration, delay: FiniteDuration)
              (implicit system: ActorSystem, p: Propagator)
              extends Signal[Long]{
-    import p.executionContext
     val count = new AtomicLong(0L)
     val holder = new WeakTimerHolder(new WeakReference(this), interval, delay)
 

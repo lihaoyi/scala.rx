@@ -5,8 +5,8 @@ import concurrent.{Future, ExecutionContext}
 
 class BreadthFirstPropagator(val executionContext: ExecutionContext) extends Propagator{
   implicit val ec = executionContext
-  def propagate(nodes: Seq[(Flow.Emitter[Any], Flow.Reactor[Nothing])]): Future[Unit] = {
 
+  def propagate(nodes: Seq[(Flow.Emitter[Any], Flow.Reactor[Nothing])]): Future[Unit] = {
     if (nodes.length != 0){
       val minLevel = nodes.minBy(_._2.level)._2.level
       val (now, later) = nodes.partition(_._2.level == minLevel)
@@ -25,8 +25,6 @@ class BreadthFirstPropagator(val executionContext: ExecutionContext) extends Pro
 }
 
 object Propagator{
-
-
   implicit object Immediate extends BreadthFirstPropagator(
     new ExecutionContext {
       def reportFailure(t: Throwable) { t.printStackTrace() }
