@@ -443,7 +443,7 @@ The propagation begins when `x` is modified via `x() = 2`, in this case ending a
 
 Nodes earlier in the dependency graph are evaluated before those down the line. However, due to the fact that the dependencies of a `Rx` are not known until it is evaluated, it is impossible to strictly maintain this invariant at all times, since the underlying graph could change unpredictably.
 
-In general, Scala.Rx keeps track of the topological order dynamically, such that after initialization, if the dependency graph does not change too radically, most nodes *should* be evaluated only once per propagation, but this is not a hard guarantee. Furthermore, Scala.Rx makes extensive use of [ScalaSTM](http://nbronson.github.com/scala-stm/) to handle concurrency. This means that the body of `Rx`s could be executed by multiple threads in parallel (in different transactions), and re-executed if there is contention.
+In general, Scala.Rx keeps track of the topological order dynamically, such that after initialization, if the dependency graph does not change too radically, most nodes *should* be evaluated only once per propagation, but this is not a hard guarantee.
 
 Hence, it is possible that an `Rx` will get evaluated more than once, even if only a single `Var` is updated. You should ensure that the body of any `Rx`s can tolerate being run more than once without harm. If you need to perform side effects, use an `Obs`, which only executes its side effects once per propagation cycle after the values for all `Rx`s have stabilized.
 
@@ -533,7 +533,7 @@ However, it also means that there can be no special-threads, no global contentio
 
 Build on Standards
 ------------------
-This means using [scala.concurrent.Future](http://docs.scala-lang.org/sips/pending/futures-promises.html) and [Akka](http://akka.io/) (and [ScalaSTM](http://nbronson.github.com/scala-stm/)) as much as possible. Not only does it mean that I don't need to spend effort implementing my own (probably buggy and inferior) algorithms and techniques, it means that any users who have experience with these existing systems will already be familiar with their characteristics.
+This means using [scala.concurrent.Future](http://docs.scala-lang.org/sips/pending/futures-promises.html) and [Akka](http://akka.io/) as much as possible. Not only does it mean that I don't need to spend effort implementing my own (probably buggy and inferior) algorithms and techniques, it means that any users who have experience with these existing systems will already be familiar with their characteristics.
 
 For example, to make Scala.Rx to run in a single thread, you simply need to define the the right [ExecutionContext](http://www.scala-lang.org/archives/downloads/distrib/files/nightly/docs/library/index.html#scala.concurrent.ExecutionContext), which a user is more likely to be familiar with (since its what you would use to make *any* `Future` using program run in a single thread) than with some special home-brewed system.
 
