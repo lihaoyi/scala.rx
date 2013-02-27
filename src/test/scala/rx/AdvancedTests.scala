@@ -6,7 +6,10 @@ import scala.concurrent.{ExecutionContext, Await, Future, Promise}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import akka.actor.ActorSystem
+
 import time.{Millis, Span}
+
+
 class AdvancedTests extends FreeSpec with Eventually{
   implicit val patience = (PatienceConfig(Span(500, Millis)))
   implicit val system = ActorSystem()
@@ -38,6 +41,7 @@ class AdvancedTests extends FreeSpec with Eventually{
   }
   "async" - {
     "basic example" in {
+      sun.misc.Unsafe
       val p = Promise[Int]()
       val a = Rx{
         p.future
@@ -189,6 +193,8 @@ class AdvancedTests extends FreeSpec with Eventually{
     val serialResult = time(Propagator.Immediate)
     val parallelResult = time(new BreadthFirstPropagator(ExecutionContext.global))
 
+    // serial and parallel should have the same result but parallel
+    // should be at least 1.5 times as fast
     (serialResult, parallelResult) patternMatches {
       case ((200000010, 200000010, 200000010, serialTime),
             (200000010, 200000010, 200000010, parallelTime))

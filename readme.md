@@ -410,16 +410,91 @@ and attach listeners to the `Rx`, which fire when the `Rx`'s value changes. This
 How it Works
 ============
 
-Scala.Rx is based of a subset of the ideas in [Deprecating the Observer Pattern](http://infoscience.epfl.ch/record/176887/files/DeprecatingObservers2012.pdf), in particular their definition of "Opaque Signals". The implementation follows it reasonably closely: each time an `Rx` is evaluated (or re-evaluated), it is put into a `DynamicVariable`. Any calls to the `.apply()` methods of other `Rx`s then inspect this stack to determine who (if any) is `Rx` who called, creating a dependency between them. Thus a dependency graph is implicitly created without any action on the part of the programmer.
 
-The actual propagation of changes is done in a breadth-first, topologically-sorted order, similar to that described in the paper. Nodes earlier in the dependency graph are evaluated before those down the line. However, due to the fact that the dependencies of a `Rx` are not known until it is evaluated, it is impossible to strictly maintain this invariant at all times, since the underlying graph could change unpredictably.
+Dependency Tracking
+-------------------
+Scala.Rx tracks the dependency graph between different `Var`s and `Rx`s without any explicit annoation by the programmer. This means that in (almost) all cases, you can just write your code as if it wasn't being tracked, and Scala.Rx would build up the dependency graph automatically.
+
+Every time the body of an `Rx{...}` is evaluated (or re-evaluated), it is put into a `DynamicVariable`. Any calls to the `.apply()` methods of other `Rx`s then inspect this stack to determine who (if any) is `Rx` who called, creating a dependency between them. Thus a dependency graph is implicitly created without any action on the part of the programmer.
+
+The dependency-tracking strategy of Scala.Rx is based of a subset of the ideas in [Deprecating the Observer Pattern](http://infoscience.epfl.ch/record/176887/files/DeprecatingObservers2012.pdf), in particular their definition of "Opaque Signals". The implementation follows it reasonably closely.
+
+Propagation
+-----------
+
+###Forward References
+Once we have evaluated our `Var`s and `Rx`s once and have a dependency graph, how do we keep track of our children (the `Rx`s who depend on us) and tell them to update? Simply keeping a `List[]` of all children will cause memory leaks, as the `List[]` will prevent any child from being garbage collected even if all other references to the child have been lost and the child is otherwise unaccessable.
+
+Instead, Scala.Rx using a list of `WeakReference`s. These allow the `Rx` to keep track of its children while still letting them get garbage collected when all other references to them are lost. When a child becomes unreachable and gets garbage collected, the `WeakReference` becomes `null`, and these null references get cleared from the list every time it is updated.
+
+###Propagation Strategies
+The default propagation of changes is done in a breadth-first, topologically-sorted order, similar to that described in the paper. Each propagation cycle occurs when a `Var` is set, e.g. in
+ 
+```scala
+val x = Var(0)
+val y = Rx(x * 2)
+println(y) // 2
+
+x() = 2
+println(y) // 4
+```
+
+The propagation begins when `x` is modified via `x() = 2`, in this case ending at `y` which updates to the new value `4`.
+
+Nodes earlier in the dependency graph are evaluated before those down the line. However, due to the fact that the dependencies of a `Rx` are not known until it is evaluated, it is impossible to strictly maintain this invariant at all times, since the underlying graph could change unpredictably.
 
 In general, Scala.Rx keeps track of the topological order dynamically, such that after initialization, if the dependency graph does not change too radically, most nodes *should* be evaluated only once per propagation, but this is not a hard guarantee. Furthermore, Scala.Rx makes extensive use of [ScalaSTM](http://nbronson.github.com/scala-stm/) to handle concurrency. This means that the body of `Rx`s could be executed by multiple threads in parallel (in different transactions), and re-executed if there is contention.
 
 Hence, it is possible that an `Rx` will get evaluated more than once, even if only a single `Var` is updated. You should ensure that the body of any `Rx`s can tolerate being run more than once without harm. If you need to perform side effects, use an `Obs`, which only executes its side effects once per propagation cycle after the values for all `Rx`s have stabilized.
 
-The asynchronous combinators may spontaneously trigger propagation cycles when their async operations complete. These are all run on your standard `scala.concurrent.ExecutionContext`s, using a `akka.actor.ActorSystem` for scheduled tasks (e.g. for debouncing).
+The default propagation does this all synchronously: it performs each update one at a time, and the `update` function
 
+```scala
+x() = 2
+```
+
+only returns after all updates have completed. This can be changed by creating a new `BreadthFirstPropagator` with a custom `ExecutionContext`. e.g.:
+
+```scala
+implicit val propagator = new BreadthFirstPropagator(ExecutionContext.global)
+
+x() = 2
+```
+
+In which case the propagation will be done in parallel, according to the global `ExecutionContext`. 
+
+Even with a custom `ExecutionContext`, all updates occur in (roughly) topologically sorted order. If for some reason you do not want this, it is possible to customize this by creating a custom `Propagator` who is responsible for performing these updates. The `Propagator` trait is defined as:
+
+```scala
+trait Propagator{
+  def propagate(nodes: Seq[(Flow.Emitter[Any], Flow.Reactor[Nothing])]): Future[Unit]
+  implicit def executionContext: ExecutionContext
+}
+```
+
+Where `propagate` method takes a `Seq` of updates that must happen: every propagation cycle, there is a set of `Emitter`s telling `Reactor`s to update. Now you can have the propagation happen in any order you want
+
+Concurrency and Asynchrony
+--------------------------
+
+As mentioned earlier, by default everything happens on a single-threaded execution context and there is no parallelism. By using a custom ExecutionContext, it is possible to have the updates in each propagation cycle happen in parallel, but there still aren't any race conditions because only updates which are completely independent will occur in parallel, and there is no risk of a single `Rx` being asked to update more than once in parallel.
+
+This is not the whole picture, though. The asynchronous combinators may spontaneously trigger propagation cycles when their async operations complete. For example, the `Timer` signal will fire off events every time the interval passes, or the `Async` combinator's `Future[T]` may complete, causing it to update and begin a propagation cycle. Or, you may have multiple people calling `x() = ...` in parallel from multiple threads. These are all valid uses.
+
+###Agents 
+
+In the case where multiple propagation cycles are happening simultaneously, concurrency and parallelism is managed via [Akka Agents](http://doc.akka.io/docs/akka/2.1.0/scala/agents.html). These are, effectively, mini-[Actors](http://doc.akka.io/docs/akka/2.1.0/scala/actors.html) which force updates to a single `Rx` to happen sequentially. If more than one propagation cycle tells it to update, the updates are queued up and occur one at a time. Hence the body of each individual `Rx{...}` is will not be run multiple times in parallel, even if the body of different `Rx{..}`s may be run in concurrently. Assuming the body of the `Rx{...}` is "pure" and has minimal side effects, this should not cause problems.
+
+###Weak-References
+
+What about the weak references? These are less convenient, as unlike the rest of the state related to each `Rx`, the weak references pointing toward an `Rx` are not kept within the `Rx` itself, but instead kept in its parents. Hence updates to these weak references cannot conveniently be seralized by encapsulating the state within an Agent.
+
+Instead, Scala.Rx does two things:
+
+- Make the list of `WeakReferences` append-only
+- Maintains a list of Parents in each Child, in addition to having a list of Children in each Parent. This list of parents will then be kept up to date, and updates to it will be serialized when the `Rx`'s Agent updates.
+
+As a result, although the _forward_ references from parent to child may not always be kept up to date, they will always form a super-set of the "correct" relationships. These "correct" relationships will be kept up to date in the _backward_ references from child to parent, and will ensure that things behave correctly even if the set of forward references is larger than it needs to be.
 
 Related Work
 ============
