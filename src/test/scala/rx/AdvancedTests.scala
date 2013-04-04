@@ -41,7 +41,6 @@ class AdvancedTests extends FreeSpec with Eventually{
   }
   "async" - {
     "basic example" in {
-      sun.misc.Unsafe
       val p = Promise[Int]()
       val a = Rx{
         p.future
