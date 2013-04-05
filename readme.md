@@ -582,3 +582,14 @@ No Delimited Continuations
 Using the delimited continuations plugin would in theory have solved many problems. For example, using it, we would be able to pause the execution of any `Rx` at any time, which would mean we could completely avoid redundantly-recomputing the body of a `Rx`. It also should bring many other benefits, such as seamless integration with `Future`s and the [Akka Dataflow](http://doc.akka.io/docs/akka/snapshot/scala/dataflow.html).
 
 However, the continuations plugin proved to be far too rough around the edges, when I actually implemented Scala.Rx using it. It plays badly (e.g. does not work at all) with higher-order functions and by-name parameters, which form a huge portion of the standard library. It also caused bugs with implicit-resolutions and run-time ClassCastExceptions. In general, it added far more pain than it relieved.
+
+Credits
+-------
+
+Copyright (c) 2013, Li Haoyi (haoyi.sg at gmail.com)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
