@@ -46,6 +46,22 @@ class BasicTests extends FreeSpec with Inside{
         a() = 3
         assert(f() === 38)
       }
+
+      "complex values inside Var[]s and Rx[]s" in {
+        val a = Var(Seq(1, 2, 3))
+        val b = Var(3)
+        val c = Rx{ b() +: a() }
+        val d = Rx{ c().map("omg" * _) }
+        val e = Var("wtf")
+        val f = Rx{ (d() :+ e()).mkString }
+
+        assert(f() === "omgomgomgomgomgomgomgomgomgwtf")
+        a() = Nil
+        assert(f() === "omgomgomgwtf")
+        e() = "wtfbbq"
+        assert(f() === "omgomgomgwtfbbq")
+
+      }
     }
     "language features" - {
       "pattern matching" in {

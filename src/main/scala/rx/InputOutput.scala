@@ -1,7 +1,6 @@
 package rx
 
 import util.{Try, Success}
-import java.util.concurrent.atomic.AtomicReference
 import akka.agent.Agent
 import concurrent.Future
 
