@@ -13,6 +13,7 @@ import time.{Millis, Span}
 class AdvancedTests extends FreeSpec with Eventually{
   implicit val patience = (PatienceConfig(Span(500, Millis)))
   implicit val system = ActorSystem()
+
   "disabling" - {
     "sigs" in {
       val a = Var(1)

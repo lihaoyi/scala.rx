@@ -19,7 +19,11 @@ object SyncSignals {
      * Provides a nice wrapper to use to create DynamicSignals
      */
     def apply[T](calc: => T)(implicit p: Propagator): DynamicSignal[T] = {
-      new DynamicSignal("", () => calc)
+      new DynamicSignal(() => calc)
+    }
+
+    def apply[T](x: Null = null, name: String = "")(calc: => T)(implicit p: Propagator): DynamicSignal[T] = {
+      new DynamicSignal(() => calc, name)
     }
 
     private[rx] val enclosing = new DynamicVariable[Option[(DynamicSignal[Any], List[Signal[Any]])]](None)
@@ -37,7 +41,9 @@ object SyncSignals {
    * @param calc The method of calculating the future of this DynamicSignal
    * @tparam T The type of the future this contains
    */
-  class DynamicSignal[+T](val name: String, calc: () => T)(implicit p: Propagator) extends Flow.Signal[T] with Flow.Reactor[Any]{
+  class DynamicSignal[+T](calc: () => T, val name: String = "")
+                         (implicit p: Propagator)
+                          extends Flow.Signal[T] with Flow.Reactor[Any]{
     import p.executionContext
 
     @volatile var active = true

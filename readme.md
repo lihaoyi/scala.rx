@@ -553,7 +553,7 @@ Others
 This idea of change propagation is also known as [Functional Reactive Programming](http://en.wikipedia.org/wiki/Functional_reactive_programming), and is a well studied field with a lot of research already done. Scala.Rx builds upon this research, and incorporates ideas from the following projects:
 
 - [FlapJax](http://www.flapjax-lang.org/)
-- [Frape](http://www.imamu.edu.sa/dcontent/IT_Topics/java/10.1.1.80.4772.pdf)
+- [Frappe](http://www.imamu.edu.sa/dcontent/IT_Topics/java/10.1.1.80.4772.pdf)
 - [Fran](http://conal.net/papers/icfp97/icfp97.pdf)
 
 Design Considerations

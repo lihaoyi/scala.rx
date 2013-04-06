@@ -2,7 +2,27 @@ package rx
 import org.scalatest._
 import util.{Failure, Success}
 class BasicTests extends FreeSpec with Inside{
+  "config tests" - {
+    "name" in {
+      val v1 = Var(0)
+      val v2 = Var(name = "v2")(0)
 
+      val s1 = Rx{v1() + 1}
+      val s2 = Rx(name = "s2"){v2() + 1}
+
+      val o1 = Obs(s1){ println(1) }
+      val o2 = Obs(name = "o2")(s2){ println(1) }
+
+      assert(v1.name === "")
+      assert(v2.name === "v2")
+
+      assert(s1.name === "")
+      assert(s2.name === "s2")
+
+      assert(o1.name === "")
+      assert(o2.name === "o2")
+    }
+  }
   "sig tests" - {
     "basic" - {
       "signal Hello World" in {
@@ -86,6 +106,21 @@ class BasicTests extends FreeSpec with Inside{
       a() = 1
 
       assert(bS === 2);   assert(cS === 2);   assert(dS === 2)
+    }
+
+    "listening the multiple signals" in {
+      var count = 0
+      val a = Var(1)
+      val b = Var(2)
+      val o = Obs(a, b){
+        count += 1
+      }
+      a() = 2
+      b() = 3
+      assert(count === 2)
+      a() = 1
+      b() = 2
+      assert(count === 4)
     }
   }
 

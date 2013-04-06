@@ -8,7 +8,10 @@ import concurrent.Future
 
 object Var {
   def apply[T](value: => T)(implicit p: Propagator) = {
-    new Var("", value)
+    new Var(value)
+  }
+  def apply[T](x: Null = null, name: String = "")(value: => T)(implicit p: Propagator) = {
+    new Var(value, name)
   }
 }
 
@@ -18,7 +21,7 @@ object Var {
  * @param initValue The initial future of the Var
  * @tparam T The type of the future this Var contains
  */
-class Var[T](val name: String, initValue: => T)(implicit p: Propagator) extends Flow.Signal[T]{
+class Var[T](initValue: => T, val name: String = "")(implicit p: Propagator) extends Flow.Signal[T]{
   import p.executionContext
   val state = Agent(Try(initValue))
   def update(newValue: => T): Future[Unit] = for {
@@ -31,8 +34,11 @@ class Var[T](val name: String, initValue: => T)(implicit p: Propagator) extends 
 }
 
 object Obs{
-  def apply[T](es: Flow.Emitter[Any])(callback: => Unit) = {
-    new Obs("", es)(() => callback)
+  def apply[T](es: Flow.Emitter[Any]*)(callback: => Unit) = {
+    new Obs(es, () => callback)
+  }
+  def apply[T](x: Null = null, name: String = "")(es: Flow.Emitter[Any]*)(callback: => Unit) = {
+    new Obs(es, () => callback, name)
   }
 }
 
@@ -44,10 +50,10 @@ object Obs{
  *
  * @param callback a callback to run when this Obs is pinged
  */
-case class Obs(name: String, source: Flow.Emitter[Any])(callback: () => Unit) extends Flow.Reactor[Any]{
+case class Obs(source: Seq[Flow.Emitter[Any]], callback: () => Unit, name: String = "")extends Flow.Reactor[Any]{
   @volatile var active = true
-  source.linkChild(this)
-  def getParents = Seq(source)
+  source.foreach(_.linkChild(this))
+  def getParents = source
   def level = Long.MaxValue
 
   def ping(incoming: Seq[Flow.Emitter[Any]]) = {
