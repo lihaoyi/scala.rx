@@ -10,7 +10,7 @@ object Var {
   def apply[T](value: => T)(implicit p: Propagator) = {
     new Var(value)
   }
-  def apply[T](x: Null = null, name: String = "")(value: => T)(implicit p: Propagator) = {
+  def apply[T](x: =>Nothing = ???, name: String = "")(value: => T)(implicit p: Propagator) = {
     new Var(value, name)
   }
 }
@@ -37,7 +37,7 @@ object Obs{
   def apply[T](es: Flow.Emitter[Any]*)(callback: => Unit) = {
     new Obs(es, () => callback)
   }
-  def apply[T](x: Null = null, name: String = "")(es: Flow.Emitter[Any]*)(callback: => Unit) = {
+  def apply[T](x: =>Nothing = ???, name: String = "")(es: Flow.Emitter[Any]*)(callback: => Unit) = {
     new Obs(es, () => callback, name)
   }
 }

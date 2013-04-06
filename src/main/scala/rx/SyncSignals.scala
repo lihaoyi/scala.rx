@@ -22,7 +22,7 @@ object SyncSignals {
       new DynamicSignal(() => calc)
     }
 
-    def apply[T](x: Null = null, name: String = "")(calc: => T)(implicit p: Propagator): DynamicSignal[T] = {
+    def apply[T](x: =>Nothing = ???, name: String = "")(calc: => T)(implicit p: Propagator): DynamicSignal[T] = {
       new DynamicSignal(() => calc, name)
     }
 
