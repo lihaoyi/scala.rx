@@ -1,7 +1,7 @@
 Scala.Rx
 ========
 
-Scala.Rx is an experimental change propagation library for Scala. Scala.Rx gives you Reactive variables (`Rx` s), which are smart variables who auto-update themselves when the values they depend on change. The underlying implementation is push-based FRP based on the ideas in [Deprecating the Observer Pattern](http://infoscience.epfl.ch/record/176887/files/DeprecatingObservers2012.pdf).
+Scala.Rx is an experimental change propagation library for [Scala](http://www.scala-lang.org/). Scala.Rx gives you Reactive variables (`Rx`s), which are smart variables who auto-update themselves when the values they depend on change. The underlying implementation is push-based [FRP](http://en.wikipedia.org/wiki/Functional_reactive_programming) based on the ideas in [Deprecating the Observer Pattern](http://infoscience.epfl.ch/record/176887/files/DeprecatingObservers2012.pdf).
 
 A simple example which demonstrates the behavior is:
 
@@ -9,14 +9,12 @@ A simple example which demonstrates the behavior is:
 import rx._
 val a = Var(1); val b = Var(2)
 val c = Rx{ a() + b() }
-println(c.now()) // 3
+println(c()) // 3
 a() = 4
-println(c.now()) // 6
+println(c()) // 6
 ```
 
-The idea being that 99% of the time, when you re-calculate a variable, you re-calculate it the same way you initially calculated it. Furthermore, you only re-calculate it when one of the values it depends on changes. Scala.Rx does this for you automatically, and handling all the tedious update logic for you so you can focus on other things.
-
-Furthermore, you no longer need to worry about forgetting to re-calculate some value when things change, and your different variables falling out of sync. Scala.Rx does this all for you.
+The idea being that 99% of the time, when you re-calculate a variable, you re-calculate it the same way you initially calculated it. Furthermore, you only re-calculate it when one of the values it depends on changes. Scala.Rx does this for you automatically, and handles all the tedious update logic for you so you can focus on other, more interesting things!
 
 Basic Use
 =========
@@ -24,9 +22,9 @@ The above example is an executable program. In general, `import rx._` is enough 
 
 The basic entities you have to care about are `Var`, `Rx` and `Obs`:
 
-- a `Var` is a smart variable which you can get using `a()` and set using `a() = ...`. Whenever its value changes, it notifies any downstream entity which needs to be recalculated.
-- a `Rx` is a reactive definition which automatically captures any `Var`s or other `Rx`s which get called in its body, flagging them as dependencies and re-calculating whenever one of them changes. Like a `Var`, you can use the `a()` syntax to retrieve its value, and it also notifies downstream entities when the value changes.
-- a `Obs` is an observer on one or more `Var` s or `Rx` s, performing some side-effect when the observed node changes entity.
+- `Var`: a smart variable which you can get using `a()` and set using `a() = ...`. Whenever its value changes, it notifies any downstream entity which needs to be recalculated.
+- `Rx`: a reactive definition which automatically captures any `Var`s or other `Rx`s which get called in its body, flagging them as dependencies and re-calculating whenever one of them changes. Like a `Var`, you can use the `a()` syntax to retrieve its value, and it also notifies downstream entities when the value changes.
+- `Obs`: an observer on one or more `Var` s or `Rx` s, performing some side-effect when the observed node changes entity.
 
 Using these components, you can easily construct a *dataflow graph*, and have the various values within the dataflow graph be kept up to date when the inputs to the graph change:
 
@@ -40,9 +38,9 @@ val d = Rx{ c() * 5 } // 15
 val e = Rx{ c() + 4 } // 7
 val f = Rx{ d() + e() + 4 } // 26
 
-println(f.now()) // 26
+println(f()) // 26
 a() = 3
-println(f.now()) // 38
+println(f()) // 38
 ```
 
 As can be seen above, changing the value of `a` causes the change to propagate all the way through `c` `d` `e` to `f`. You can use a `Var` and `Rx` anywhere you an use a normal variable.
@@ -66,7 +64,7 @@ The body of `Rx`s should be side effect free, as they may be run more than once 
 Error Handling
 --------------
 
-Since the body of an `Rx` can be any arbitrary scala code, it can throw exceptions. Propagating the exception up the call stack would not make much sense, as the code evaluating the `Rx` is probably not in control of the reason it failed. Instead, any exceptions are caught by the `Rx` itself and stored internally as a `Try`.
+Since the body of an `Rx` can be any arbitrary Scala code, it can throw exceptions. Propagating the exception up the call stack would not make much sense, as the code evaluating the `Rx` is probably not in control of the reason it failed. Instead, any exceptions are caught by the `Rx` itself and stored internally as a `Try`.
 
 This can be seen in the following unit test:
 
@@ -254,7 +252,7 @@ eventually{
 }
 ```
 
-`debounce` creates a new `Rx` which does not change more than once every `interval` units of time. No matter how many times the original `Rx` changes, the `debounced` version will only update once every interval, and the last un-applied change will be stored and applied at the end of the interval if need be.
+`debounce` creates a new `Rx` which does not change more than once every `interval` [units of time](http://www.scala-lang.org/archives/downloads/distrib/files/nightly/docs/library/index.html#scala.concurrent.duration.Duration). No matter how many times the original `Rx` changes, the `debounced` version will only update once every interval, and the last un-applied change will be stored and applied at the end of the interval if need be. One common use case is if you have an expensive operation you do not want to repeat too quickly and hog the CPU, you debounce it to limit the rate it which it repeats.
 
 In this example, you can see that after initially setting `a() = 5`, with `b() === 5, c() === 10`, subsequent changes to a() have no effect on `b` or `c` until the `eventually{}` block at the bottom. At that point, the interval will have passed, and `b` and `c` will update to use the most recent value of `a`.
 
@@ -295,7 +293,8 @@ p = Promise[Int]()
 a() = 2
 assert(b() === 6)
 p.complete(scala.util.Success(7))
-eventually{99)
+eventually{
+    assert(b() === 9)
 }
 ```
 
@@ -303,7 +302,7 @@ The value of `b()` updates as you would expect as the series of `Future`s comple
 
 This is handy if your dependency graph contains some asynchronous elements. For example, you could have a `Rx` which depends on another `Rx`, but requires an asynchronous web request to calculate its final value. With `async`, the results from the asynchronous web request will be pushed back into the change propagation graph automatically when the `Future` completes, starting off another propagation run and conveniently updating the rest of the graph which depends on the new result.
 
-`async` optionally takes a second argument which causes out-of-order `Future`s to be dropped. This is useful if you always want to have the result of the most recently-created `Future` which completed.
+`async` optionally takes a second argument which causes out-of-order `Future`s to be dropped. This is useful if you always want to have the result of the most recently-created `Future` which completed, rather than the most-recently-completed `Future`.
 
 ###Timer
 
@@ -321,7 +320,7 @@ for(i <- 0 to 5){
 assert(count >= 5)
 ```
 
-A `Timer` is a `Rx` that generates events on a regular basis. The events are based on the `scheduler` of the implicit `ActorSystem`, which defaults to a maximum precision of about 100 milliseconds. In the example above, the for-loop checks that the value of the timer `t()` increases over time from 0 to 5, and then checks that `count` has been incremented at least that many times
+A `Timer` is a `Rx` that generates events on a regular basis. The events are based on the `scheduler` of the implicit `ActorSystem`, which defaults to a maximum precision of about 100 milliseconds. In the example above, the for-loop checks that the value of the timer `t()` increases over time from 0 to 5, and then checks that `count` has been incremented at least that many times.
 
 The scheduled task is cancelled automatically when the `Timer` object becomes unreachable, so it can be garbage collected. This means you do not have to worry about managing the life-cycle of the `Timer`.
 
@@ -421,6 +420,7 @@ As a result, although the _forward_ references from parent to child may not alwa
 
 Related Work
 ============
+Cool things do not happen in a vacuum, and Scala.Rx borrows ideas and inspiration from a range of existing projects.
 
 Scala.React
 -----------
@@ -457,7 +457,7 @@ Simple to Use
 -------------
 This meant that the syntax to write programs in a dependency-tracking way had to be as light weight as possible, and the programs had to *look* like their normal, old-fashioned, imperative counterparts. This meant using `DynamicVariable` instead of implicits to automatically pass arguments, sacrificing proper lexical scoping for nice syntax.
 
-I ruled out using a purely monadic style (like [reactive-web](https://github.com/nafg/reactive)), as although it would be far easier to implement the library in that way, it would be a far greater pain to actually use it. Although I am happy to use for-comprehensions as loops and in specialized queries (e.g. [ScalaQuery](http://scalaquery.org/)) I'm not quite prepared to write my entire program in for-comprehensions, and still like the old-fashioned imperative style. I didn't want to have to manually declare dependencies. I wanted to be able to just write code, sprinkle a few R{}s around and have the dependency tracking and change propagation *just work*. Overall, I believe it has been quite successful at that!
+I ruled out using a purely monadic style (like [reactive-web](https://github.com/nafg/reactive)), as although it would be far easier to implement the library in that way, it would be a far greater pain to actually use it. Although I am happy to use for-comprehensions as loops and in specialized queries (e.g. [ScalaQuery](http://scalaquery.org/)) I'm not quite prepared to write my entire program in for-comprehensions, and still like the old-fashioned imperative style. I didn't want to have to manually declare dependencies. I wanted to be able to just write code, sprinkle a few `R{}`s around and have the dependency tracking and change propagation *just work*. Overall, I believe it has been quite successful at that!
 
 Simple to Reason About
 ----------------------
@@ -476,12 +476,12 @@ This meant that it had to be easy for a programmer to drop in and out of the FRP
 
 With Scala.Rx, I resolved to do things differently. Hence, Scala.Rx:
 
-- Is written in Scala: an uncommon, but probably less-obscure language than Haskell
+- Is written in Scala: an uncommon, but probably less-obscure language than Haskell or Scheme
 - Is a library: it is plain-old-scala. There is no source-to-source transformation, no special runtime, nothing. You download the source code into your Scala project, and start using it
 - Allows you to use any programming language construct or library functionality within your `Rx`s: Scala.Rx will figure out the dependencies without the programmer having to worry about it
-- Allows you to use Scala.Rx within a larger project without much pain. You can easily embed small dataflow graphs within a larger object-oriented universe and interact with them via setting `Var`s and listening to `Obs`s.
+- Allows you to use Scala.Rx within a larger project without much pain. You can easily embed dataflow graphs within a larger object-oriented universe and interact with them via setting `Var`s and listening to `Obs`s.
 
-Many of the papers I reviewed show a beautiful new FRP universe that we could be programming in, if only you ported all your code to FRP-Haskell and limited yourself to the small set of combinators used to create dataflow graphs. On the other hand, by letting you embed FRP snippets anywhere within existing code, using FRP ideas in existing projects without full commitment, and allowing you easy interop between your FRP and non-FRP code, Scala.Rx aims to bring the benefits FRP into our messy, dirty real-universe.
+Many of the papers I reviewed show a beautiful new FRP universe that we could be programming in, if only you ported all your code to FRP-Haskell and limited yourself to the small set of combinators used to create dataflow graphs. On the other hand, by letting you embed FRP snippets anywhere within existing code, using FRP ideas in existing projects without full commitment, and allowing you easy interop between your FRP and non-FRP code, Scala.Rx aims to bring the benefits FRP into the dirty, messy universe which we are programming in today.
 
 Credits
 =======
