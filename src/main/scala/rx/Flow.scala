@@ -57,10 +57,13 @@ object Flow{
     def getChildren: Seq[Reactor[Nothing]] = children.get.flatMap(_.get)
 
 
-    @tailrec final def linkChild[R >: T](child: Reactor[R]): Unit = {
-      val c = children.get
-      val newC = WeakReference(child) :: c.filter(_.get.isDefined)
-      if (!children.compareAndSet(c, newC)) linkChild(child)
+    def linkChild[R >: T](child: Reactor[R]): Unit = {
+      @tailrec def link: Unit = {
+        val c = children.get
+        val newC = WeakReference(child) :: c.filter(_.get.isDefined)
+        if (!children.compareAndSet(c, newC)) link
+      }
+      link
     }
   }
 

@@ -51,6 +51,7 @@ object Obs{
  */
 case class Obs(source: Seq[Flow.Emitter[Any]], callback: () => Unit, name: String = "")extends Flow.Reactor[Any]{
   @volatile var active = true
+
   source.foreach(_.linkChild(this))
   def getParents = source
   def level = Long.MaxValue
