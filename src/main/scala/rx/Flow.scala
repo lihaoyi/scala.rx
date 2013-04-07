@@ -4,11 +4,12 @@ import util.Try
 import scala.util.{Failure, Success}
 import rx.SyncSignals.DynamicSignal
 import annotation.tailrec
-import concurrent.stm._
+
 import ref.WeakReference
 import akka.agent.Agent
 import concurrent.{Future, ExecutionContext}
 import java.util.concurrent.atomic.AtomicReference
+
 
 /**
  * Contains all the basic traits which are used throughout the construction
@@ -51,16 +52,17 @@ object Flow{
    * listeners which need to be pinged when an event is fired.
    */
   trait Emitter[+T] extends Node{
-    private[this] val children = Ref(Seq[WeakReference[Reactor[T]]]())
+    private[this] val children = new AtomicReference[List[WeakReference[Reactor[T]]]](Nil)
 
     def getChildren: Seq[Reactor[Nothing]] = {
-      children.single.transform(_.filter(_.get.isDefined))
-      children.single().flatMap(_.get)
+      children.get.flatMap(_.get)
     }
 
-    def linkChild[R >: T](child: Reactor[R]) =
-      children.single.transform(_.filter(_.get.isDefined) :+ WeakReference(child))
-
+    @tailrec final def linkChild[R >: T](child: Reactor[R]): Unit = {
+      val c = children.get
+      val newC = WeakReference(child) :: c.filter(_.get.isDefined)
+      if (!children.compareAndSet(c, newC)) linkChild(child)
+    }
   }
 
   /**
