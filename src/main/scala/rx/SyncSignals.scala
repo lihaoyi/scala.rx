@@ -51,14 +51,7 @@ object SyncSignals {
                                    level: Long,
                                    value: Try[A])
 
-    private[this] val state = {
-      val (value, deps) = fullCalc()
-      Agent(State(
-        deps,
-        (0l :: deps.map(_.level)).max,
-        value
-      ))
-    }
+    private[this] val state = Agent(getState(0))
 
 
     def fullCalc() = {
@@ -67,18 +60,21 @@ object SyncSignals {
       }
     }
 
+    private[this] def getState(minLevel: Long) = {
+      val (newValue, deps) = fullCalc()
+      State(
+        deps,
+        (minLevel :: deps.map(_.level)).max,
+        newValue
+      )
+    }
     def getParents = state().parents
 
     def ping(incoming: Seq[Flow.Emitter[Any]]) = {
       if (active && getParents.intersect(incoming).isDefinedAt(0)){
 
         state alter {x =>
-          val (newValue, deps) = fullCalc()
-          State(
-            deps,
-            (level :: deps.map(_.level)).max,
-            newValue
-          )
+          getState(this.level)
         } map {x => getChildren}
 
       }else Future.successful(Nil)
