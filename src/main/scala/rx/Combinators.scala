@@ -59,7 +59,7 @@ object Combinators{
      * Optionally takes a `failurePred`, allowing you to filter cases where
      * both the previous and the new value are both Failures.
      */
-    def filterDiff(successPred: (T, T) => Boolean = _!=_,failurePred: (Throwable, Throwable) => Boolean = _!=_)
+    def filterDiff(successPred: (T, T) => Boolean = _!=_, failurePred: (Throwable, Throwable) => Boolean = _!=_)
                   (implicit p: Propagator)= {
 
       filterSig(

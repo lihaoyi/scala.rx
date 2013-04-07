@@ -54,9 +54,8 @@ object Flow{
   trait Emitter[+T] extends Node{
     private[this] val children = new AtomicReference[List[WeakReference[Reactor[T]]]](Nil)
 
-    def getChildren: Seq[Reactor[Nothing]] = {
-      children.get.flatMap(_.get)
-    }
+    def getChildren: Seq[Reactor[Nothing]] = children.get.flatMap(_.get)
+
 
     @tailrec final def linkChild[R >: T](child: Reactor[R]): Unit = {
       val c = children.get
