@@ -18,10 +18,10 @@ object Var {
  * @param initValue The initial future of the Var
  * @tparam T The type of the future this Var contains
  */
-class Var[T, P: Propagator](initValue: => T, val name: String = "") extends Flow.Signal[T]{
+class Var[T](initValue: => T, val name: String = "") extends Flow.Signal[T]{
 
   val state = new AtomicReference(Try(initValue))
-  def update(newValue: => T): P = {
+  def update[P: Propagator](newValue: => T): P = {
     state.set(Try(newValue))
     propagate()
   }

@@ -37,6 +37,7 @@ class CombinatorTests extends FreeSpec with Eventually{
     }
     "filterDiff" in test(x => _.filterDiff(_%x != _%x))
     "filterTry" in test(x => _.filterTry(_.map(_%x) != _.map(_%x)))
+
     def test(op: Int => Rx[Int] => Rx[Int]) = {
 
       val a = Var{10}

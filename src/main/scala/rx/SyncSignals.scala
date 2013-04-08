@@ -81,9 +81,10 @@ object SyncSignals {
     def ping[P: Propagator](incoming: Seq[Flow.Emitter[Any]]): Seq[Reactor[Nothing]] = {
 
       if (active && getParents.intersect(incoming).isDefinedAt(0)){
+        val newState = getState(this.level)
         val set = state.spinSetOpt{oldState =>
-          val newState = getState(this.level)
-          if (!changeFilter || newState.value != oldState.value){
+          if ((!changeFilter || newState.value != oldState.value)
+              && newState.timestamp > oldState.timestamp){
             Some(newState)
           }else{
             None
@@ -117,7 +118,6 @@ object SyncSignals {
     def toTry = state()
 
     def ping[P: Propagator](incoming: Seq[Flow.Emitter[Any]]) = {
-      val newTime = System.nanoTime()
       val set = state.spinSetOpt{ v =>
         val newValue = transformer(state(), source.toTry)
         if (v == newValue) None
