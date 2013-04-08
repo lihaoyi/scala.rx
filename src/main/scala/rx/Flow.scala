@@ -6,7 +6,7 @@ import rx.SyncSignals.DynamicSignal
 import annotation.tailrec
 
 import ref.WeakReference
-import akka.agent.Agent
+
 import concurrent.{Future, ExecutionContext}
 import java.util.concurrent.atomic.AtomicReference
 
@@ -39,11 +39,13 @@ object Flow{
       currentValue
     }
 
-    def propagate()(implicit p: Propagator) = {
-      p.propagate(this.getChildren.map(this -> _))
+    def propagate[P: Propagator]() = {
+      Propagator().propagate(this.getChildren.map(this -> _))
     }
 
     def toTry: Try[T]
+
+
   }
 
 
@@ -52,18 +54,12 @@ object Flow{
    * listeners which need to be pinged when an event is fired.
    */
   trait Emitter[+T] extends Node{
-    private[this] val children = new AtomicReference[List[WeakReference[Reactor[T]]]](Nil)
+    private[this] val children = Atomic[List[WeakReference[Reactor[T]]]](Nil)
 
     def getChildren: Seq[Reactor[Nothing]] = children.get.flatMap(_.get)
 
-
     def linkChild[R >: T](child: Reactor[R]): Unit = {
-      @tailrec def link: Unit = {
-        val c = children.get
-        val newC = WeakReference(child) :: c.filter(_.get.isDefined)
-        if (!children.compareAndSet(c, newC)) link
-      }
-      link
+      children.spinSet(c => WeakReference(child) :: c.filter(_.get.isDefined))
     }
   }
 
@@ -74,7 +70,7 @@ object Flow{
 
     def getParents: Seq[Emitter[Any]]
 
-    def ping(incoming: Seq[Emitter[Any]]): Future[Seq[Reactor[Nothing]]]
+    def ping(incoming: Seq[Emitter[Any]]): Seq[Reactor[Nothing]]
 
   }
 

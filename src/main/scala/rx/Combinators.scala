@@ -24,15 +24,15 @@ object Combinators{
      * will not propagate the changes, and simply remain holding on to its last
      * value
      */
-    def skipFailures(implicit p: Propagator) = filterSig((oldTry, newTry) => newTry.isSuccess)
+    def skipFailures[P: Propagator] = filterSig((oldTry, newTry) => newTry.isSuccess)
 
     /**
      * Creates a new Rx which filters the updates to the old Rx, giving you
      * access to both the old Try[T] and the new Try[T] in deciding whether
      * or not you want to accept the update
      */
-    def filterTry(predicate: (Try[T], Try[T]) => Boolean)
-                 (implicit p: Propagator) = filterSig(predicate)
+
+    def filterTry[P: Propagator](predicate: (Try[T], Try[T]) => Boolean) = filterSig(predicate)
 
     /**
      * Creates a new Rx which ignores specific Success conditions of the source Rx; it
@@ -40,8 +40,7 @@ object Combinators{
      * value if the new value fails the filter. Optionally takes a failurePred, allowing
      * it to filter the Failure conditions as well.
      */
-    def filter(successPred: T => Boolean, failurePred: Throwable => Boolean = x => true)
-              (implicit p: Propagator): Signal[T] = {
+    def filter[P: Propagator](successPred: T => Boolean, failurePred: Throwable => Boolean = x => true): Signal[T] = {
       new FilterSignal(source)(
         (x, y) => (x, y) match {
           case (_, Success(value)) if successPred(value) => Success(value)
@@ -59,8 +58,8 @@ object Combinators{
      * Optionally takes a `failurePred`, allowing you to filter cases where
      * both the previous and the new value are both Failures.
      */
-    def filterDiff(successPred: (T, T) => Boolean = _!=_, failurePred: (Throwable, Throwable) => Boolean = _!=_)
-                  (implicit p: Propagator)= {
+    def filterDiff[P: Propagator](successPred: (T, T) => Boolean = _!=_,
+                                  failurePred: (Throwable, Throwable) => Boolean = _!=_) = {
 
       filterSig(
         (x, y) => (x, y) match {
@@ -75,7 +74,7 @@ object Combinators{
      * Creates a new Rx which contains the value of the old Rx, except transformed by some
      * function.
      */
-    def map[A](f: T => A)(implicit p: Propagator): Signal[A] = new MapSignal[T, A](source)(y => y.map(f))
+    def map[A, P: Propagator](f: T => A): Signal[A] = new MapSignal[T, A, P](source)(y => y.map(f))
 
     /**
      * Creates a new Rx which debounces the old Rx; updates coming in within `interval`
@@ -89,7 +88,7 @@ object Combinators{
       else new DelayedRebounceSignal[T](source, interval, delay)
     }*/
 
-    def filterSig(predicate: (Try[T], Try[T]) => Boolean)(implicit p: Propagator): Signal[T] = {
+    def filterSig[P: Propagator](predicate: (Try[T], Try[T]) => Boolean): Signal[T] = {
       new FilterSignal(source)((x, y) => if (predicate(x, y)) y else x)
     }
 
@@ -104,9 +103,9 @@ object Combinators{
      * `async` can be configured with a variety of Targets, to configure
      * its handling of Futures which complete out of order (RunAlways, DiscardLate)
      */
-    def async(default: T,
-              target: AsyncSignals.Target[T] = AsyncSignals.RunAlways[T]())
-             (implicit executor: ExecutionContext, p: Propagator): Rx[T] = {
+    def async[P](default: T,
+                 target: AsyncSignals.Target[T] = AsyncSignals.RunAlways[T]())
+                (implicit executor: ExecutionContext, p: Propagator[P]): Rx[T] = {
       new AsyncSig(default, source, target)
     }
   }

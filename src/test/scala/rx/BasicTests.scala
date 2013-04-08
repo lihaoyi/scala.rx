@@ -2,23 +2,17 @@ package rx
 import org.scalatest._
 import util.{Failure, Success}
 class BasicTests extends FreeSpec with Inside{
-  "recursion" - {
-    "calculating fixed point" in {
-      lazy val s: Rx[Double] = Rx{ Math.cos(s()) }
-      println(s())
-    }
-    "calculating sqrt" in {
-      lazy val s: Rx[Double] = Rx(default = 10.0){ s() - (s() * s() - 10) / (2 * s()) }
-      println(s())
-    }
-  }
+
   "config tests" - {
     "name" in {
       val v1 = Var(0)
-      val v2 = Var[Int](name = "v2")(0)
+      val v2 = Var(0, name = "v2")
+
+      println(v2)
 
       val s1 = Rx{v1() + 1}
-      val s2 = Rx(name = "s2"){v2() + 1}
+      println(s1)
+      val s2 = Rx(v2() + 1, name = "s2")
 
       val o1 = Obs(s1){ println(1) }
       val o2 = Obs(name = "o2")(s2){ println(1) }
@@ -41,6 +35,7 @@ class BasicTests extends FreeSpec with Inside{
         assert(c() === 3)
         a() = 4
         assert(c() === 6)
+
       }
       "long chain" in {
         val a = Var(1) // 3

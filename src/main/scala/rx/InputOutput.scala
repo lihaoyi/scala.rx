@@ -1,15 +1,13 @@
 package rx
 
 import util.{Try, Success}
-import akka.agent.Agent
+
 import concurrent.Future
+import java.util.concurrent.atomic.AtomicReference
 
 
 object Var {
-  def apply[T](value: => T)(implicit p: Propagator) = {
-    new Var(value)
-  }
-  def apply[T](x: =>Nothing = ???, name: String = "")(value: => T)(implicit p: Propagator) = {
+  def apply[T, P: Propagator](value: => T, name: String = "") = {
     new Var(value, name)
   }
 }
@@ -20,16 +18,16 @@ object Var {
  * @param initValue The initial future of the Var
  * @tparam T The type of the future this Var contains
  */
-class Var[T](initValue: => T, val name: String = "")(implicit p: Propagator) extends Flow.Signal[T]{
-  import p.executionContext
-  val state = Agent(Try(initValue))
-  def update(newValue: => T): Future[Unit] = for {
-    altered <- state.alter(Try(newValue))
-    done <- propagate()
-  } yield done
+class Var[T, P: Propagator](initValue: => T, val name: String = "") extends Flow.Signal[T]{
+
+  val state = new AtomicReference(Try(initValue))
+  def update(newValue: => T): P = {
+    state.set(Try(newValue))
+    propagate()
+  }
 
   def level = 0
-  def toTry = state()
+  def toTry = state.get()
 }
 
 object Obs{
@@ -49,7 +47,7 @@ object Obs{
  *
  * @param callback a callback to run when this Obs is pinged
  */
-case class Obs(source: Seq[Flow.Emitter[Any]], callback: () => Unit, name: String = "")extends Flow.Reactor[Any]{
+case class Obs(source: Seq[Flow.Emitter[Any]], callback: () => Unit, name: String = "") extends Flow.Reactor[Any]{
   @volatile var active = true
 
   source.foreach(_.linkChild(this))
@@ -58,9 +56,10 @@ case class Obs(source: Seq[Flow.Emitter[Any]], callback: () => Unit, name: Strin
 
   def ping(incoming: Seq[Flow.Emitter[Any]]) = {
     if (active && getParents.intersect(incoming).isDefinedAt(0)){
-      Future.successful(util.Try(callback()))
+      callback()
     }
-    Future.successful(Nil)
+    Nil
+
   }
   def trigger() = {
     this.ping(this.getParents)

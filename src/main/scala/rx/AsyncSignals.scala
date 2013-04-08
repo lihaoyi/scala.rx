@@ -8,7 +8,7 @@ import akka.actor.{Actor, Cancellable, ActorSystem}
 import rx.Flow.{Emitter, Reactor, Signal}
 import rx.SyncSignals.DynamicSignal
 import java.lang.ref.WeakReference
-import akka.agent.Agent
+
 
 /**
  * A collection of Rxs which may spontaneously update itself asynchronously,
@@ -69,37 +69,39 @@ object AsyncSignals{
    * The AsyncSig can be configured with a variety of Targets, to configure
    * its handling of Futures which complete out of order (RunAlways, DiscardLate)
    */
-  class AsyncSig[+T](default: => T, source: Signal[Future[T]], target: Target[T])
-                    (implicit p: Propagator)
+  class AsyncSig[+T, P](default: => T,
+                        source: Signal[Future[T]],
+                        target: Target[T])
+                       (implicit ec: ExecutionContext, p: Propagator[P])
                     extends Signal[T]{
 
-    import p.executionContext
     def name = "async " + source.name
 
     private[this] case class State[A](count: Long, lastValue: Try[A])
-    private[this] val state = Agent(State(0, Try(default)))
+    private[this] val state = Atomic(State(0, Try(default)))
 
 
     private[this] val listener = Obs(source){
-
-      state alter State(
+      val newState = State(
         state().count + 1,
         state().lastValue
-      ) onSuccess{ case newState =>
-        target.handleSend(newState.count)
-        source().onComplete{ x =>
-          target.handleReceive(newState.count, x){result =>
-            state alter State(
-              state().count,
-              result
-            )
-            propagate()
-          }
+      )
+      state() = newState
+
+      target.handleSend(newState.count)
+      source().onComplete{ x =>
+        target.handleReceive(newState.count, x){result =>
+          state() = State(
+            state().count,
+            result
+          )
+          propagate()
         }
       }
-
-
     }
+
+
+
     listener.trigger()
 
     def level = source.level + 1
@@ -182,15 +184,15 @@ object AsyncSignals{
   }*/
 
   object Timer{
-    def apply(interval: FiniteDuration, delay: FiniteDuration = 0 seconds)
-             (implicit system: ActorSystem, p: Propagator) = {
+    def apply[P](interval: FiniteDuration, delay: FiniteDuration = 0 seconds)
+                (implicit system: ActorSystem, p: Propagator[P], ec: ExecutionContext) = {
 
       new Timer(interval, delay)
     }
   }
 
-  class Timer(interval: FiniteDuration, delay: FiniteDuration)
-             (implicit system: ActorSystem, p: Propagator)
+  class Timer[P](interval: FiniteDuration, delay: FiniteDuration)
+                (implicit system: ActorSystem, p: Propagator[P], ec: ExecutionContext)
              extends Signal[Long]{
     val count = new AtomicLong(0L)
     val holder = new WeakTimerHolder(new WeakReference(this), interval, delay)
@@ -205,9 +207,9 @@ object AsyncSignals{
     def toTry = Success(count.get)
   }
 
-  class WeakTimerHolder(val target: WeakReference[Timer], interval: FiniteDuration, delay: FiniteDuration)
-                       (implicit system: ActorSystem, p: Propagator){
-    import p.executionContext
+  class WeakTimerHolder[P](val target: WeakReference[Timer[P]], interval: FiniteDuration, delay: FiniteDuration)
+                          (implicit system: ActorSystem, p: Propagator[P], ec: ExecutionContext){
+
     val scheduledTask: Cancellable = system.scheduler.schedule(delay, interval){
       target.get() match{
         case null => scheduledTask.cancel()

@@ -171,7 +171,7 @@ class AdvancedTests extends FreeSpec with Eventually{
 
   "swapping in a parallelizing Propagator should speed things up significantly" in {
 
-    def time(implicit p: Propagator) = {
+    def time[P](implicit p: Propagator[P], post: P => Unit = (x: P) => ()) = {
       def spinner(a: Flow.Signal[Int]) = Rx{
         var count = 0
         for(x <- 0 until 200000000){
@@ -184,14 +184,14 @@ class AdvancedTests extends FreeSpec with Eventually{
       val c = spinner(a)
       val d = spinner(a)
       val start = System.currentTimeMillis()
-      Await.result(a() = 10, 10 seconds)
+      post(a() = 10)
       val end = System.currentTimeMillis()
       (b(), c(), d(), (end - start))
     }
 
 
-    val serialResult = time(Propagator.Immediate)
-    val parallelResult = time(new BreadthFirstPropagator(ExecutionContext.global))
+    val serialResult = time[Unit](Propagator.Immediate)
+    val parallelResult = time[Future[Unit]](new Propagator.Parallelizing()(ExecutionContext.global), Await.result(_, 10 seconds))
 
     // serial and parallel should have the same result but parallel
     // should be at least 1.5 times as fast
@@ -201,12 +201,26 @@ class AdvancedTests extends FreeSpec with Eventually{
         if serialTime * 1.0 / parallelTime > 1.5 =>
     }
   }
+
+  /*
+  "recursion" - {
+    "calculating fixed point" in {
+      lazy val s: Rx[Double] = Rx{ Math.cos(s()) }
+      println(s())
+    }
+    "calculating sqrt" in {
+      lazy val s: Rx[Double] = Rx(default = 10.0){ s() - (s() * s() - 10) / (2 * s()) }
+      println(s())
+    }
+  }
+   */
   implicit class MatchPimp[T](value: T){
     def patternMatches(f: PartialFunction[T, Any]) = {
       assert(
         f.isDefinedAt(value),
         s"patternMatch failed: $value does not match pattern"
       )
+      f(value)
     }
   }
 
