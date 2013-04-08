@@ -45,23 +45,23 @@ object SyncSignals {
    */
   class DynamicSignal[+T](calc: () => T,
                           val name: String = "",
-                          default: T = null.asInstanceOf[T],
-                          changeFilter: Boolean = true)
-                          extends Flow.Signal[T] with Flow.Reactor[Any]{
+                          default: T = null.asInstanceOf[T])
+                          extends Flow.Signal[T]
+                          with Flow.Reactor[Any]
+                          with SpinlockSignal[T]{
 
     @volatile var active = true
-    private[this] class State(val parents: Seq[Flow.Emitter[Any]],
-                              val level: Long,
-                              val timestamp: Long,
-                              val value: Try[T])
+    protected[this] class State(val parents: Seq[Flow.Emitter[Any]],
+                                val level: Long,
+                                timestamp: Long,
+                                value: Try[T])
+                                extends SpinState(timestamp, value)
 
+    type StateType = State
+    def makeState = getState(this.level)
+    protected[this] val state = Atomic(getState(0))
 
-    private[this] val state = Atomic(getState(0))
-
-
-
-    private[this] def getState(minLevel: Long) = {
-
+    protected[this] def getState(minLevel: Long) = {
       val startCalc = System.currentTimeMillis()
       val (newValue, deps) =
         DynamicSignal.enclosing.withValue(Some(this -> Nil)){
@@ -78,31 +78,45 @@ object SyncSignals {
 
     def getParents = state().parents
 
-    def ping[P: Propagator](incoming: Seq[Flow.Emitter[Any]]): Seq[Reactor[Nothing]] = {
+    override def ping[P: Propagator](incoming: Seq[Flow.Emitter[Any]]): Seq[Reactor[Nothing]] = {
 
       if (active && getParents.intersect(incoming).isDefinedAt(0)){
-        val newState = getState(this.level)
-        val set = state.spinSetOpt{oldState =>
-          if ((!changeFilter || newState.value != oldState.value)
-              && newState.timestamp > oldState.timestamp){
-            Some(newState)
-          }else{
-            None
-          }
-        }
-        if(set) getChildren
-        else Nil
+        super.ping(incoming)
       } else Nil
     }
-
-    def toTry = state().value
 
     def level = state().level
 
   }
+  trait SpinlockSignal[+T] extends Flow.Signal[T]{
+    class SpinState(
+      val timestamp: Long,
+      val value: Try[T]
+    )
+    type StateType <: SpinState
 
-  abstract class WrapSignal[T, A](source: Signal[T], prefix: String)
-                                  extends Signal[A] with Flow.Reactor[Any]{
+    protected[this] val state: Atomic[StateType]
+    def toTry = state().value
+    def makeState: StateType
+
+    def ping[P: Propagator](incoming: Seq[Flow.Emitter[Any]]): Seq[Reactor[Nothing]] = {
+      val newState = makeState
+      val set = state.spinSetOpt{oldState =>
+        if (newState.value != oldState.value
+          && newState.timestamp > oldState.timestamp){
+          Some(newState)
+        }else{
+          None
+        }
+      }
+      if(set) this.getChildren
+      else Nil
+    }
+  }
+
+  abstract class WrapSignal[T, +A](source: Signal[T], prefix: String)
+                                  extends Signal[A]
+                                  with Flow.Reactor[Any]{
     source.linkChild(this)
     def level = source.level + 1
     def getParents = Seq(source)
@@ -110,35 +124,36 @@ object SyncSignals {
   }
 
   class FilterSignal[T](source: Signal[T])
-                       (transformer: (Try[T], Try[T]) => Try[T])
-                        extends WrapSignal[T, T](source, "FilterSignal"){
+                        (transformer: (Try[T], Try[T]) => Try[T])
+                         extends WrapSignal[T, T](source, "FilterSignal")
+                         with SpinlockSignal[T]{
 
-    private[this] val state = Atomic(transformer(Failure(null), source.toTry))
+    type StateType = SpinState
+    protected[this] val state = Atomic(new SpinState(
+      System.currentTimeMillis(),
+      transformer(Failure(null), source.toTry)
+    ))
 
-    def toTry = state()
+    def makeState = new SpinState(
+      System.currentTimeMillis(),
+      transformer(state().value, source.toTry)
+    )
 
-    def ping[P: Propagator](incoming: Seq[Flow.Emitter[Any]]) = {
-      val set = state.spinSetOpt{ v =>
-        val newValue = transformer(state(), source.toTry)
-        if (v == newValue) None
-        else Some(newValue)
-      }
-      if (set) getChildren else Nil
-    }
   }
 
-  class MapSignal[T, A](source: Signal[T])
+
+  class MapSignal[T, +A](source: Signal[T])
                        (transformer: Try[T] => Try[A])
-                        extends WrapSignal[T, A](source, "MapSignal"){
+                        extends WrapSignal[T, A](source, "MapSignal")
+                        with SpinlockSignal[A]{
 
+    type StateType = SpinState
+    def makeState = new SpinState(
+      System.currentTimeMillis(),
+      transformer(source.toTry)
+    )
 
-    private[this] val state = Atomic(transformer(source.toTry))
-
-    def toTry = state()
-    def ping[P: Propagator](incoming: Seq[Flow.Emitter[Any]]) = {
-      state() = transformer(source.toTry)
-      getChildren
-    }
+    protected[this] val state = Atomic(makeState)
   }
 
 
