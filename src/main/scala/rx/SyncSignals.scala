@@ -45,7 +45,8 @@ object SyncSignals {
    */
   class DynamicSignal[+T](calc: () => T,
                           val name: String = "",
-                          default: T = null.asInstanceOf[T])
+                          default: T = null.asInstanceOf[T],
+                          changeFilter: Boolean = true)
                           extends Flow.Signal[T] with Flow.Reactor[Any]{
 
     @volatile var active = true
@@ -78,10 +79,11 @@ object SyncSignals {
     def getParents = state().parents
 
     def ping[P: Propagator](incoming: Seq[Flow.Emitter[Any]]): Seq[Reactor[Nothing]] = {
+
       if (active && getParents.intersect(incoming).isDefinedAt(0)){
         val set = state.spinSetOpt{oldState =>
           val newState = getState(this.level)
-          if (newState.value != oldState.value){
+          if (!changeFilter || newState.value != oldState.value){
             Some(newState)
           }else{
             None
@@ -92,9 +94,7 @@ object SyncSignals {
       } else Nil
     }
 
-
     def toTry = state().value
-
 
     def level = state().level
 
@@ -120,7 +120,7 @@ object SyncSignals {
       val newTime = System.nanoTime()
       val set = state.spinSetOpt{ v =>
         val newValue = transformer(state(), source.toTry)
-        if (v != newValue) None
+        if (v == newValue) None
         else Some(newValue)
       }
       if (set) getChildren else Nil
