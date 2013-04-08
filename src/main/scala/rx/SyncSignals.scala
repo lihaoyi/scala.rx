@@ -28,7 +28,7 @@ object SyncSignals {
 
 
 
-    private[rx] val enclosing = new DynamicVariable[Option[(DynamicSignal[Any, Any], List[Signal[Any]])]](None)
+    private[rx] val enclosing = new DynamicVariable[Option[(DynamicSignal[Any], List[Signal[Any]])]](None)
   }
 
   /**
@@ -43,11 +43,10 @@ object SyncSignals {
    * @param calc The method of calculating the future of this DynamicSignal
    * @tparam T The type of the future this contains
    */
-  class DynamicSignal[+T, +P: Propagator]
-                     (calc: () => T,
-                      val name: String = "",
-                      default: T = null.asInstanceOf[T])
-                      extends Flow.Signal[T] with Flow.Reactor[Any]{
+  class DynamicSignal[+T](calc: () => T,
+                          val name: String = "",
+                          default: T = null.asInstanceOf[T])
+                          extends Flow.Signal[T] with Flow.Reactor[Any]{
 
     @volatile var active = true
     private[this] class State(val parents: Seq[Flow.Emitter[Any]],
@@ -58,16 +57,15 @@ object SyncSignals {
 
     private[this] val state = Atomic(getState(0))
 
-    def fullCalc() = {
-      DynamicSignal.enclosing.withValue(Some(this -> Nil)){
-        (Try(calc()), DynamicSignal.enclosing.value.get._2)
-      }
-    }
+
 
     private[this] def getState(minLevel: Long) = {
 
       val startCalc = System.currentTimeMillis()
-      val (newValue, deps) = fullCalc()
+      val (newValue, deps) =
+        DynamicSignal.enclosing.withValue(Some(this -> Nil)){
+          (Try(calc()), DynamicSignal.enclosing.value.get._2)
+        }
 
       new State(
         deps,
@@ -79,19 +77,18 @@ object SyncSignals {
 
     def getParents = state().parents
 
-    def ping(incoming: Seq[Flow.Emitter[Any]]): Seq[Reactor[Nothing]] = {
+    def ping[P: Propagator](incoming: Seq[Flow.Emitter[Any]]): Seq[Reactor[Nothing]] = {
       if (active && getParents.intersect(incoming).isDefinedAt(0)){
-        @tailrec def trySet: Seq[Reactor[Nothing]] = {
-          val oldState = state()
+        val set = state.spinSetOpt{oldState =>
           val newState = getState(this.level)
           if (newState.value != oldState.value){
-            if(!state.compareAndSet(oldState, newState)) trySet
-            else getChildren
+            Some(newState)
           }else{
-            Nil
+            None
           }
         }
-        trySet
+        if(set) getChildren
+        else Nil
       } else Nil
     }
 
@@ -103,7 +100,7 @@ object SyncSignals {
 
   }
 
-  abstract class WrapSignal[T, A, P: Propagator](source: Signal[T], prefix: String)
+  abstract class WrapSignal[T, A](source: Signal[T], prefix: String)
                                   extends Signal[A] with Flow.Reactor[Any]{
     source.linkChild(this)
     def level = source.level + 1
@@ -111,15 +108,15 @@ object SyncSignals {
     def name = prefix + " " + source.name
   }
 
-  class FilterSignal[T, P: Propagator](source: Signal[T])
+  class FilterSignal[T](source: Signal[T])
                        (transformer: (Try[T], Try[T]) => Try[T])
-                        extends WrapSignal[T, T, P](source, "FilterSignal"){
+                        extends WrapSignal[T, T](source, "FilterSignal"){
 
     private[this] val state = Atomic(transformer(Failure(null), source.toTry))
 
     def toTry = state()
 
-    def ping(incoming: Seq[Flow.Emitter[Any]]) = {
+    def ping[P: Propagator](incoming: Seq[Flow.Emitter[Any]]) = {
       val newTime = System.nanoTime()
       val set = state.spinSetOpt{ v =>
         val newValue = transformer(state(), source.toTry)
@@ -130,15 +127,15 @@ object SyncSignals {
     }
   }
 
-  class MapSignal[T, A, P: Propagator](source: Signal[T])
+  class MapSignal[T, A](source: Signal[T])
                        (transformer: Try[T] => Try[A])
-                        extends WrapSignal[T, A, P](source, "MapSignal"){
+                        extends WrapSignal[T, A](source, "MapSignal"){
 
 
     private[this] val state = Atomic(transformer(source.toTry))
 
     def toTry = state()
-    def ping(incoming: Seq[Flow.Emitter[Any]]) = {
+    def ping[P: Propagator](incoming: Seq[Flow.Emitter[Any]]) = {
       state() = transformer(source.toTry)
       getChildren
     }

@@ -174,7 +174,7 @@ class AdvancedTests extends FreeSpec with Eventually{
     def time[P](implicit p: Propagator[P], post: P => Unit = (x: P) => ()) = {
       def spinner(a: Flow.Signal[Int]) = Rx{
         var count = 0
-        for(x <- 0 until 200000000){
+        for(x <- 0 until 30000000){
           count += 1
         }
         count + a()
@@ -196,8 +196,8 @@ class AdvancedTests extends FreeSpec with Eventually{
     // serial and parallel should have the same result but parallel
     // should be at least 1.5 times as fast
     (serialResult, parallelResult) patternMatches {
-      case ((200000010, 200000010, 200000010, serialTime),
-            (200000010, 200000010, 200000010, parallelTime))
+      case ((30000010, 30000010, 30000010, serialTime),
+            (30000010, 30000010, 30000010, parallelTime))
         if serialTime * 1.0 / parallelTime > 1.5 =>
     }
   }

@@ -54,7 +54,7 @@ case class Obs(source: Seq[Flow.Emitter[Any]], callback: () => Unit, name: Strin
   def getParents = source
   def level = Long.MaxValue
 
-  def ping(incoming: Seq[Flow.Emitter[Any]]) = {
+  def ping[P: Propagator](incoming: Seq[Flow.Emitter[Any]]) = {
     if (active && getParents.intersect(incoming).isDefinedAt(0)){
       callback()
     }
