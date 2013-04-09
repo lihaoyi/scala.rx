@@ -6,7 +6,7 @@ import util.{Success, Try}
 import concurrent.duration._
 import akka.actor.{Actor, Cancellable, ActorSystem}
 import rx.Flow.{Emitter, Reactor, Signal}
-import rx.SyncSignals.DynamicSignal
+import rx.SyncSignals.{IncrSignal, SpinlockSignal, DynamicSignal}
 import java.lang.ref.WeakReference
 
 
@@ -71,42 +71,36 @@ object AsyncSignals{
    */
   class AsyncSig[+T, P](default: => T,
                         source: Signal[Future[T]],
-                        target: Target[T])
+                        discardLate: Boolean)
                        (implicit ec: ExecutionContext, p: Propagator[P])
-                    extends Signal[T]{
+                        extends Signal[T] with IncrSignal[T]{
 
     def name = "Async " + source.name
 
-    private[this] case class State[A](count: Long, lastValue: Try[A])
-    private[this] val state = Atomic(State(0, Try(default)))
+    type StateType = SpinState
 
+    protected[this] val state = Atomic(new SpinState(0, Try(default)))
+    val stampGen  = new AtomicLong(0)
 
     private[this] val listener = Obs(source){
-      val newState = State(
-        state().count + 1,
-        state().lastValue
-      )
-      state() = newState
+      val stamp = stampGen.getAndIncrement
 
-      target.handleSend(newState.count)
       source().onComplete{ x =>
-        target.handleReceive(newState.count, x){result =>
-          state() = State(
-            state().count,
-            result
-          )
-          propagate()
+        val set = state.spinSetOpt{oldState =>
+          if (x != state().value && (stamp >= oldState.timestamp || !discardLate)){
+            Some(new SpinState(stamp, x))
+          }else{
+            None
+          }
         }
+        if(set) propagate()
+
       }
     }
-
-
 
     listener.trigger()
 
     def level = source.level + 1
-
-    def toTry = state().lastValue
   }
 /*
   /**

@@ -78,9 +78,9 @@ object Combinators{
      * its handling of Futures which complete out of order (RunAlways, DiscardLate)
      */
     def async[P](default: T,
-                 target: AsyncSignals.Target[T] = AsyncSignals.RunAlways[T]())
+                 discardLate: Boolean = true)
                 (implicit executor: ExecutionContext, p: Propagator[P]): Rx[T] = {
-      new AsyncSig(default, source, target)
+      new AsyncSig(default, source, discardLate)
     }
   }
 

@@ -57,7 +57,7 @@ class AsyncTests extends FreeSpec{
       assert(a() === 5)
 
     }
-    "repeatedly sending out Futures" taggedAs Tag("omg")in {
+    "repeatedly sending out Futures" in {
       var p = Promise[Int]()
       val a = Var(1)
       val b = Rx{
@@ -73,7 +73,7 @@ class AsyncTests extends FreeSpec{
       p.success(7)
       assert(b() === 9)
     }
-    "the propagation should continue after the AsyncRx" taggedAs Tag("omg") in {
+    "the propagation should continue after the AsyncRx" in {
 
 
       var p = Promise[Int]()
@@ -99,7 +99,7 @@ class AsyncTests extends FreeSpec{
     "ensuring that sent futures that get completed out of order are received out of order" in {
       var p = Seq[Promise[Int]](Promise(), Promise(), Promise())
       val a = Var(0)
-      val b = Rx{ p(a()).future }.async(10)
+      val b = Rx{ p(a()).future }.async(10, false)
 
       assert(b() === 10)
 
@@ -119,7 +119,7 @@ class AsyncTests extends FreeSpec{
     "dropping the result of Futures which return out of order" in {
       var p = Seq[Promise[Int]](Promise(), Promise(), Promise())
       val a = Var(0)
-      val b = Rx{ p(a()).future }.async(10, AsyncSignals.DiscardLate())
+      val b = Rx{ p(a()).future }.async(10, true)
 
       assert(b() === 10)
 

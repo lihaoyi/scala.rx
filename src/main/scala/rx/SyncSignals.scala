@@ -84,19 +84,20 @@ object SyncSignals {
     def level = state().level
   }
 
-
-  trait SpinlockSignal[+T] extends Flow.Signal[T]{
+  trait IncrSignal[+T] extends Flow.Signal[T]{
     private val updateCount = new AtomicLong(0)
     def getStamp = updateCount.getAndIncrement
 
-    class SpinState(
-      val timestamp: Long,
-      val value: Try[T]
-    )
-    type StateType <: SpinState
+    class SpinState(val timestamp: Long,
+                    val value: Try[T])
 
+    type StateType <: SpinState
     protected[this] val state: Atomic[StateType]
     def toTry = state().value
+
+  }
+  trait SpinlockSignal[+T] extends IncrSignal[T]{
+
     def makeState: StateType
 
     def ping[P: Propagator](incoming: Seq[Flow.Emitter[Any]]): Seq[Reactor[Nothing]] = {
