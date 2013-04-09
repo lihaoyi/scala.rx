@@ -3,7 +3,7 @@ package rx
 import rx.Flow.{Reactor, Emitter, Signal}
 import util.{DynamicVariable, Failure, Try}
 import scala.util.Success
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.atomic.{AtomicLong, AtomicReference}
 import annotation.tailrec
 
 import concurrent.{Await, Future}
@@ -59,7 +59,7 @@ object SyncSignals {
     protected[this] val state = Atomic(makeState)
 
     def makeState = {
-      val startCalc = System.currentTimeMillis()
+      val startCalc = getStamp
       val (newValue, deps) =
         DynamicSignal.enclosing.withValue(Some(this -> Nil)){
           (Try(calc()), DynamicSignal.enclosing.value.get._2)
@@ -86,6 +86,9 @@ object SyncSignals {
 
 
   trait SpinlockSignal[+T] extends Flow.Signal[T]{
+    private val updateCount = new AtomicLong(0)
+    def getStamp = updateCount.getAndIncrement
+
     class SpinState(
       val timestamp: Long,
       val value: Try[T]
@@ -100,7 +103,7 @@ object SyncSignals {
       val newState = makeState
       val set = state.spinSetOpt{oldState =>
         if (newState.value != oldState.value
-          && newState.timestamp > oldState.timestamp){
+          && newState.timestamp >= oldState.timestamp){
           Some(newState)
         }else{
           None
@@ -127,14 +130,14 @@ object SyncSignals {
 
     type StateType = SpinState
     protected[this] val state = Atomic(new SpinState(
-      System.currentTimeMillis(),
+      getStamp,
       transformer(Failure(null), source.toTry)
     ))
 
     def makeState = {
 
       new SpinState(
-        System.currentTimeMillis(),
+        getStamp,
         transformer(state().value, source.toTry)
       )
     }
@@ -147,7 +150,7 @@ object SyncSignals {
 
     type StateType = SpinState
     def makeState = new SpinState(
-      System.currentTimeMillis(),
+      getStamp,
       transformer(source.toTry)
     )
 

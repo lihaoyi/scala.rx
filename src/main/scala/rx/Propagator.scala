@@ -27,7 +27,6 @@ object Propagator{
 
   implicit object Immediate extends Propagator[Unit]{
     def propagate(nodes: Seq[(Flow.Emitter[Any], Flow.Reactor[Nothing])]): Unit = {
-      //println("Propagate " + nodes.map(_._2.name))
       if (nodes.length != 0){
         val minLevel = nodes.map(_._2.level).min
         val (now, later) = nodes.partition(_._2.level == minLevel)

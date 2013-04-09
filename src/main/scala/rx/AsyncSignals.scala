@@ -75,7 +75,7 @@ object AsyncSignals{
                        (implicit ec: ExecutionContext, p: Propagator[P])
                     extends Signal[T]{
 
-    def name = "async " + source.name
+    def name = "Async " + source.name
 
     private[this] case class State[A](count: Long, lastValue: Try[A])
     private[this] val state = Atomic(State(0, Try(default)))

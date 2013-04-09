@@ -30,6 +30,7 @@ object Flow{
     def now: T = currentValue
 
     def apply(): T = {
+
       DynamicSignal.enclosing.value = DynamicSignal.enclosing.value match{
         case Some((enclosing, dependees)) =>
           this.linkChild(enclosing)

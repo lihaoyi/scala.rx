@@ -11,7 +11,7 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
  * run-immediately-on-this-thread execution context, to remove any
  * multi-threadedness and keep the tests deterministic
  */
-class AsyncTests extends FreeSpec with Eventually{
+class AsyncTests extends FreeSpec{
 
 
   implicit val executionContext = new ExecutionContext {
@@ -52,10 +52,10 @@ class AsyncTests extends FreeSpec with Eventually{
         p.future
       }.async(10)
       assert(a() === 10)
-      p.complete(scala.util.Success(5))
-      eventually {
-        assert(a() === 5)
-      }
+      p.success(5)
+
+      assert(a() === 5)
+
     }
     "repeatedly sending out Futures" taggedAs Tag("omg")in {
       var p = Promise[Int]()
@@ -65,31 +65,27 @@ class AsyncTests extends FreeSpec with Eventually{
         p.future.map{_ + A}
       }.async(10)
       assert(b() === 10)
-      p.complete(scala.util.Success(5))
-      eventually{
-        assert(b() === 6)
-      }
+      p.success(5)
+      assert(b() === 6)
       p = Promise[Int]()
       a() = 2
       assert(b() === 6)
-      p.complete(scala.util.Success(7))
-      eventually{
-        assert(b() === 9)
-      }
+      p.success(7)
+      assert(b() === 9)
     }
     "the propagation should continue after the AsyncRx" taggedAs Tag("omg") in {
+
+
       var p = Promise[Int]()
-      val a = Var(1, name = "a")
+      val a = Var(1)
       val b = Rx{
         val A = a()
         p.future.map{x => x + A}
       }.async(10)
       val c = Rx{ b() + 1 }
-      println(b() + "\t" + c())
       assert(c() === 11)
 
       p.success(5)
-      println(b() + "\t" + c())
       assert(c() === 7)
 
       p = Promise[Int]()
@@ -98,7 +94,6 @@ class AsyncTests extends FreeSpec with Eventually{
 
       p.success(7)
       assert(c() === 10)
-
 
     }
     "ensuring that sent futures that get completed out of order are received out of order" in {
