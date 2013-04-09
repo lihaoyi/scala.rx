@@ -19,14 +19,9 @@ import reflect.ClassTag
 object SyncSignals {
 
   object DynamicSignal{
-    /**
-     * Provides a nice wrapper to use to create DynamicSignals
-     */
     def apply[T, P: Propagator](calc: => T, name: String = "", default: T = null.asInstanceOf[T]) = {
       new DynamicSignal(() => calc, name, default)
     }
-
-
 
     private[rx] val enclosing = new DynamicVariable[Option[(DynamicSignal[Any], List[Signal[Any]])]](None)
   }
@@ -51,17 +46,19 @@ object SyncSignals {
                           with SpinlockSignal[T]{
 
     @volatile var active = true
+
     protected[this] class State(val parents: Seq[Flow.Emitter[Any]],
                                 val level: Long,
                                 timestamp: Long,
                                 value: Try[T])
                                 extends SpinState(timestamp, value)
 
+    object Initial extends State(Nil, 0, 0, Success(default))
     type StateType = State
-    def makeState = getState(this.level)
-    protected[this] val state = Atomic(getState(0))
 
-    protected[this] def getState(minLevel: Long) = {
+    protected[this] val state = Atomic(makeState)
+
+    def makeState = {
       val startCalc = System.currentTimeMillis()
       val (newValue, deps) =
         DynamicSignal.enclosing.withValue(Some(this -> Nil)){
@@ -70,7 +67,7 @@ object SyncSignals {
 
       new State(
         deps,
-        (minLevel :: deps.map(_.level)).max,
+        (0L :: deps.map(_.level)).max,
         startCalc,
         newValue
       )
@@ -79,15 +76,15 @@ object SyncSignals {
     def getParents = state().parents
 
     override def ping[P: Propagator](incoming: Seq[Flow.Emitter[Any]]): Seq[Reactor[Nothing]] = {
-
       if (active && getParents.intersect(incoming).isDefinedAt(0)){
         super.ping(incoming)
       } else Nil
     }
 
     def level = state().level
-
   }
+
+
   trait SpinlockSignal[+T] extends Flow.Signal[T]{
     class SpinState(
       val timestamp: Long,
@@ -134,13 +131,14 @@ object SyncSignals {
       transformer(Failure(null), source.toTry)
     ))
 
-    def makeState = new SpinState(
-      System.currentTimeMillis(),
-      transformer(state().value, source.toTry)
-    )
+    def makeState = {
 
+      new SpinState(
+        System.currentTimeMillis(),
+        transformer(state().value, source.toTry)
+      )
+    }
   }
-
 
   class MapSignal[T, +A](source: Signal[T])
                        (transformer: Try[T] => Try[A])

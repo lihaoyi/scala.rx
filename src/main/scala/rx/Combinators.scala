@@ -27,14 +27,6 @@ object Combinators{
     def skipFailures = filterSig((oldTry, newTry) => newTry.isSuccess)
 
     /**
-     * Creates a new Rx which filters the updates to the old Rx, giving you
-     * access to both the old Try[T] and the new Try[T] in deciding whether
-     * or not you want to accept the update
-     */
-
-    def filterTry(predicate: (Try[T], Try[T]) => Boolean) = filterSig(predicate)
-
-    /**
      * Creates a new Rx which ignores specific Success conditions of the source Rx; it
      * will not propagate the changes, and simply remain holding on to its last
      * value if the new value fails the filter. Optionally takes a failurePred, allowing
@@ -50,25 +42,7 @@ object Combinators{
       )
     }
 
-    /**
-     * Creates a new Rx which filters the updates to the old Rx, giving you
-     * access to both the old value and the new value in deciding whether
-     * or not you want to accept the update.
-     *
-     * Optionally takes a `failurePred`, allowing you to filter cases where
-     * both the previous and the new value are both Failures.
-     */
-    def filterDiff[P](successPred: (T, T) => Boolean = _!=_,
-                      failurePred: (Throwable, Throwable) => Boolean = _!=_) = {
 
-      filterSig(
-        (x, y) => (x, y) match {
-          case (Success(a), Success(b)) => successPred(a, b)
-          case (Failure(a), Failure(b)) => failurePred(a, b)
-          case _ => true
-        }
-      )
-    }
 
     /**
      * Creates a new Rx which contains the value of the old Rx, except transformed by some

@@ -23,7 +23,6 @@ package object rx {
       val oldV = this()
       val newV = transform(oldV)
       if (!compareAndSet(oldV, newV)) {
-        println("retry")
         spinSet(transform)
       }
     }
@@ -32,7 +31,6 @@ package object rx {
       val newVOpt = transform(oldV)
       newVOpt match{
         case Some(newV) => if (!compareAndSet(oldV, newV)) {
-          println("retry")
           spinSetOpt(transform)
         } else true
         case None => false

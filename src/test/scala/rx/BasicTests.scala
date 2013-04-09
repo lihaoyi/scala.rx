@@ -121,8 +121,8 @@ class BasicTests extends FreeSpec with Inside{
       var dS = 0;     val dO = Obs(d){ dS += 1 }
 
       a() = 2
-      println("A")
-      assert(bS === 1);   println("A"); assert(cS === 1);   println("A"); assert(dS === 1)
+
+      assert(bS === 1);   assert(cS === 1);   assert(dS === 1)
 
       a() = 1
 
@@ -181,15 +181,6 @@ class BasicTests extends FreeSpec with Inside{
       inside(f.toTry){case Success(3) => () }
       inside(g.toTry){case Failure(_) => () }
     }
-  }
-  "nested Rxs" in {
-    val a = Var(1)
-    val b = Rx{
-      Rx{ a() } -> Rx{ math.random }
-    }
-    val r = b()._2()
-    a() = 2
-    assert(b()._2() === r)
   }
 
 

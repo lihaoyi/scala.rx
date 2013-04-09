@@ -131,33 +131,41 @@ assert(b()._2() === r)
 In this example, we can see that although we modified `a`, this only affects the left-inner `Rx`, neither the right-inner `Rx` (which takes on a different, random value each time it gets re-calculated) or the outer `Rx` (which would cause the whole thing to re-calculate) are affected. A slightly less contrived example may be:
 
 ```scala
+var fakeTime = 123
 trait WebPage{
-  val time = Var(System.currentTimeMillis())
-  def update(): Unit  = time() = System.currentTimeMillis()
-  val html: Rx[String]
+    def fTime = fakeTime
+    val time = Var(fTime)
+    def update(): Unit  = time() = fTime
+    val html: Rx[String]
 }
 class HomePage extends WebPage {
-  val html = Rx{"Home Page! time: " + time()}
+    val html = Rx{"Home Page! time: " + time()}
 }
 class AboutPage extends WebPage {
-  val html = Rx{"About Me, time: " + time()}
+    val html = Rx{"About Me, time: " + time()}
 }
 
 val url = Var("www.mysite.com/home")
 val page = Rx{
-  url() match{
-    case "www.mysite.com/home" => new HomePage()
-    case "www.mysite.com/about" => new AboutPage()
-  }
+    url() match{
+        case "www.mysite.com/home" => new HomePage()
+        case "www.mysite.com/about" => new AboutPage()
+    }
 }
 
-println(page().html()) // Home Page! 1362000290775
+assert(page().html() === "Home Page! time: 123")
+
+fakeTime = 234
 page().update()
-println(page().html()) // Home Page! 1362000291345
+assert(page().html() === "Home Page! time: 234")
+
+fakeTime = 345
 url() = "www.mysite.com/about"
-println(page().html()) // About Me, 1362000294570
+assert(page().html() === "About Me, time: 345")
+
+fakeTime = 456
 page().update()
-println(page().html()) // About Me, 1362000299575
+assert(page().html() === "About Me, time: 456")
 ```
 
 In this case, we define a web page which has a `html` value (a `Rx[String]`). However, depending on the `url`, it could be either a `HomePage` or an `AboutPage`, and so our `page` object is a `Rx[WebPage]`.

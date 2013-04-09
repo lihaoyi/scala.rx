@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicReference
  * of a dataflow graph
  */
 object Flow{
+
   /**
    * A Signal is a value that can change over time, emitting pings whenever it
    * changes.
@@ -35,7 +36,6 @@ object Flow{
           Some((enclosing, this :: dependees))
         case None => None
       }
-
       currentValue
     }
 
