@@ -137,7 +137,7 @@ object SyncSignals {
     type StateType = SpinState
     protected[this] val state = Atomic(new SpinState(
       getStamp,
-      transformer(Failure(null), source.toTry)
+      source.toTry
     ))
 
     def makeState = new SpinState(

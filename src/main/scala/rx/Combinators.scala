@@ -24,24 +24,7 @@ object Combinators{
      * will not propagate the changes, and simply remain holding on to its last
      * value
      */
-    def skipFailures = filterSig((oldTry, newTry) => newTry.isSuccess)
-
-    /**
-     * Creates a new Rx which ignores specific Success conditions of the source Rx; it
-     * will not propagate the changes, and simply remain holding on to its last
-     * value if the new value fails the filter. Optionally takes a failurePred, allowing
-     * it to filter the Failure conditions as well.
-     */
-    def filter(successPred: T => Boolean, failurePred: Throwable => Boolean = x => true): Signal[T] = {
-      new ReduceSignal(source)(
-        (x, y) => (x, y) match {
-          case (_, Success(value)) if successPred(value) => Success(value)
-          case (_, Failure(thrown)) if failurePred(thrown) => Failure(thrown)
-          case (old, _) => old
-        }
-      )
-    }
-
+    def skipFailures: Signal[T] = filterAll[T](x => x.isSuccess)
 
 
     /**
@@ -49,6 +32,57 @@ object Combinators{
      * function.
      */
     def map[A](f: T => A): Signal[A] = new MapSignal[T, A](source)(y => y.map(f))
+
+    /**
+     * Creates a new Rx which ignores specific Success conditions of the source Rx; it
+     * will not propagate the changes, and simply remain holding on to its last
+     * value if the new value fails the filter. Optionally takes a failurePred, allowing
+     * it to filter the Failure conditions as well.
+     */
+    def filter(successPred: T => Boolean): Signal[T] = {
+      new ReduceSignal(source)(
+        (x, y) => (x, y) match {
+          case (_, Success(value)) if successPred(value) => Success(value)
+          case (_, Failure(thrown)) => Failure(thrown)
+          case (old, _) => old
+        }
+      )
+    }
+
+    /**
+     * Creates a new Rx which combines the values of the source Rx according
+     * to the given `combiner` function. Failures are passed through directly,
+     * and transitioning from a Failure to a Success(s) re-starts the combining
+     * using the result `s` of the Success.
+     */
+    def reduce[A >: T](combiner: (A, A) => A): Signal[A] = {
+      new ReduceSignal[A](source)(
+        (x, y) => (x, y) match{
+          case (Success(a), Success(b)) => Success(combiner(a, b))
+          case (Failure(_), Success(b)) => Success(b)
+          case (Success(_), Failure(b)) => Failure(b)
+          case (Failure(_), Failure(b)) => Failure(b)
+        }
+      )
+    }
+
+    /**
+     * Identical to map(), except the entire `Try[T]` is available to your
+     * transformer rather than just the `T`
+     */
+    def mapAll[A](f: Try[T] => Try[A]): Signal[A] = new MapSignal[T, A](source)(f)
+
+    /**
+     * Identical to `filter()`, except the entire `Try[T]` is available to your
+     * predicate rather than just the `T`
+     */
+    def filterAll[A >: T](predicate: Try[A] => Boolean) = new ReduceSignal[A](source)((x, y) => if (predicate(y)) y else x)
+
+    /**
+     * Identical to `reduce()`, except both `Try[T]`s are available to your combiner,
+     * rather than just the `T`s.
+     */
+    def reduceAll[A >: T](combiner: (Try[A], Try[A]) => Try[A]) = new ReduceSignal[A](source)(combiner)
 
     /**
      * Creates a new Rx which debounces the old Rx; updates coming in within `interval`
@@ -62,9 +96,7 @@ object Combinators{
       else new DelayedRebounceSignal[T](source, interval, delay)
     }*/
 
-    def filterSig(predicate: (Try[T], Try[T]) => Boolean): Signal[T] = {
-      new ReduceSignal(source)((x, y) => if (predicate(x, y)) y else x)
-    }
+
 
   }
   implicit class pimpedFutureSignal[T](source: Signal[Future[T]]){

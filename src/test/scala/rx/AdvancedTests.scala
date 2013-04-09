@@ -1,11 +1,7 @@
 package rx
 
 import org.scalatest._
-import scala.concurrent.Promise
-import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
-import org.scalatest.concurrent.Eventually
-import akka.actor.ActorSystem
+import util.{Try, Success, Failure}
 import time.{Millis, Span}
 
 class AdvancedTests extends FreeSpec{
@@ -59,45 +55,110 @@ class AdvancedTests extends FreeSpec{
 
   }
 
+  "combinators" - {
+    "skipFailure" in {
+      val x = Var(10)
+      val y = Rx{ 100 / x() }.skipFailures
+      val z = Rx{ y() + 20 }
+      assert(y() === 10)
+      assert(z() === 30)
+      x() = 0
+      assert(y() === 10)
+      assert(z() === 30)
+      x() = 5
+      assert(y() === 20)
+      assert(z() === 40)
+    }
 
-  "skipFailure" in {
-    val x = Var(10)
-    val y = Rx{ 100 / x() }.skipFailures
-    val z = Rx{ y() + 20 }
-    assert(y() === 10)
-    assert(z() === 30)
-    x() = 0
-    assert(y() === 10)
-    assert(z() === 30)
-    x() = 5
-    assert(y() === 20)
-    assert(z() === 40)
-  }
+    "map" in {
+      val a = Var(10)
+      val b = Rx{ a() + 2 }
+      val c = a.map(_*2)
+      val d = b.map(_+3)
+      assert(c() === 20)
+      assert(d() === 15)
+      a() = 1
+      assert(c() === 2)
+      assert(d() === 6)
+    }
 
-  "filter" in {
-    val a = Var(10)
-    val b = a.filter(_ > 5)
-    a() = 1
-    assert(b() === 10)
-    a() = 6
-    assert(b() === 6)
-    a() = 2
-    assert(b() === 6)
-    a() = 19
-    assert(b() === 19)
-  }
-  "map" in {
-    val a = Var(10)
-    val b = Rx{ a() + 2 }
-    val c = a.map(_*2)
-    val d = b.map(_+3)
-    assert(c() === 20)
-    assert(d() === 15)
-    a() = 1
-    assert(c() === 2)
-    assert(d() === 6)
-  }
+    "mapAll" in {
+      val a = Var(10)
+      val b = Rx{ 100 / a() }
+      val c = b.mapAll{
+        case Success(x) => Success(x * 2)
+        case Failure(_) => Success(1337)
+      }
+      val d = b.mapAll{
+        case Success(x) => Failure(new Exception("No Error?"))
+        case Failure(x) => Success(x.toString)
+      }
+      assert(c() === 20)
+      assert(d.toTry.isFailure)
+      a() = 0
+      assert(c() === 1337)
+      assert(d.toTry === Success("java.lang.ArithmeticException: / by zero"))
+    }
 
+    "filter" in {
+      val a = Var(10)
+      val b = a.filter(_ > 5)
+      a() = 1
+      assert(b() === 10)
+      a() = 6
+      assert(b() === 6)
+      a() = 2
+      assert(b() === 6)
+      a() = 19
+      assert(b() === 19)
+    }
+
+    "filterAll" in {
+      val a = Var(10)
+      val b = Rx{ 100 / a() }
+      val c = b.filterAll{_.isSuccess}
+      assert(c() === 10)
+      a() = 9
+      assert(c() === 11)
+      a() = 0
+      assert(c() === 11)
+      a() = 1
+      assert(c() === 100)
+    }
+
+    "reduce" in {
+      val a = Var(1)
+      val b = a.reduce(_ * _)
+      a() = 2
+      assert(b() === 2)
+      a() = 3
+      assert(b() === 6)
+      a() = 4
+      assert(b() === 24)
+    }
+
+    "reduceAll" in {
+      val a = Var(1)
+      val b = Rx{ 100 / a() }
+      val c = b.reduceAll[Int]{
+        case (Success(a), Success(b)) => Success(a + b)
+        case (Failure(a), Failure(b)) => Success(1337)
+        case (Failure(a), Success(b)) => Failure(a)
+        case (Success(a), Failure(b)) => Failure(b)
+      }
+      assert(c() === 100)
+      a() = 0
+      assert(c.toTry.isFailure)
+      a() = 10
+      assert(c.toTry.isFailure)
+      a() = 100
+      assert(c.toTry.isFailure)
+      a() = 0
+      assert(c() === 1337)
+      a() = 10
+      assert(c() === 1347)
+    }
+  }
   /*
   "recursion" - {
     "calculating fixed point" in {
