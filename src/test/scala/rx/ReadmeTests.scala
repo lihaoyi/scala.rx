@@ -1,9 +1,8 @@
 package rx
 
 import org.scalatest._
-import concurrent.Eventually
 
-class ReadmeTests extends FreeSpec with Eventually {
+class ReadmeTests extends FreeSpec {
 
   "Nesting" - {
     "WebPage" - {
