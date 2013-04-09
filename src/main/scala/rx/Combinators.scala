@@ -33,7 +33,7 @@ object Combinators{
      * it to filter the Failure conditions as well.
      */
     def filter(successPred: T => Boolean, failurePred: Throwable => Boolean = x => true): Signal[T] = {
-      new FilterSignal(source)(
+      new ReduceSignal(source)(
         (x, y) => (x, y) match {
           case (_, Success(value)) if successPred(value) => Success(value)
           case (_, Failure(thrown)) if failurePred(thrown) => Failure(thrown)
@@ -63,7 +63,7 @@ object Combinators{
     }*/
 
     def filterSig(predicate: (Try[T], Try[T]) => Boolean): Signal[T] = {
-      new FilterSignal(source)((x, y) => if (predicate(x, y)) y else x)
+      new ReduceSignal(source)((x, y) => if (predicate(x, y)) y else x)
     }
 
   }

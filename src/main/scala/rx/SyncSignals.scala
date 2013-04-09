@@ -84,6 +84,10 @@ object SyncSignals {
     def level = state().level
   }
 
+  /**
+   * Signals whose state contains an auto-incrementing "timestamp" in order to
+   * reject out of order completions
+   */
   trait IncrSignal[+T] extends Flow.Signal[T]{
     private val updateCount = new AtomicLong(0)
     def getStamp = updateCount.getAndIncrement
@@ -124,10 +128,11 @@ object SyncSignals {
     def name = prefix + " " + source.name
   }
 
-  class FilterSignal[T](source: Signal[T])
-                        (transformer: (Try[T], Try[T]) => Try[T])
-                         extends WrapSignal[T, T](source, "FilterSignal")
-                         with SpinlockSignal[T]{
+
+  class ReduceSignal[T](source: Signal[T])
+                       (transformer: (Try[T], Try[T]) => Try[T])
+                        extends WrapSignal[T, T](source, "ReduceSignal")
+                        with SpinlockSignal[T]{
 
     type StateType = SpinState
     protected[this] val state = Atomic(new SpinState(
@@ -135,15 +140,17 @@ object SyncSignals {
       transformer(Failure(null), source.toTry)
     ))
 
-    def makeState = {
-
-      new SpinState(
-        getStamp,
-        transformer(state().value, source.toTry)
-      )
-    }
+    def makeState = new SpinState(
+      getStamp,
+      transformer(state().value, source.toTry)
+    )
   }
 
+  /**
+   * A Signal[A] which is a direct transformation of another Signal[T] via a
+   * transformation function. Generally created via the `.map()` method on a
+   * Signal[A].
+   */
   class MapSignal[T, +A](source: Signal[T])
                        (transformer: Try[T] => Try[A])
                         extends WrapSignal[T, A](source, "MapSignal")

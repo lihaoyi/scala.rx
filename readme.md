@@ -229,44 +229,6 @@ Advanced Combinators
 --------------------
 These are combinators which do more than simply transforming a value from one to another. Many of them have asynchronous effects, and can spontaneously modify the dataflow graph and begin propagation waves without any external trigger.
 
-###Debounce
-
-```scala
-val a = Var(10)
-val b = a.debounce(50 millis)
-val c = Rx( a() * 2 ).debounce(50 millis)
-var count = 0
-val ob = Obs(b){ count += 1 }
-val oa = Obs(c){ count += 1 }
-
-a() = 5
-assert(b() === 5)
-assert(c() === 10)
-
-a() = 2
-assert(b() === 5)
-assert(c() === 10)
-
-a() = 4
-assert(b() === 5)
-assert(c() === 10)
-
-a() = 7
-assert(b() === 5)
-assert(c() === 10)
-
-eventually{
-    assert(b() === 7)
-    assert(c() === 14)
-}
-```
-
-`debounce` creates a new `Rx` which does not change more than once every `interval` [units of time](http://www.scala-lang.org/archives/downloads/distrib/files/nightly/docs/library/index.html#scala.concurrent.duration.Duration). No matter how many times the original `Rx` changes, the `debounced` version will only update once every interval, and the last un-applied change will be stored and applied at the end of the interval if need be. One common use case is if you have an expensive operation you do not want to repeat too quickly and hog the CPU, you debounce it to limit the rate it which it repeats.
-
-In this example, you can see that after initially setting `a() = 5`, with `b() === 5, c() === 10`, subsequent changes to a() have no effect on `b` or `c` until the `eventually{}` block at the bottom. At that point, the interval will have passed, and `b` and `c` will update to use the most recent value of `a`.
-
-`debounce` optionally takes a second parameter `delay`, which is an initial lag before any updates happen.
-
 ###Async
 
 ```scala
@@ -402,22 +364,20 @@ Where `propagate` method takes a `Seq` of updates that must happen: every propag
 
 Concurrency and Asynchrony
 --------------------------
-As mentioned earlier, by default everything happens on a single-threaded execution context and there is no parallelism. By using a custom [ExecutionContext](http://www.scala-lang.org/archives/downloads/distrib/files/nightly/docs/library/index.html#scala.concurrent.ExecutionContext), it is possible to have the updates in each propagation run happen in parallel. For more information on `ExecutionContexts`, see the [Akka Documentation](http://doc.akka.io/docs/akka/2.1.2/scala/futures.html#futures-scala). The unit tests also contain [an example](https://github.com/lihaoyi/scala.rx/blob/master/src/test/scala/rx/AdvancedTests.scala#L171) of a dependency graph whose evaluation is spread over multiple threads in this way.
+By default, everything happens on a single-threaded execution context and there is no parallelism. By using a custom [ExecutionContext](http://www.scala-lang.org/archives/downloads/distrib/files/nightly/docs/library/index.html#scala.concurrent.ExecutionContext), it is possible to have the updates in each propagation run happen in parallel. For more information on ExecutionContexts, see the [Akka Documentation](http://doc.akka.io/docs/akka/2.1.2/scala/futures.html#futures-scala). The unit tests also contain [an example](https://github.com/lihaoyi/scala.rx/blob/master/src/test/scala/rx/AdvancedTests.scala#L171) of a dependency graph whose evaluation is spread over multiple threads in this way.
 
-Even using an `ExecutionContext` to run stuff in parallel, there are still some rules regarding how evaluation takes place:
+Even without using an explicitly parallelising ExecutionContext, parallelism could creep into your code in subtle ways: a delayed `Rx`, for example may happen to fire and continue its propagation just as you update a `Var` somewhere on the same dependency graph, resulting in two propagation waves proceeding in parallel.
 
-- The re-calculations of a single `Rx` (to update its value when its dependencies change) are serialized, and cannot happen in parallel
-- The execution of a single `Obs` is serialized, and cannot happen in parallel.
+In general, the rules for parallel execution of an individual node in the dependency graph is as follows:
 
-Overall, this should provide an acceptable level of parallelism: most systems should have more `Rx`s and `Obs`s than they have cores on their CPU. Both these properties are enforced via **agents**.
+- A `Rx` can up updated by an arbitrarily high number of parallel threads: *make sure your code can handle this!*. I will refer to each of these as a *parallel update*.
+- A parallel update **U** gets committed (i.e. its result becomes the value of the `Rx` after completion) *if and only if* the time at which **U**'s computation began (its *start time*) is greater than the start time of the last-committed parallel update
 
-###Agents 
-
-In the case where multiple propagation runs are happening simultaneously, concurrency and parallelism is managed via [Akka Agents](http://doc.akka.io/docs/akka/2.1.0/scala/agents.html). These are, effectively, mini-[Actors](http://doc.akka.io/docs/akka/2.1.0/scala/actors.html) which force computation to happen sequentially. If more than one propagation run tells it to update, the updates are queued up and occur one at a time. Hence the body of each individual `Rx{...}` or `Obs{...}` will not be run in parallel, though the body of different `Rx{..}`s or `Obs{...}`s may be run in concurrently. Assuming the body of the `Rx{...}` is "pure" and has minimal side effects, this should not cause problems.
+This policy is implemented using the __java.util.concurrent.Atomic*__ classes. The final compare-start-times-and-replace-if-timestamp-is-greater action is implemented as a STM-style retry-loop on an __AtomicReference__. This approach is [lock free](http://en.wikipedia.org/wiki/Non-blocking_algorithm#Lock-freedom), and since the time required to compute the result is probably far greater than the time spent trying to commit it, the number of retries should in practice be minimal.
 
 ###Weak-References
 
-The weak-forward-references to an `Rx` from its dependencies is unusual in that unlike the rest of the state regarding the `Rx`, it is not kept within the `Rx` itself! Rather, it is kept within its parents. Hence updates to these weak references cannot conveniently be seralized by encapsulating the state within that `Rx`'s Agent.
+The weak-forward-references to an `Rx` from its dependencies is unusual in that unlike the rest of the state regarding the `Rx`, it is not kept within the `Rx` itself! Rather, it is kept within its parents. Hence updates to these weak references cannot conveniently be seralized by encapsulating the state within that `Rx`'s state.
 
 Instead, Scala.Rx does two things:
 

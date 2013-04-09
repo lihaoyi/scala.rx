@@ -20,46 +20,6 @@ import java.lang.ref.WeakReference
  */
 object AsyncSignals{
 
-  abstract class Target[T]{
-    def handleSend(id: Long): Unit
-    def handleReceive(id: Long, value: Try[T])(callback: Try[T] => Unit): Unit
-  }
-
-  /**
-   * Target which applies the result of the Future[T]s regardless
-   * of when they come in. This may result in the results being applied out of
-   * order, and the last-applied value may not be the result of the last-dispatched
-   * Future[T].
-   */
-  case class RunAlways[T]() extends Target[T]{
-
-    def handleSend(id: Long) = ()
-
-    def handleReceive(id: Long, value: Try[T])(callback: Try[T] => Unit) = {
-      callback(value)
-    }
-  }
-
-  /**
-   * Target which applies the result of the Future[T] only if it was dispatched
-   * after the Future[T] which created the current value. Future[T]s which
-   * were the result of earlier dispatches are ignored.
-   */
-  case class DiscardLate[T]() extends Target[T]{
-    val sendIndex = new AtomicLong(0)
-    val receiveIndex = new AtomicLong(0)
-
-    def handleSend(id: Long) = {
-      sendIndex.set(id)
-    }
-    def handleReceive(id: Long, value: Try[T])(callback: Try[T] => Unit) = {
-      if (id >= receiveIndex.get()){
-        receiveIndex.set(id)
-        callback(value)
-      }
-    }
-  }
-
   /**
    * A Rx which flattens out an Rx[Future[T]] into a Rx[T]. If the first
    * Future has not yet arrived, the AsyncSig contains its default value.
@@ -80,10 +40,9 @@ object AsyncSignals{
     type StateType = SpinState
 
     protected[this] val state = Atomic(new SpinState(0, Try(default)))
-    val stampGen  = new AtomicLong(0)
 
     private[this] val listener = Obs(source){
-      val stamp = stampGen.getAndIncrement
+      val stamp = getStamp
 
       source().onComplete{ x =>
         val set = state.spinSetOpt{oldState =>
@@ -187,7 +146,7 @@ object AsyncSignals{
 
   class Timer[P](interval: FiniteDuration, delay: FiniteDuration)
                 (implicit system: ActorSystem, p: Propagator[P], ec: ExecutionContext)
-             extends Signal[Long]{
+                 extends Signal[Long]{
     val count = new AtomicLong(0L)
     val holder = new WeakTimerHolder(new WeakReference(this), interval, delay)
 
