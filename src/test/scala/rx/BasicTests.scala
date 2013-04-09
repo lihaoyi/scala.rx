@@ -8,10 +8,8 @@ class BasicTests extends FreeSpec with Inside{
       val v1 = Var(0)
       val v2 = Var(0, name = "v2")
 
-      println(v2)
-
       val s1 = Rx{v1() + 1}
-      println(s1)
+
       val s2 = Rx(v2() + 1, name = "s2")
 
       val o1 = Obs(s1){ println(1) }
