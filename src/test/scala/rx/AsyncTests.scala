@@ -79,16 +79,17 @@ class AsyncTests extends FreeSpec with Eventually{
     }
     "the propagation should continue after the AsyncRx" taggedAs Tag("omg") in {
       var p = Promise[Int]()
-      val a = Var(1)
+      val a = Var(1, name = "a")
       val b = Rx{
         val A = a()
         p.future.map{x => x + A}
       }.async(10)
       val c = Rx{ b() + 1 }
-
+      println(b() + "\t" + c())
       assert(c() === 11)
 
       p.success(5)
+      println(b() + "\t" + c())
       assert(c() === 7)
 
       p = Promise[Int]()

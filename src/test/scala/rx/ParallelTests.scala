@@ -20,7 +20,7 @@ class ParallelTests extends FreeSpec with Eventually{
   implicit class awaitable[T](f: Future[T]){
     def await(x: Duration = 10 seconds) = Await.result(f, x)
   }
-  "parallel execution of a single Rx" in {
+  "parallel execution of a single Rx" - {
     def setup = {
       val ps = Seq.fill(3)(new CountDownLatch(1))
       val wall = Seq.fill(3)(new CountDownLatch(1))

@@ -59,7 +59,7 @@ object Flow{
     def getChildren: Seq[Reactor[Nothing]] = children.get.flatMap(_.get)
 
     def linkChild[R >: T](child: Reactor[R]): Unit = {
-      children.spinSet(c => WeakReference(child) :: c.filter(_.get.isDefined))
+      children.spinSet(c => (WeakReference(child) :: c.filter(_.get.isDefined)).distinct)
     }
   }
 
