@@ -14,36 +14,36 @@ import reflect.ClassTag
  * A collection of Signals that update immediately when pinged. These should
  * generally not be created directly; instead use the alias Rx in the package
  * to construct DynamicSignals, and the extension methods defined in Combinators
- * to build SyncSignals from other Rxs.
+ * to build SyncSignal from other Rxs.
  */
-object SyncSignals {
+object SyncSignal {
 
-  object DynamicSignal{
+  object Dynamic{
     def apply[T, P: Propagator](calc: => T, name: String = "", default: T = null.asInstanceOf[T]) = {
-      new DynamicSignal(() => calc, name, default)
+      new Dynamic(() => calc, name, default)
     }
 
-    private[rx] val enclosing = new DynamicVariable[Option[(DynamicSignal[Any], List[Signal[Any]])]](None)
+    private[rx] val enclosing = new DynamicVariable[Option[(Dynamic[Any], List[Signal[Any]])]](None)
   }
 
   /**
-   * A DynamicSignal is a signal that is defined relative to other signals, and
+   * A Dynamic is a signal that is defined relative to other signals, and
    * updates automatically when they change.
    *
    * Note that while the propagation tries to minimize the number of times a
-   * DynamicSignal needs to be recalculated, there is always going to be some
+   * Dynamic needs to be recalculated, there is always going to be some
    * redundant recalculation. Since this is unpredictable, the body of a
-   * DynamicSignal should always be side-effect free
+   * Dynamic should always be side-effect free
    *
-   * @param calc The method of calculating the future of this DynamicSignal
+   * @param calc The method of calculating the future of this Dynamic
    * @tparam T The type of the future this contains
    */
-  class DynamicSignal[+T](calc: () => T,
-                          val name: String = "",
-                          default: T = null.asInstanceOf[T])
-                          extends Flow.Signal[T]
-                          with Flow.Reactor[Any]
-                          with SpinlockSignal[T]{
+  class Dynamic[+T](calc: () => T,
+                    val name: String = "",
+                    default: T = null.asInstanceOf[T])
+                    extends Flow.Signal[T]
+                    with Flow.Reactor[Any]
+                    with Spinlock[T]{
 
     @volatile var active = true
 
@@ -61,8 +61,8 @@ object SyncSignals {
     def makeState = {
       val startCalc = getStamp
       val (newValue, deps) =
-        DynamicSignal.enclosing.withValue(Some(this -> Nil)){
-          (Try(calc()), DynamicSignal.enclosing.value.get._2)
+        Dynamic.enclosing.withValue(Some(this -> Nil)){
+          (Try(calc()), Dynamic.enclosing.value.get._2)
         }
 
       new State(
@@ -88,7 +88,7 @@ object SyncSignals {
    * Signals whose state contains an auto-incrementing "timestamp" in order to
    * reject out of order completions
    */
-  trait IncrSignal[+T] extends Flow.Signal[T]{
+  trait Incrementing[+T] extends Flow.Signal[T]{
     private val updateCount = new AtomicLong(0)
     def getStamp = updateCount.getAndIncrement
 
@@ -100,7 +100,7 @@ object SyncSignals {
     def toTry = state().value
 
   }
-  trait SpinlockSignal[+T] extends IncrSignal[T]{
+  trait Spinlock[+T] extends Incrementing[T]{
 
     def makeState: StateType
 
@@ -120,7 +120,7 @@ object SyncSignals {
     }
   }
 
-  abstract class WrapSignal[T, +A](source: Signal[T], prefix: String)
+  abstract class Wrapper[T, +A](source: Signal[T], prefix: String)
                                   extends Signal[A]
                                   with Flow.Reactor[Any]{
     source.linkChild(this)
@@ -130,10 +130,10 @@ object SyncSignals {
   }
 
 
-  class ReduceSignal[T](source: Signal[T])
+  class Reduce[T](source: Signal[T])
                        (transformer: (Try[T], Try[T]) => Try[T])
-                        extends WrapSignal[T, T](source, "ReduceSignal")
-                        with SpinlockSignal[T]{
+                        extends Wrapper[T, T](source, "Reduce")
+                        with Spinlock[T]{
 
     type StateType = SpinState
     protected[this] val state = Atomic(new SpinState(
@@ -152,10 +152,10 @@ object SyncSignals {
    * transformation function. Generally created via the `.map()` method on a
    * Signal[A].
    */
-  class MapSignal[T, +A](source: Signal[T])
+  class Map[T, +A](source: Signal[T])
                        (transformer: Try[T] => Try[A])
-                        extends WrapSignal[T, A](source, "MapSignal")
-                        with SpinlockSignal[A]{
+                        extends Wrapper[T, A](source, "Map")
+                        with Spinlock[A]{
 
     type StateType = SpinState
     def makeState = new SpinState(

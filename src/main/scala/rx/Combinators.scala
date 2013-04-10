@@ -5,9 +5,9 @@ import concurrent.{ExecutionContext, Future}
 import concurrent.duration._
 import akka.actor.ActorSystem
 import Flow.Signal
-import AsyncSignals._
+import AsyncSignal._
 import concurrent.duration._
-import SyncSignals._
+import SyncSignal._
 
 /**
  * A collection of methods which allow you to construct Rxs from other
@@ -31,7 +31,7 @@ object Combinators{
      * Creates a new Rx which contains the value of the old Rx, except transformed by some
      * function.
      */
-    def map[A](f: T => A): Signal[A] = new MapSignal[T, A](source)(y => y.map(f))
+    def map[A](f: T => A): Signal[A] = new Map[T, A](source)(y => y.map(f))
 
     /**
      * Creates a new Rx which ignores specific Success conditions of the source Rx; it
@@ -40,7 +40,7 @@ object Combinators{
      * it to filter the Failure conditions as well.
      */
     def filter(successPred: T => Boolean): Signal[T] = {
-      new ReduceSignal(source)(
+      new Reduce(source)(
         (x, y) => (x, y) match {
           case (_, Success(value)) if successPred(value) => Success(value)
           case (_, Failure(thrown)) => Failure(thrown)
@@ -56,7 +56,7 @@ object Combinators{
      * using the result `s` of the Success.
      */
     def reduce[A >: T](combiner: (A, A) => A): Signal[A] = {
-      new ReduceSignal[A](source)(
+      new Reduce[A](source)(
         (x, y) => (x, y) match{
           case (Success(a), Success(b)) => Success(combiner(a, b))
           case (Failure(_), Success(b)) => Success(b)
@@ -70,19 +70,19 @@ object Combinators{
      * Identical to map(), except the entire `Try[T]` is available to your
      * transformer rather than just the `T`
      */
-    def mapAll[A](f: Try[T] => Try[A]): Signal[A] = new MapSignal[T, A](source)(f)
+    def mapAll[A](f: Try[T] => Try[A]): Signal[A] = new Map[T, A](source)(f)
 
     /**
      * Identical to `filter()`, except the entire `Try[T]` is available to your
      * predicate rather than just the `T`
      */
-    def filterAll[A >: T](predicate: Try[A] => Boolean) = new ReduceSignal[A](source)((x, y) => if (predicate(y)) y else x)
+    def filterAll[A >: T](predicate: Try[A] => Boolean) = new Reduce[A](source)((x, y) => if (predicate(y)) y else x)
 
     /**
      * Identical to `reduce()`, except both `Try[T]`s are available to your combiner,
      * rather than just the `T`s.
      */
-    def reduceAll[A >: T](combiner: (Try[A], Try[A]) => Try[A]) = new ReduceSignal[A](source)(combiner)
+    def reduceAll[A >: T](combiner: (Try[A], Try[A]) => Try[A]) = new Reduce[A](source)(combiner)
 
     /**
      * Creates a new Rx which debounces the old Rx; updates coming in within `interval`
@@ -91,7 +91,7 @@ object Combinators{
      */
     def debounce(interval: FiniteDuration)
                 (implicit system: ActorSystem, ex: ExecutionContext): Rx[T] = {
-      new DebouncedSignal(source, interval)
+      new Debounce(source, interval)
     }
 
     /**
@@ -101,14 +101,14 @@ object Combinators{
      */
     def delay(delay: FiniteDuration)
              (implicit system: ActorSystem, ex: ExecutionContext): Rx[T] = {
-      new DelaySignal(source, delay)
+      new Delay(source, delay)
     }
 
   }
   implicit class pimpedFutureSignal[T](source: Signal[Future[T]]){
     /**
      * Flattens out an Rx[Future[T]] into a Rx[T]. If the first
-     * Future has not yet arrived, the AsyncSig contains its default value.
+     * Future has not yet arrived, the Async contains its default value.
      * Afterwards, it updates itself when and with whatever the Futures complete
      * with.
      *
@@ -118,7 +118,7 @@ object Combinators{
     def async[P](default: T,
                  discardLate: Boolean = true)
                 (implicit executor: ExecutionContext, p: Propagator[P]): Rx[T] = {
-      new AsyncSig(default, source, discardLate)
+      new Async(default, source, discardLate)
     }
   }
 

@@ -3,7 +3,7 @@
 import annotation.tailrec
 import concurrent.Future
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
-import rx.SyncSignals.DynamicSignal
+import rx.SyncSignal.Dynamic
 
 
 package object rx {
@@ -11,9 +11,9 @@ package object rx {
   object NoInitializedException extends Exception()
 
   type Rx[+T] = Flow.Signal[T]
-  val Rx = DynamicSignal
+  val Rx = Dynamic
 
-  val Timer = AsyncSignals.Timer
+  val Timer = AsyncSignal.Timer
   implicit def pimpedFutureSignal[T](source: Rx[Future[T]]) = Combinators.pimpedFutureSignal(source)
 
   case class Atomic[T](t: T) extends AtomicReference[T](t){

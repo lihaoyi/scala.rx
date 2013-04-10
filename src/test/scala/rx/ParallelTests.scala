@@ -51,7 +51,7 @@ class ParallelTests extends FreeSpec with Eventually{
      * promises is used as semaphores to force the two executions to overlap
      * exactly as shown above
      */
-    "DynamicSignal with full parallel overlap" in {
+    "Dynamic with full parallel overlap" in {
       val (ps, a, b, wall) = setup
 
       val set1 = Future{a() = 1}
@@ -78,7 +78,7 @@ class ParallelTests extends FreeSpec with Eventually{
      * Res: -----------?--------------->|-----A---->|------B------->
      * Both the results for A and B will be available
      */
-    "DynamicSignal with partial parallel overlap" in {
+    "Dynamic with partial parallel overlap" in {
       val (ps, a, b, wall) = setup
 
       val set1 = Future{a() = 1}

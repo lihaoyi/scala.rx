@@ -6,7 +6,7 @@ import util.{Success, Try}
 import concurrent.duration._
 import akka.actor.{Actor, Cancellable, ActorSystem}
 import rx.Flow.{Emitter, Reactor, Signal}
-import rx.SyncSignals.{IncrSignal, SpinlockSignal, DynamicSignal}
+import rx.SyncSignal.{Incrementing, Spinlock, Dynamic}
 import java.lang.ref.WeakReference
 
 
@@ -18,22 +18,22 @@ import java.lang.ref.WeakReference
  * These Rxs all required implicit ExecutionContexts and ActorSystems, in order
  * to properly schedule and fire the asynchronous operations.
  */
-object AsyncSignals{
+object AsyncSignal{
 
   /**
    * A Rx which flattens out an Rx[Future[T]] into a Rx[T]. If the first
-   * Future has not yet arrived, the AsyncSig contains its default value.
+   * Future has not yet arrived, the Async contains its default value.
    * Afterwards, it updates itself when and with whatever the Futures complete
    * with.
    *
-   * The AsyncSig can be configured with a variety of Targets, to configure
+   * The Async can be configured with a variety of Targets, to configure
    * its handling of Futures which complete out of order (RunAlways, DiscardLate)
    */
-  class AsyncSig[+T, P](default: => T,
+  class Async[+T, P](default: => T,
                      source: Signal[Future[T]],
                      discardLate: Boolean)
                     (implicit ec: ExecutionContext, p: Propagator[P])
-                     extends Signal[T] with IncrSignal[T] with Flow.Reactor[Future[_]]{
+                     extends Signal[T] with Incrementing[T] with Flow.Reactor[Future[_]]{
 
     source.linkChild(this)
     def name = "Async " + source.name
@@ -65,9 +65,9 @@ object AsyncSignals{
   }
 
 
-  class DebouncedSignal[+T](source: Signal[T], interval: FiniteDuration)
-                           (implicit system: ActorSystem, ex: ExecutionContext)
-                            extends DynamicSignal[T](() => source(), "Debounced " + source.name, source()){
+  class Debounce[+T](source: Signal[T], interval: FiniteDuration)
+                    (implicit system: ActorSystem, ex: ExecutionContext)
+                     extends Dynamic[T](() => source(), "Debounced " + source.name, source()){
 
     val nextPingTime = new AtomicReference(Deadline.now)
 
@@ -89,9 +89,9 @@ object AsyncSignals{
     override def level = source.level + 1
   }
 
-  class DelaySignal[+T](source: Signal[T], delay: FiniteDuration)
-                       (implicit system: ActorSystem, ex: ExecutionContext)
-                        extends DynamicSignal[T](() => source(), "Delayed " + source.name, source()){
+  class Delay[+T](source: Signal[T], delay: FiniteDuration)
+                 (implicit system: ActorSystem, ex: ExecutionContext)
+                  extends Dynamic[T](() => source(), "Delayed " + source.name, source()){
 
     override def ping[P: Propagator](incoming: Seq[Flow.Emitter[Any]]): Seq[Reactor[Nothing]] = {
       system.scheduler.scheduleOnce(delay){

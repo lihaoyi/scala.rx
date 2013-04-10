@@ -2,7 +2,7 @@ package rx
 
 import util.Try
 import scala.util.{Failure, Success}
-import rx.SyncSignals.DynamicSignal
+import rx.SyncSignal.Dynamic
 import annotation.tailrec
 
 import ref.WeakReference
@@ -31,7 +31,7 @@ object Flow{
 
     def apply(): T = {
 
-      DynamicSignal.enclosing.value = DynamicSignal.enclosing.value match{
+      Dynamic.enclosing.value = Dynamic.enclosing.value match{
         case Some((enclosing, dependees)) =>
           this.linkChild(enclosing)
           Some((enclosing, this :: dependees))

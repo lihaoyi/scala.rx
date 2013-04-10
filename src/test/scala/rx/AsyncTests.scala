@@ -137,7 +137,7 @@ class AsyncTests extends FreeSpec{
 
     }
 
-    "ensuring that events emerge from the .async DynamicSignal" in {
+    "ensuring that events emerge from the .async Dynamic" in {
       val a = Var(0)
       val b = Rx{ Future.successful(10 + a()) }.async(10)
       var count = 0
