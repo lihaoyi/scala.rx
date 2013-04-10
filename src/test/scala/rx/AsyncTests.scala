@@ -3,7 +3,7 @@ package rx
 import org.scalatest._
 import concurrent.Eventually
 import scala.concurrent.{ExecutionContext, Future, Promise}
-
+import scala.concurrent.duration._
 
 
 /**
@@ -148,6 +148,9 @@ class AsyncTests extends FreeSpec{
 
     }
   }
+
+
+
 
 
 

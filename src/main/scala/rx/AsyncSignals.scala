@@ -1,7 +1,7 @@
 package rx
 
 import concurrent.{ExecutionContext, Future}
-import java.util.concurrent.atomic.{AtomicLong, AtomicInteger}
+import java.util.concurrent.atomic.{AtomicReference, AtomicLong, AtomicInteger}
 import util.{Success, Try}
 import concurrent.duration._
 import akka.actor.{Actor, Cancellable, ActorSystem}
@@ -60,6 +60,36 @@ object AsyncSignals{
     listener.trigger()
 
     def level = source.level + 1
+  }
+  class DebouncedSignal[+T](source: Signal[T], interval: FiniteDuration)
+                           (implicit system: ActorSystem, ex: ExecutionContext)
+                            extends DynamicSignal[T](() => source(), "Debounced " + source.name, source()){
+
+
+    val nextPingTime = new AtomicReference(Deadline.now)
+
+    override def ping[P: Propagator](incoming: Seq[Flow.Emitter[Any]]): Seq[Reactor[Nothing]] = {
+
+      val npt = nextPingTime.get
+
+      if (Deadline.now > npt && nextPingTime.compareAndSet(npt, Deadline.now + interval)) {
+        super.ping(incoming)
+      } else {
+        system.scheduler.scheduleOnce(npt - Deadline.now){
+          // run the ping only if nobody else has successfully run a ping
+          // since i was scheduled. If someone else ran a ping, do nothing
+          if (nextPingTime.compareAndSet(npt, Deadline.now)) {
+            if(ping(incoming) != Nil){
+              this.propagate()
+            }
+          }
+        }
+        Nil
+      }
+    }
+
+
+    override def level = source.level + 1
   }
 /*
   /**

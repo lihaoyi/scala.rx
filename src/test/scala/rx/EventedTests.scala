@@ -21,7 +21,7 @@ class EventedTests extends FreeSpec with Eventually{
   }
   implicit val system = ActorSystem()
 
-  "a Timer should work properly and give off events on its own" in {
+  /*"a Timer should work properly and give off events on its own" in {
 
     val t = Timer(100 millis)
     var count = 0
@@ -35,34 +35,47 @@ class EventedTests extends FreeSpec with Eventually{
 
     assert(count >= 5)
   }
-  /*"debounce" - {
-    "immediate" in {
-      val a = Var(10)
-      val b = a.debounce(50 millis)
-      val c = Rx( a() * 2 ).debounce(50 millis)
-      var count = 0
-      val ob = Obs(b){ count += 1 }
-      val oa = Obs(c){ count += 1 }
+*/
+  "debounce" - {
 
-      a() = 5
-      assert(b() === 5)
-      assert(c() === 10)
-      a() = 2
-      assert(b() === 5)
-      assert(c() === 10)
-      a() = 4
-      assert(b() === 5)
-      assert(c() === 10)
-      a() = 7
-      assert(b() === 5)
-      assert(c() === 10)
+    val a = Var(10)
+    val b = a.debounce(200 millis)
+    val c = Rx( a() * 2 ).debounce(200 millis)
+    var count = 0
+    val o = Obs(b){ count += 1 }
+    a() = 5
+    assert(b() === 5)
+    assert(c() === 10)
 
-      eventually{
-        assert(b() === 7)
-        assert(c() === 14)
-      }(PatienceConfig(Span(1000, Millis)))
+    a() = 2
+    assert(b() === 5)
+    assert(c() === 10)
+
+    a() = 4
+    assert(b() === 5)
+    assert(c() === 10)
+
+    a() = 7
+    assert(b() === 5)
+    assert(c() === 10)
+
+    eventually{
+      assert(b() === 7)
+      assert(c() === 14)
     }
-    "delayed" in {
+
+    a() = 1
+    assert(b() === 7)
+    assert(c() === 14)
+
+    eventually{
+      assert(b() === 1)
+      assert(c() === 2)
+    }
+
+    assert(count === 3)
+
+    /*"delayed" in {
       val a = Var(10)
       val b = a.debounce(50 millis, 25 millis)
       val c = Rx( a() * 2 ).debounce(50 millis, 25 millis)
@@ -94,6 +107,6 @@ class EventedTests extends FreeSpec with Eventually{
         assert(b() === 7)
         assert(c() === 14)
       }(PatienceConfig(Span(1000, Millis)))
-    }
-  }*/
+    }*/
+  }
 }

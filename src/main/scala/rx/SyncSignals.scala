@@ -105,6 +105,7 @@ object SyncSignals {
     def makeState: StateType
 
     def ping[P: Propagator](incoming: Seq[Flow.Emitter[Any]]): Seq[Reactor[Nothing]] = {
+
       val newState = makeState
       val set = state.spinSetOpt{oldState =>
         if (newState.value != oldState.value
