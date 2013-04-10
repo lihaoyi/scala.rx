@@ -174,10 +174,9 @@ Having a `Rx[WebPage]`, where the `WebPage` has an `Rx[String]` inside, seems na
 
 Basic Combinators
 -----------------
-Scala.Rx also provides a set of combinators which allow your to easily transform your `Rx`s.
+Scala.Rx also provides a set of combinators which allow your to easily transform your `Rx`s. The three basic combinators: `map()`, `filer()` and `reduce()` are modelled after the scala collections library, and provide an easy way of transforming the values coming out of a `Rx`.
 
 ###Map
-
 ```scala
 val a = Var(10)
 val b = Rx{ a() + 2 }
@@ -193,7 +192,6 @@ assert(d() === 6)
 `map` does what you would expect, creating a new `Rx` with the value of the old `Rx` transformed by some function. For example, `a.map(_*2)` is essentially equivalent to `Rx{ a() * 2 }`, but somewhat more convenient to write.
 
 ###Filter
-
 ```scala
 val a = Var(10)
 val b = a.filter(_ > 5)
@@ -207,13 +205,7 @@ a() = 19
 assert(b() === 19)
 ```
 
-`filter` ignores changes to the value of the `Rx` that fail the predicate. It optionally takes a predicate for the `Failure` case, ignoring changes if the value transitions from one `Failure` to another.
-
-Closely related to it are:
-
-- `filterDiff`: Giving you both the old and the new value to use when deciding whether or not to accept a change.
-- `filterTry`: Similar to `filterDiff`, except it gives you the old and new values as `Try`s to work with.
-- `skipFailures`: A shorthand for a filter which ignores changes which are `Failure`s. If the original `Rx` transitions from `Success` to `Failure`, the `.skipFailure` version will simply remain at the last `Success` state.
+`filter` ignores changes to the value of the `Rx` that fail the predicate.
 
 Note that none of the `filter` methods is able to filter out the first, initial value of a `Rx`, as there is no "older" value to fall back to. Hence this:
 
@@ -224,6 +216,22 @@ println(b())
 ```
 
 will print out "2".
+
+###Reduce
+```scala
+val a = Var(1)
+val b = a.reduce(_ * _)
+a() = 2
+assert(b() === 2)
+a() = 3
+assert(b() === 6)
+a() = 4
+assert(b() === 24)
+```
+
+The `reduce` operator combines subsequent values of an `Rx` together, starting from the initial value. Every change to the original `Rx` is combined with the previously-stored value and becomes the new value of the reduced `Rx`.
+
+Each of these three combinators has a counterpart in `mapAll()`, `filterAll()` and `reduceAll()` which operates on `Try[T]`s rather than `T`s, in the case where you need the added flexibility to handle `Failure`s in some special way.
 
 Advanced Combinators
 --------------------
