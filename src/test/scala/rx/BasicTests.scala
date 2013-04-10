@@ -13,7 +13,7 @@ class BasicTests extends FreeSpec with Inside{
       val s2 = Rx(v2() + 1, name = "s2")
 
       val o1 = Obs(s1){ println(1) }
-      val o2 = Obs(name = "o2")(s2){ println(1) }
+      val o2 = Obs(s2, name = "o2"){ println(1) }
 
       assert(v1.name === "")
       assert(v2.name === "v2")
@@ -27,7 +27,7 @@ class BasicTests extends FreeSpec with Inside{
   }
   "sig tests" - {
     "basic" - {
-      "signal Hello World" in {
+      "Rx Hello World" in {
         val a = Var(1); val b = Var(2)
         val c = Rx{ a() + b() }
         assert(c() === 3)
@@ -127,20 +127,6 @@ class BasicTests extends FreeSpec with Inside{
       assert(bS === 2);   assert(cS === 2);   assert(dS === 2)
     }
 
-    "listening the multiple signals" in {
-      var count = 0
-      val a = Var(1)
-      val b = Var(2)
-      val o = Obs(a, b){
-        count += 1
-      }
-      a() = 2
-      b() = 3
-      assert(count === 2)
-      a() = 1
-      b() = 2
-      assert(count === 4)
-    }
   }
 
   "error handling" - {

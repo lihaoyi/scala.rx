@@ -11,7 +11,7 @@ import time.{Millis, Span}
 import java.util.concurrent.CountDownLatch
 
 /**
- * Tests that force Rxs to run in parallel (whether the same Signal or different Rxs)
+ * Tests that force Rxs to run in parallel (whether the same Rx or different Rxs)
  * to verify their behavior in such situations.
  */
 class ParallelTests extends FreeSpec with Eventually{
@@ -21,7 +21,7 @@ class ParallelTests extends FreeSpec with Eventually{
     def await(x: Duration = 10 seconds) = Await.result(f, x)
   }
   implicit val prop = Propagator.Immediate
-  "parallel execution of a single Signal" - {
+  "parallel execution of a single Rx" - {
     def setup = {
       val ps = Seq.fill(3)(new CountDownLatch(1))
       val wall = Seq.fill(3)(new CountDownLatch(1))
@@ -100,7 +100,7 @@ class ParallelTests extends FreeSpec with Eventually{
   "swapping in a parallelizing Propagator should speed things up significantly" in {
 
     def time[P](implicit prop: Propagator[P], post: P => Unit = (x: P) => ()) = {
-      def spinner(a: Signal[Int]) = Rx{
+      def spinner(a: Rx[Int]) = Rx{
         var count = 0
         for(x <- 0 until 100000000){
           count += 1

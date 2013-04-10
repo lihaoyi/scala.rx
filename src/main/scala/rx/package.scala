@@ -1,12 +1,13 @@
 
 
 import annotation.tailrec
-import concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
+import rx.Timer
 
 /**
  * '''Scala.Rx''' is an experimental change propagation library for [[http://www.scala-lang.org/ Scala]].
- * Scala.Rx gives you Reactive variables (`Rx`s), which are smart variables who auto-update themselves
+ * Scala.Rx gives you Reactive variables ([[Rx]]s), which are smart variables who auto-update themselves
  * when the values they depend on change. The underlying implementation is push-based
  * [[http://en.wikipedia.org/wiki/Functional_reactive_programming FRP]] based on the
  * ideas in
@@ -28,17 +29,29 @@ import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
  */
 package object rx {
 
-  /**
-   * Shorthand for constructing instances of [[Dynamic]]
-   */
-  val Rx = Dynamic
-  /**
-   * Shorthand for [[Signal]][T]
-   */
-  type Rx[T] = Signal[T]
-  val Timer = utility.Timer
 
-  implicit def pimpedFutureSignal[T](source: Signal[Future[T]]) = utility.pimpedFutureSignal(source)
+
+
+  implicit class AsyncRx[T](source: Rx[Future[T]]){
+    /**
+     * Flattens out an Rx[Future[T]] into a Rx[T]. If the first
+     * Future has not yet arrived, the Async contains its default value.
+     * Afterwards, it updates itself when and with whatever the Futures complete
+     * with.
+     *
+     * `async` can be configured with a variety of Targets, to configure
+     * its handling of Futures which complete out of order (RunAlways, DiscardLate)
+     */
+    def async[P](default: T,
+                 discardLate: Boolean = true)
+                (implicit executor: ExecutionContext, p: Propagator[P]): Rx[T] = {
+      new Async(default, source, discardLate)
+
+    }
+  }
+
+
+
 
   private[rx] case class Atomic[T](t: T) extends AtomicReference[T](t){
     def apply() = get

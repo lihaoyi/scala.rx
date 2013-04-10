@@ -1,56 +1,38 @@
 package rx
 
-import util.Try
-import scala.util.{Failure, Success}
+import scala.util.{DynamicVariable, Try, Failure, Success}
 
-import annotation.tailrec
 
 import ref.WeakReference
 
-import concurrent.{Future, ExecutionContext}
-import java.util.concurrent.atomic.AtomicReference
+private[rx] trait Node{
+  private[rx] def level: Long
 
-
-
-/**
- * A Signal is a value that can change over time, emitting pings whenever it
- * changes.
- *
- * This trait is normally accessed by its alias Signal
- */
-trait Signal[+T] extends Emitter[T] with utility.SignalMethods[T]{
-
-  def currentValue: T = toTry.get
-
-  def now: T = currentValue
-
-  def apply(): T = {
-
-    Dynamic.enclosing.value = Dynamic.enclosing.value match{
-      case Some((enclosing, dependees)) =>
-        this.linkChild(enclosing)
-        Some((enclosing, this :: dependees))
-      case None => None
-    }
-    currentValue
+  /**
+   * The name of this [[Node]], for debugging purposes.
+   */
+  def name: String
+  protected[this] def debug(s: String) {
+    println(name + ": " + s)
   }
-
-  def propagate[P: Propagator]() = {
-    Propagator().propagate(this.getChildren.map(this -> _))
-  }
-
-  def toTry: Try[T]
 }
 
 /**
  * Something that emits pings. Manages a list of WeakReferences containing
- * listeners which need to be pinged when an event is fired.
+ * [[Reactor]]s which need to be pinged when an event is fired.
  */
-trait Emitter[+T] extends utility.Node{
+trait Emitter[+T] extends Node{
   private[this] val children = Atomic[List[WeakReference[Reactor[T]]]](Nil)
-
+  @volatile var active = true
+  /**
+   * Returns the list of [[Reactor]]s which are currently bound to this [[Emitter]].
+   */
   def getChildren: Seq[Reactor[Nothing]] = children.get.flatMap(_.get)
 
+  /**
+   * Binds the [[Reactor]] `child` to this [[Emitter]]. Any pings by this
+   * [[Emitter]] will cause `child` to react.
+   */
   def linkChild[R >: T](child: Reactor[R]): Unit = {
     children.spinSet(c => (WeakReference(child) :: c.filter(_.get.isDefined)).distinct)
   }
@@ -60,8 +42,11 @@ trait Emitter[+T] extends utility.Node{
  * Something that can receive pings and react to them in some way. How it reacts
  * is up to the implementation.
  */
-trait Reactor[-T] extends utility.Node{
+trait Reactor[-T] extends Node{
 
+  /**
+   * Returns the list of [[Emitter]]s which this [[Reactor]] is currently bound to.
+   */
   def getParents: Seq[Emitter[Any]]
 
   /**

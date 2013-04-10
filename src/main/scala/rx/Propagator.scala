@@ -58,7 +58,7 @@ object Propagator{
 
 /**
  * A Propagator is an object which performs a propagation wave over the
- * Scala.Signal dataflow graph. It is parametrized on the type P which it returns
+ * Scala.Rx dataflow graph. It is parametrized on the type P which it returns
  * after performing a propagation wave. The two existing Propagators are:
  *
  * - Immediate (`Propagator[Unit]`), which runs the propagation wave immediately
