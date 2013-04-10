@@ -94,7 +94,15 @@ object Combinators{
       new DebouncedSignal(source, interval)
     }
 
-
+    /**
+     * Creates a new Rx which debounces the old Rx; updates coming in within `interval`
+     * of a previous update get ignored. After the `interval` has passed, the last
+     * un-applied update (if any) will be applied to update the value of the Rx
+     */
+    def delay(delay: FiniteDuration)
+             (implicit system: ActorSystem, ex: ExecutionContext): Rx[T] = {
+      new DelaySignal(source, delay)
+    }
 
   }
   implicit class pimpedFutureSignal[T](source: Signal[Future[T]]){

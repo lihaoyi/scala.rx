@@ -293,7 +293,56 @@ assert(count >= 5)
 
 A `Timer` is a `Rx` that generates events on a regular basis. The events are based on the `scheduler` of the implicit `ActorSystem`, which defaults to a maximum precision of about 100 milliseconds. In the example above, the for-loop checks that the value of the timer `t()` increases over time from 0 to 5, and then checks that `count` has been incremented at least that many times.
 
+
 The scheduled task is cancelled automatically when the `Timer` object becomes unreachable, so it can be garbage collected. This means you do not have to worry about managing the life-cycle of the `Timer`.
+
+###Delay
+```scala
+val a = Var(10)
+val b = a.delay(250 millis)
+
+a() = 5
+assert(b() === 10)
+eventually{
+  assert(b() === 5)
+}
+
+a() = 4
+assert(b() === 5)
+eventually{
+  assert(b() === 4)
+}
+```
+
+The `delay(t)` combinator creates a delayed version of an `Rx` whose value lags the original by a duration `t`. When the `Rx` changes, the delayed version will not change until the delay `t` has passed.
+
+This example shows the delay being applied to a `Var`, but it could easily be applied to an `Rx` as well.
+
+###Debounce
+```scala
+val a = Var(10)
+val b = a.debounce(200 millis)
+a() = 5
+assert(b() === 5)
+
+a() = 2
+assert(b() === 5)
+
+eventually{
+  assert(b() === 2)
+}
+
+a() = 1
+assert(b() === 2)
+
+eventually{
+  assert(b() === 1)
+}
+```
+
+The `debounce(t)` combinator creates a version of an `Rx` which will not update more than once every time period `t`.
+
+If multiple updates happen with a short span of time (less than `t` apart), only the first update will take place immediately, and a second update will take place after the time `t` has passed.
 
 How it Works
 ============

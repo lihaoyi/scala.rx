@@ -37,73 +37,109 @@ class EventedTests extends FreeSpec with Eventually{
   }
 
   "debounce" - {
+    "simple" in {
+      val a = Var(10)
+      val b = a.debounce(200 millis)
+      a() = 5
+      assert(b() === 5)
 
-    val a = Var(10)
-    val b = a.debounce(200 millis)
-    val c = Rx( a() * 2 ).debounce(200 millis)
-    var count = 0
-    val o = Obs(b){ count += 1 }
-    a() = 5
-    assert(b() === 5)
-    assert(c() === 10)
+      a() = 2
+      assert(b() === 5)
 
-    a() = 2
-    assert(b() === 5)
-    assert(c() === 10)
+      eventually{
+        assert(b() === 2)
+      }
 
-    a() = 7
-    assert(b() === 5)
-    assert(c() === 10)
+      a() = 1
+      assert(b() === 2)
 
-    eventually{
+      eventually{
+        assert(b() === 1)
+      }
+    }
+    "longer" in {
+      val a = Var(10)
+      val b = a.debounce(200 millis)
+      val c = Rx( a() * 2 ).debounce(200 millis)
+      var count = 0
+      val o = Obs(b){ count += 1 }
+      a() = 5
+      assert(b() === 5)
+      assert(c() === 10)
+
+      a() = 2
+      assert(b() === 5)
+      assert(c() === 10)
+
+      a() = 7
+      assert(b() === 5)
+      assert(c() === 10)
+
+      eventually{
+        assert(b() === 7)
+        assert(c() === 14)
+      }
+
+      a() = 1
       assert(b() === 7)
       assert(c() === 14)
+
+      eventually{
+        assert(b() === 1)
+        assert(c() === 2)
+      }
+
+      assert(count === 3)
     }
-
-    a() = 1
-    assert(b() === 7)
-    assert(c() === 14)
-
-    eventually{
-      assert(b() === 1)
-      assert(c() === 2)
-    }
-
-    assert(count === 3)
 
 
   }
-  /*"delayed" in {
-    val a = Var(10)
-    val b = a.delayed(250 millis)
-    val c = Rx( a() * 2 ).delayed(250 millis)
-    var count = 0
-    val ob = Obs(b){ count += 1 }
-    val oa = Obs(c){ count += 1 }
+  "delayed" - {
+    "simple" in {
+val a = Var(10)
+val b = a.delay(250 millis)
 
-    a() = 5
-    assert(b() === 10)
-    assert(c() === 20)
-    eventually{
+a() = 5
+assert(b() === 10)
+eventually{
+  assert(b() === 5)
+}
+
+a() = 4
+assert(b() === 5)
+eventually{
+  assert(b() === 4)
+}
+    }
+    "longer" in {
+      val a = Var(10)
+      val b = a.delay(250 millis)
+      val c = Rx( a() * 2 ).delay(250 millis)
+      var count = 0
+
+      a() = 5
+      assert(b() === 10)
+      assert(c() === 20)
+      eventually{
+        assert(b() === 5)
+        assert(c() === 10)
+      }
+
+      a() = 4
       assert(b() === 5)
       assert(c() === 10)
-    }
-    a() = 2
-    assert(b() === 5)
-    assert(c() === 10)
-    a() = 4
-    assert(b() === 5)
-    assert(c() === 10)
-    eventually{
+      eventually{
+        assert(b() === 4)
+        assert(c() === 8)
+      }
+
+      a() = 7
       assert(b() === 4)
       assert(c() === 8)
+      eventually{
+        assert(b() === 7)
+        assert(c() === 14)
+      }
     }
-    a() = 7
-    assert(b() === 4)
-    assert(c() === 8)
-    eventually{
-      assert(b() === 7)
-      assert(c() === 14)
-    }
-  }*/
+  }
 }

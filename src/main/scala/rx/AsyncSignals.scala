@@ -65,11 +65,9 @@ object AsyncSignals{
   }
 
 
-
   class DebouncedSignal[+T](source: Signal[T], interval: FiniteDuration)
                            (implicit system: ActorSystem, ex: ExecutionContext)
                             extends DynamicSignal[T](() => source(), "Debounced " + source.name, source()){
-
 
     val nextPingTime = new AtomicReference(Deadline.now)
 
@@ -82,14 +80,26 @@ object AsyncSignals{
       } else {
         system.scheduler.scheduleOnce(npt - Deadline.now){
           if (nextPingTime.compareAndSet(npt, Deadline.now)) {
-            if(ping(incoming) != Nil){
-              this.propagate()
-            }
+            if(ping(incoming) != Nil)this.propagate()
           }
         }
         Nil
       }
     }
+    override def level = source.level + 1
+  }
+
+  class DelaySignal[+T](source: Signal[T], delay: FiniteDuration)
+                       (implicit system: ActorSystem, ex: ExecutionContext)
+                        extends DynamicSignal[T](() => source(), "Delayed " + source.name, source()){
+
+    override def ping[P: Propagator](incoming: Seq[Flow.Emitter[Any]]): Seq[Reactor[Nothing]] = {
+      system.scheduler.scheduleOnce(delay){
+        if(super.ping(incoming) != Nil) this.propagate()
+      }
+      Nil
+    }
+
     override def level = source.level + 1
   }
 
