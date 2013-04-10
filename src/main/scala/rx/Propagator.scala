@@ -15,9 +15,9 @@ object Propagator{
         val minLevel = nodes.map(_._2.level).min
         val (now, later) = nodes.partition(_._2.level == minLevel)
         val next = now.groupBy(_._2)
-          .mapValues(_.map(_._1).distinct)
-          .toSeq
-          .map{ case (target, pingers) => Future{
+                      .mapValues(_.map(_._1).distinct)
+                      .toSeq
+                      .map{ case (target, pingers) => Future{
           target.ping(pingers).map(target.asInstanceOf[Flow.Emitter[Any]] -> _)
         }}
         Future.sequence[Seq[(Flow.Emitter[Any], Flow.Reactor[Nothing])], Seq](next).map(_.flatten ++ later).flatMap(propagate)
@@ -25,16 +25,15 @@ object Propagator{
     }
   }
 
-  object Immediate extends Propagator[Unit]{
-    implicit val pinger = this
+  implicit object Immediate extends Propagator[Unit]{
     def propagate(nodes: Seq[(Flow.Emitter[Any], Flow.Reactor[Nothing])]): Unit = {
       if (nodes.length != 0){
         val minLevel = nodes.map(_._2.level).min
         val (now, later) = nodes.partition(_._2.level == minLevel)
         val next = now.groupBy(_._2)
-          .mapValues(_.map(_._1).distinct)
-          .toSeq
-          .map{ case (target, pingers) =>
+                      .mapValues(_.map(_._1).distinct)
+                      .toSeq
+                      .map{ case (target, pingers) =>
           target.ping(pingers).map(target.asInstanceOf[Flow.Emitter[Any]] -> _)
         }
         propagate(next.flatten ++ later)
