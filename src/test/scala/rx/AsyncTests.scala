@@ -20,7 +20,7 @@ class AsyncTests extends FreeSpec{
   }
 
   "disabling" - {
-    "sigs" in {
+    "utility" in {
       val a = Var(1)
       val b = Rx{ 2 * a() }
       assert(b() === 2)
@@ -52,10 +52,9 @@ class AsyncTests extends FreeSpec{
         p.future
       }.async(10)
       assert(a() === 10)
+
       p.success(5)
-
       assert(a() === 5)
-
     }
     "repeatedly sending out Futures" in {
       var p = Promise[Int]()
@@ -65,11 +64,14 @@ class AsyncTests extends FreeSpec{
         p.future.map{_ + A}
       }.async(10)
       assert(b() === 10)
+
       p.success(5)
       assert(b() === 6)
+
       p = Promise[Int]()
       a() = 2
       assert(b() === 6)
+
       p.success(7)
       assert(b() === 9)
     }
@@ -134,7 +136,6 @@ class AsyncTests extends FreeSpec{
 
       p(0).success(0)
       assert(b() === 2)
-
     }
 
     "ensuring that events emerge from the .async Dynamic" in {

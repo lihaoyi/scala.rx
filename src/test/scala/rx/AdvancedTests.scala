@@ -22,7 +22,7 @@ class AdvancedTests extends FreeSpec{
         def fTime = fakeTime
         val time = Var(fTime)
         def update(): Unit  = time() = fTime
-        val html: Rx[String]
+        val html: Signal[String]
       }
       class HomePage extends WebPage {
         val html = Rx{"Home Page! time: " + time()}
@@ -163,11 +163,11 @@ class AdvancedTests extends FreeSpec{
   /*
   "recursion" - {
     "calculating fixed point" in {
-      lazy val s: Rx[Double] = Rx{ Math.cos(s()) }
+      lazy val s: Signal[Double] = Signal{ Math.cos(s()) }
       println(s())
     }
     "calculating sqrt" in {
-      lazy val s: Rx[Double] = Rx(default = 10.0){ s() - (s() * s() - 10) / (2 * s()) }
+      lazy val s: Signal[Double] = Signal(default = 10.0){ s() - (s() * s() - 10) / (2 * s()) }
       println(s())
     }
   }

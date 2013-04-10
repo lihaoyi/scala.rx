@@ -3,20 +3,44 @@
 import annotation.tailrec
 import concurrent.Future
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
-import rx.SyncSignal.Dynamic
 
-
+/**
+ * '''Scala.Rx''' is an experimental change propagation library for [[http://www.scala-lang.org/ Scala]].
+ * Scala.Rx gives you Reactive variables (`Rx`s), which are smart variables who auto-update themselves
+ * when the values they depend on change. The underlying implementation is push-based
+ * [[http://en.wikipedia.org/wiki/Functional_reactive_programming FRP]] based on the
+ * ideas in
+ * [[http://infoscience.epfl.ch/record/176887/files/DeprecatingObservers2012.pdf Deprecating the Observer Pattern]].
+ *
+ * A simple example which demonstrates its usage is:
+ *
+ * {{{
+ * import rx._
+ * val a = Var(1); val b = Var(2)
+ * val c = Rx{ a() + b() }
+ * println(c()) // 3
+ * a() = 4
+ * println(c()) // 6
+ * }}}
+ *
+ * See [[https://github.com/lihaoyi/scala.rx the github page]] for more
+ * instructions on how to use this package, or browse the classes on the left.
+ */
 package object rx {
 
-  object NoInitializedException extends Exception()
-
-  type Rx[+T] = Flow.Signal[T]
+  /**
+   * Shorthand for constructing instances of [[Dynamic]]
+   */
   val Rx = Dynamic
+  /**
+   * Shorthand for [[Signal]][T]
+   */
+  type Rx[T] = Signal[T]
+  val Timer = utility.Timer
 
-  val Timer = AsyncSignal.Timer
-  implicit def pimpedFutureSignal[T](source: Rx[Future[T]]) = Combinators.pimpedFutureSignal(source)
+  implicit def pimpedFutureSignal[T](source: Signal[Future[T]]) = utility.pimpedFutureSignal(source)
 
-  case class Atomic[T](t: T) extends AtomicReference[T](t){
+  private[rx] case class Atomic[T](t: T) extends AtomicReference[T](t){
     def apply() = get
     def update(t: T) = set(t)
     @tailrec final def spinSet(transform: T => T): Unit = {

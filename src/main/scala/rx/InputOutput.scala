@@ -13,12 +13,12 @@ object Var {
 }
 
 /**
- * A Var is a Signal which can be changed manually via assignment.
+ * A [[Var]][T] is a [[Signal]][T] which can be changed manually via assignment.
  *
  * @param initValue The initial future of the Var
  * @tparam T The type of the future this Var contains
  */
-class Var[T](initValue: => T, val name: String = "") extends Flow.Signal[T]{
+class Var[T](initValue: => T, val name: String = "") extends Signal[T]{
 
   val state = new AtomicReference(Try(initValue))
   def update[P: Propagator](newValue: => T): P = {
@@ -31,30 +31,30 @@ class Var[T](initValue: => T, val name: String = "") extends Flow.Signal[T]{
 }
 
 object Obs{
-  def apply[T](es: Flow.Emitter[Any]*)(callback: => Unit) = {
+  def apply[T](es: Emitter[Any]*)(callback: => Unit) = {
     new Obs(es, () => callback)
   }
-  def apply[T](x: =>Nothing = ???, name: String = "")(es: Flow.Emitter[Any]*)(callback: => Unit) = {
+  def apply[T](x: =>Nothing = ???, name: String = "")(es: Emitter[Any]*)(callback: => Unit) = {
     new Obs(es, () => callback, name)
   }
 }
 
 /**
- * An Obs is something that produces side-effects when the source Signal
- * changes. an Obs is always run right at the end of every propagation cycle,
- * ensuring it is only called once per cycle (in contrast with Signal[T]s, which
+ * An [[Obs]] is something that produces side-effects when the source [[Signal]]
+ * changes. An [[Obs]] is always run right at the end of every propagation wave,
+ * ensuring it is only called once per wave (in contrast with [[Signal]][T]s, which
  * may update multiple times before settling)
  *
  * @param callback a callback to run when this Obs is pinged
  */
-case class Obs(source: Seq[Flow.Emitter[Any]], callback: () => Unit, name: String = "") extends Flow.Reactor[Any]{
+case class Obs(source: Seq[Emitter[Any]], callback: () => Unit, name: String = "") extends Reactor[Any]{
   @volatile var active = true
 
   source.foreach(_.linkChild(this))
   def getParents = source
   def level = Long.MaxValue
 
-  def ping[P: Propagator](incoming: Seq[Flow.Emitter[Any]]) = {
+  def ping[P: Propagator](incoming: Seq[Emitter[Any]]) = {
     if (active && getParents.intersect(incoming).isDefinedAt(0)){
       callback()
     }

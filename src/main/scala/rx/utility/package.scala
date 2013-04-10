@@ -1,40 +1,42 @@
 package rx
 
-import util.{Try, Failure, Success}
-import concurrent.{ExecutionContext, Future}
-import concurrent.duration._
+import scala.Predef._
+import scala.util.{Try, Failure, Success}
+import scala.concurrent.duration.FiniteDuration
 import akka.actor.ActorSystem
-import Flow.Signal
-import AsyncSignal._
-import concurrent.duration._
-import SyncSignal._
+import scala.concurrent.{Future, ExecutionContext}
 
 /**
- * A collection of methods which allow you to construct Rxs from other
- * Rxs using method chaining
+ * All sorts of useful things which should be not be used externally
  */
-object Combinators{
-  trait EmitterMethods[+T]{ source: Flow.Emitter[T] =>
-  }
+package object utility {
+  trait Node{
+    def level: Long
+    def name: String
+    val id: String = util.Random.alphanumeric.head.toString
 
+    def debug(s: String) {
+      println(id + ": " + s)
+    }
+  }
   trait SignalMethods[+T]{ source: Signal[T] =>
 
-    /**
-     * Creates a new Rx which ignores Failure conditions of the source Rx; it
-     * will not propagate the changes, and simply remain holding on to its last
-     * value
-     */
+  /**
+   * Creates a new Signal which ignores Failure conditions of the source Signal; it
+   * will not propagate the changes, and simply remain holding on to its last
+   * value
+   */
     def skipFailures: Signal[T] = filterAll[T](x => x.isSuccess)
 
 
     /**
-     * Creates a new Rx which contains the value of the old Rx, except transformed by some
+     * Creates a new Signal which contains the value of the old Signal, except transformed by some
      * function.
      */
     def map[A](f: T => A): Signal[A] = new Map[T, A](source)(y => y.map(f))
 
     /**
-     * Creates a new Rx which ignores specific Success conditions of the source Rx; it
+     * Creates a new Signal which ignores specific Success conditions of the source Signal; it
      * will not propagate the changes, and simply remain holding on to its last
      * value if the new value fails the filter. Optionally takes a failurePred, allowing
      * it to filter the Failure conditions as well.
@@ -50,7 +52,7 @@ object Combinators{
     }
 
     /**
-     * Creates a new Rx which combines the values of the source Rx according
+     * Creates a new Signal which combines the values of the source Signal according
      * to the given `combiner` function. Failures are passed through directly,
      * and transitioning from a Failure to a Success(s) re-starts the combining
      * using the result `s` of the Success.
@@ -85,29 +87,29 @@ object Combinators{
     def reduceAll[A >: T](combiner: (Try[A], Try[A]) => Try[A]) = new Reduce[A](source)(combiner)
 
     /**
-     * Creates a new Rx which debounces the old Rx; updates coming in within `interval`
+     * Creates a new Signal which debounces the old Signal; updates coming in within `interval`
      * of a previous update get ignored. After the `interval` has passed, the last
-     * un-applied update (if any) will be applied to update the value of the Rx
+     * un-applied update (if any) will be applied to update the value of the Signal
      */
     def debounce(interval: FiniteDuration)
-                (implicit system: ActorSystem, ex: ExecutionContext): Rx[T] = {
+                (implicit system: ActorSystem, ex: ExecutionContext): Signal[T] = {
       new Debounce(source, interval)
     }
 
     /**
-     * Creates a new Rx which debounces the old Rx; updates coming in within `interval`
+     * Creates a new Signal which debounces the old Signal; updates coming in within `interval`
      * of a previous update get ignored. After the `interval` has passed, the last
-     * un-applied update (if any) will be applied to update the value of the Rx
+     * un-applied update (if any) will be applied to update the value of the Signal
      */
     def delay(delay: FiniteDuration)
-             (implicit system: ActorSystem, ex: ExecutionContext): Rx[T] = {
+             (implicit system: ActorSystem, ex: ExecutionContext): Signal[T] = {
       new Delay(source, delay)
     }
 
   }
   implicit class pimpedFutureSignal[T](source: Signal[Future[T]]){
     /**
-     * Flattens out an Rx[Future[T]] into a Rx[T]. If the first
+     * Flattens out an Signal[Future[T]] into a Signal[T]. If the first
      * Future has not yet arrived, the Async contains its default value.
      * Afterwards, it updates itself when and with whatever the Futures complete
      * with.
@@ -117,12 +119,9 @@ object Combinators{
      */
     def async[P](default: T,
                  discardLate: Boolean = true)
-                (implicit executor: ExecutionContext, p: Propagator[P]): Rx[T] = {
+                (implicit executor: ExecutionContext, p: Propagator[P]): Signal[T] = {
       new Async(default, source, discardLate)
     }
   }
 
-
-
 }
-
