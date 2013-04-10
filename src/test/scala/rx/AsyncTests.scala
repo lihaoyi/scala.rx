@@ -46,7 +46,7 @@ class AsyncTests extends FreeSpec{
     }
   }
   "async" - {
-    "basic example" in {
+    "basic example" taggedAs Tag("omg") in {
       val p = Promise[Int]()
       val a = Rx{
         p.future

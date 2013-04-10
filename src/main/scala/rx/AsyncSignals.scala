@@ -29,10 +29,10 @@ object AsyncSignals{
    * The AsyncSig can be configured with a variety of Targets, to configure
    * its handling of Futures which complete out of order (RunAlways, DiscardLate)
    */
-  class AsyncSig[+T](default: => T,
+  class AsyncSig[+T, P](default: => T,
                      source: Signal[Future[T]],
                      discardLate: Boolean)
-                    (implicit ec: ExecutionContext)
+                    (implicit ec: ExecutionContext, p: Propagator[P])
                      extends Signal[T] with IncrSignal[T] with Flow.Reactor[Future[_]]{
 
     source.linkChild(this)
@@ -42,9 +42,8 @@ object AsyncSignals{
 
     protected[this] val state = Atomic(new SpinState(0, Try(default)))
 
-    override def ping[P: Propagator](incoming: Seq[Flow.Emitter[Any]]): Seq[Reactor[Nothing]] = {
+    override def ping[P](incoming: Seq[Flow.Emitter[Any]])(implicit p: Propagator[P]): Seq[Reactor[Nothing]] = {
       val stamp = getStamp
-
       source().onComplete{ x =>
         val set = state.spinSetOpt{oldState =>
           if (x != state().value && (stamp >= oldState.timestamp || !discardLate)){
@@ -55,13 +54,14 @@ object AsyncSignals{
         }
 
         if(set) propagate()
-
       }
       Nil
     }
     def getParents = Seq(source)
 
     def level = source.level + 1
+
+    this.ping(Seq(source))
   }
 
 
