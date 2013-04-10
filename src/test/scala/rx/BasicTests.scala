@@ -2,7 +2,7 @@ package rx
 import org.scalatest._
 import util.{Failure, Success}
 class BasicTests extends FreeSpec with Inside{
-
+  implicit val prop = Propagator.Immediate
   "config tests" - {
     "name" in {
       val v1 = Var(0)

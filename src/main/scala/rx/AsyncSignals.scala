@@ -29,19 +29,20 @@ object AsyncSignals{
    * The AsyncSig can be configured with a variety of Targets, to configure
    * its handling of Futures which complete out of order (RunAlways, DiscardLate)
    */
-  class AsyncSig[+T, P](default: => T,
-                        source: Signal[Future[T]],
-                        discardLate: Boolean)
-                       (implicit ec: ExecutionContext, p: Propagator[P])
-                        extends Signal[T] with IncrSignal[T]{
+  class AsyncSig[+T](default: => T,
+                     source: Signal[Future[T]],
+                     discardLate: Boolean)
+                    (implicit ec: ExecutionContext)
+                     extends Signal[T] with IncrSignal[T] with Flow.Reactor[Future[_]]{
 
+    source.linkChild(this)
     def name = "Async " + source.name
 
     type StateType = SpinState
 
     protected[this] val state = Atomic(new SpinState(0, Try(default)))
 
-    private[this] val listener = Obs(source){
+    override def ping[P: Propagator](incoming: Seq[Flow.Emitter[Any]]): Seq[Reactor[Nothing]] = {
       val stamp = getStamp
 
       source().onComplete{ x =>
@@ -52,15 +53,19 @@ object AsyncSignals{
             None
           }
         }
+
         if(set) propagate()
 
       }
+      Nil
     }
-
-    listener.trigger()
+    def getParents = Seq(source)
 
     def level = source.level + 1
   }
+
+
+
   class DebouncedSignal[+T](source: Signal[T], interval: FiniteDuration)
                            (implicit system: ActorSystem, ex: ExecutionContext)
                             extends DynamicSignal[T](() => source(), "Debounced " + source.name, source()){
@@ -76,8 +81,6 @@ object AsyncSignals{
         super.ping(incoming)
       } else {
         system.scheduler.scheduleOnce(npt - Deadline.now){
-          // run the ping only if nobody else has successfully run a ping
-          // since i was scheduled. If someone else ran a ping, do nothing
           if (nextPingTime.compareAndSet(npt, Deadline.now)) {
             if(ping(incoming) != Nil){
               this.propagate()
@@ -87,84 +90,9 @@ object AsyncSignals{
         Nil
       }
     }
-
-
     override def level = source.level + 1
   }
-/*
-  /**
-   * A Rx which does not change more than once per `interval` units of time. This
-   * can cause it to change asynchronously, as an update which is ignored (due to
-   * coming in before the interval has passed) will get spontaneously.
-   */
-  class ImmediateDebouncedSignal[+T](source: Signal[T], interval: FiniteDuration)
-                                    (implicit system: ActorSystem, ex: ExecutionContext, p: Propagator)
-                                    extends DynamicSignal[T]("debounced " + source.name, () => source()){
-    private[this] case class State(nextTime: Deadline, lastOutput: Option[Cancellable])
-    val state = Agent(State(Deadline.now, None))
 
-    override def ping(incoming: Seq[Flow.Emitter[Any]]) = {
-      if (active && getParents.intersect(incoming).isDefinedAt(0)){
-
-        val (pingOut, schedule) = {
-          val timeLeft = state().nextTime - Deadline.now
-
-          (timeLeft.toMillis, state().lastOutput) match{
-            case (t, _) if t < 0 =>
-              nextTime() = Deadline.now + interval
-              super.ping(incoming) -> None
-            case (t, None) =>
-              lastOutput() = Some(null)
-              Nil -> Some(timeLeft)
-            case (t, Some(_)) =>
-              Nil -> None
-          }
-        }
-        schedule match{
-          case Some(timeLeft) =>
-            lastOutput.single() = Some(system.scheduler.scheduleOnce(timeLeft){
-              super.ping(incoming)
-              this.propagate()
-            })
-          case _ => ()
-        }
-        pingOut
-      } else Nil
-
-    }
-  }
-
-  class DelayedRebounceSignal[+T](source: Signal[T], interval: FiniteDuration, delay: FiniteDuration)
-                                  (implicit system: ActorSystem, ex: ExecutionContext, p: Propagator)
-  extends Settable(source.now){
-    def name = "delayedDebounce " + source.name
-
-    private[this] val counter = new AtomicLong(0)
-    private[this] val nextTime = Ref(Deadline.now)
-    private[this] val lastOutput: Ref[Option[Long]] = Ref(None)
-
-    private[this] val listener = Obs(source){
-      val id = counter.getAndIncrement
-      atomic{ implicit txn =>
-        (lastOutput(), nextTime() - Deadline.now)  match {
-          case (Some(_), _) => None
-          case (None, timeLeft) =>
-            lastOutput() = Some(id)
-            Some(if (timeLeft < 0.seconds) delay else timeLeft)
-        }
-      } match {
-        case None => ()
-        case Some(next) =>
-        system.scheduler.scheduleOnce(next){
-          atomic{ implicit txn =>
-            lastOutput() = None
-            nextTime() = Deadline.now + interval
-          }
-          this.updateS(source.now)
-        }
-      }
-    }
-  }*/
 
   object Timer{
     def apply[P](interval: FiniteDuration, delay: FiniteDuration = 0 seconds)

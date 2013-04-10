@@ -13,7 +13,7 @@ import scala.concurrent.duration._
  */
 class AsyncTests extends FreeSpec{
 
-
+  implicit val prop = Propagator.Immediate
   implicit val executionContext = new ExecutionContext {
     def reportFailure(t: Throwable) { t.printStackTrace() }
     def execute(runnable: Runnable) {runnable.run()}

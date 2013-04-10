@@ -14,14 +14,14 @@ import akka.actor.ActorSystem
  */
 class EventedTests extends FreeSpec with Eventually{
   implicit val patience = (PatienceConfig(Span(500, Millis)))
-
+  implicit val prop = Propagator.Immediate
   implicit val executionContext = new ExecutionContext {
     def reportFailure(t: Throwable) { t.printStackTrace() }
     def execute(runnable: Runnable) {runnable.run()}
   }
   implicit val system = ActorSystem()
 
-  /*"a Timer should work properly and give off events on its own" in {
+  "a Timer should work properly and give off events on its own" in {
 
     val t = Timer(100 millis)
     var count = 0
@@ -35,7 +35,7 @@ class EventedTests extends FreeSpec with Eventually{
 
     assert(count >= 5)
   }
-*/
+
   "debounce" - {
 
     val a = Var(10)
@@ -48,10 +48,6 @@ class EventedTests extends FreeSpec with Eventually{
     assert(c() === 10)
 
     a() = 2
-    assert(b() === 5)
-    assert(c() === 10)
-
-    a() = 4
     assert(b() === 5)
     assert(c() === 10)
 
@@ -75,38 +71,39 @@ class EventedTests extends FreeSpec with Eventually{
 
     assert(count === 3)
 
-    /*"delayed" in {
-      val a = Var(10)
-      val b = a.debounce(50 millis, 25 millis)
-      val c = Rx( a() * 2 ).debounce(50 millis, 25 millis)
-      var count = 0
-      val ob = Obs(b){ count += 1 }
-      val oa = Obs(c){ count += 1 }
 
-      a() = 5
-      assert(b() === 10)
-      assert(c() === 20)
-      eventually{
-        assert(b() === 5)
-        assert(c() === 10)
-      }(PatienceConfig(Span(1000, Millis)))
-      a() = 2
+  }
+  /*"delayed" in {
+    val a = Var(10)
+    val b = a.delayed(250 millis)
+    val c = Rx( a() * 2 ).delayed(250 millis)
+    var count = 0
+    val ob = Obs(b){ count += 1 }
+    val oa = Obs(c){ count += 1 }
+
+    a() = 5
+    assert(b() === 10)
+    assert(c() === 20)
+    eventually{
       assert(b() === 5)
       assert(c() === 10)
-      a() = 4
-      assert(b() === 5)
-      assert(c() === 10)
-      eventually{
-        assert(b() === 4)
-        assert(c() === 8)
-      }(PatienceConfig(Span(1000, Millis)))
-      a() = 7
+    }
+    a() = 2
+    assert(b() === 5)
+    assert(c() === 10)
+    a() = 4
+    assert(b() === 5)
+    assert(c() === 10)
+    eventually{
       assert(b() === 4)
       assert(c() === 8)
-      eventually{
-        assert(b() === 7)
-        assert(c() === 14)
-      }(PatienceConfig(Span(1000, Millis)))
-    }*/
-  }
+    }
+    a() = 7
+    assert(b() === 4)
+    assert(c() === 8)
+    eventually{
+      assert(b() === 7)
+      assert(c() === 14)
+    }
+  }*/
 }

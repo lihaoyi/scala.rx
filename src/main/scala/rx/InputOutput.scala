@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 
 object Var {
-  def apply[T, P: Propagator](value: => T, name: String = "") = {
+  def apply[T](value: => T, name: String = "") = {
     new Var(value, name)
   }
 }
@@ -62,6 +62,6 @@ case class Obs(source: Seq[Flow.Emitter[Any]], callback: () => Unit, name: Strin
 
   }
   def trigger() = {
-    this.ping(this.getParents)
+    this.ping(this.getParents)(Propagator.Immediate)
   }
 }

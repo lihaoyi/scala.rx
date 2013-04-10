@@ -5,6 +5,7 @@ import util.{Try, Success, Failure}
 import time.{Millis, Span}
 
 class AdvancedTests extends FreeSpec{
+  implicit val prop = Propagator.Immediate
   "nesting" - {
     "nested Rxs" in {
       val a = Var(1)

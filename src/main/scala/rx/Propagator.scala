@@ -25,7 +25,8 @@ object Propagator{
     }
   }
 
-  implicit object Immediate extends Propagator[Unit]{
+  object Immediate extends Propagator[Unit]{
+    implicit val pinger = this
     def propagate(nodes: Seq[(Flow.Emitter[Any], Flow.Reactor[Nothing])]): Unit = {
       if (nodes.length != 0){
         val minLevel = nodes.map(_._2.level).min
