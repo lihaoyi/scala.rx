@@ -51,7 +51,7 @@ private[rx] class Async[+T, P](default: => T,
   }
   def getParents = Seq(source)
 
-  def level = source.level + 1
+  protected[rx] def level = source.level + 1
 
   this.ping(Seq(source))
 }
@@ -59,7 +59,7 @@ private[rx] class Async[+T, P](default: => T,
 
 private[rx] class Debounce[+T](source: Rx[T], interval: FiniteDuration)
                           (implicit system: ActorSystem, ex: ExecutionContext)
-                           extends rx.Dynamic[T](() => source(), "Debounced " + source.name, source()){
+                           extends rx.Dynamic[T](() => source(), "Debounced " + source.name){
 
   val nextPingTime = new AtomicReference(Deadline.now)
 
@@ -83,7 +83,7 @@ private[rx] class Debounce[+T](source: Rx[T], interval: FiniteDuration)
 
 private[rx] class Delay[+T](source: Rx[T], delay: FiniteDuration)
                (implicit system: ActorSystem, ex: ExecutionContext)
-  extends Dynamic[T](() => source(), "Delayed " + source.name, source()){
+  extends Dynamic[T](() => source(), "Delayed " + source.name){
 
   override def ping[P: Propagator](incoming: Seq[Emitter[Any]]): Seq[Reactor[Nothing]] = {
     system.scheduler.scheduleOnce(delay){
@@ -92,7 +92,7 @@ private[rx] class Delay[+T](source: Rx[T], delay: FiniteDuration)
     Nil
   }
 
-  override def level = source.level + 1
+  protected[rx] override def level = source.level + 1
 }
 
 
@@ -105,8 +105,8 @@ private[rx] object Timer{
 }
 
 private[rx] class Timer[P](interval: FiniteDuration, delay: FiniteDuration)
-              (implicit system: ActorSystem, p: Propagator[P], ec: ExecutionContext)
-  extends Rx[Long]{
+                          (implicit system: ActorSystem, p: Propagator[P], ec: ExecutionContext)
+                           extends Rx[Long]{
   val count = new AtomicLong(0L)
   val holder = new WeakTimerHolder(new WeakReference(this), interval, delay)
 
@@ -116,7 +116,7 @@ private[rx] class Timer[P](interval: FiniteDuration, delay: FiniteDuration)
     count.getAndIncrement
     propagate()
   }
-  def level = 0
+  protected[rx] def level = 0
   def toTry = Success(count.get)
 }
 

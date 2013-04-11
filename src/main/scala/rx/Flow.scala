@@ -6,10 +6,11 @@ import scala.util.{DynamicVariable, Try, Failure, Success}
 import ref.WeakReference
 
 private[rx] trait Node{
-  private[rx] def level: Long
+  protected[rx] def level: Long
 
   /**
-   * The name of this [[Node]], for debugging purposes.
+   * The name of this object, generally passed in as a `String` when it is
+   * created. This can be inspected later.
    */
   def name: String
   protected[this] def debug(s: String) {
@@ -23,7 +24,6 @@ private[rx] trait Node{
  */
 trait Emitter[+T] extends Node{
   private[this] val children = Atomic[List[WeakReference[Reactor[T]]]](Nil)
-  @volatile var active = true
   /**
    * Returns the list of [[Reactor]]s which are currently bound to this [[Emitter]].
    */

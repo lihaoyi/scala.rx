@@ -19,31 +19,21 @@ class AsyncTests extends FreeSpec{
     def execute(runnable: Runnable) {runnable.run()}
   }
 
-  "disabling" - {
-    "utility" in {
-      val a = Var(1)
-      val b = Rx{ 2 * a() }
-      assert(b() === 2)
-      a() = 2
-      assert(b() === 4)
-      b.active = false
-      a() = 10
-      assert(b() === 4)
+  "disabling obs" in {
+
+    val a = Var(1)
+    val b = Rx{ 2 * a() }
+    var target = 0
+    val o = Obs(b){
+      target = b()
     }
-    "obs" in {
-      val a = Var(1)
-      val b = Rx{ 2 * a() }
-      var target = 0
-      val o = Obs(b){
-        target = b()
-      }
-      assert(target === 0)
-      a() = 2
-      assert(target === 4)
-      o.active = false
-      a() = 3
-      assert(target === 4)
-    }
+    assert(target === 0)
+    a() = 2
+    assert(target === 4)
+    o.active = false
+    a() = 3
+    assert(target === 4)
+
   }
   "async" - {
     "basic example" taggedAs Tag("omg") in {

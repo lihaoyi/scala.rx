@@ -18,8 +18,8 @@ object Rx{
    * @param default The default value for this [[Rx]]
    * @tparam T The type of the value this [[Rx]] contains
    */
-  def apply[T](calc: => T, name: String = "", default: T = null.asInstanceOf[T]): Rx[T] = {
-    new rx.Dynamic(() => calc, name, default)
+  def apply[T](calc: => T, name: String = ""): Rx[T] = {
+    new rx.Dynamic(() => calc, name)
   }
 }
 
@@ -82,17 +82,16 @@ object Var {
  * A [[Var]] is an [[Rx]] which can be changed manually via assignment.
  *
  * @param initValue The initial future of the Var
- * @tparam T The type of the future this Var contains
  */
 class Var[T](initValue: => T, val name: String = "") extends Rx[T]{
 
-  val state = new AtomicReference(Try(initValue))
+  private val state = new AtomicReference(Try(initValue))
   def update[P: Propagator](newValue: => T): P = {
     state.set(Try(newValue))
     propagate()
   }
 
-  def level = 0
+  protected[rx] def level = 0
   def toTry = state.get()
 }
 
@@ -113,12 +112,16 @@ object Obs{
  *
  * @param callback a callback to run when this Obs is pinged
  */
-case class Obs(source: Emitter[Any], callback: () => Unit, name: String = "") extends Reactor[Any]{
+class Obs(source: Emitter[Any], callback: () => Unit, val name: String = "") extends Reactor[Any]{
+  /**
+   * A flag variable which can be turned off to prevent the [[Obs]] from
+   * triggering its `callback`.
+   */
   @volatile var active = true
 
   source.linkChild(this)
   def getParents = Seq(source)
-  def level = Long.MaxValue
+  protected[rx] def level = Long.MaxValue
 
   def ping[P: Propagator](incoming: Seq[Emitter[Any]]) = {
     if (active && getParents.intersect(incoming).isDefinedAt(0)){
@@ -127,6 +130,10 @@ case class Obs(source: Emitter[Any], callback: () => Unit, name: String = "") ex
     Nil
 
   }
+
+  /**
+   * Manually trigger this observer, causing its callback to run.
+   */
   def trigger() = {
     this.ping(this.getParents)(Propagator.Immediate)
   }

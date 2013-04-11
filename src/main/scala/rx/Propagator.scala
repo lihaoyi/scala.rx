@@ -53,6 +53,11 @@ object Propagator{
       }
     }
   }
+
+  /**
+   * Convenience method to retrieve the implicit [[Propagator]] from the
+   * enclosing scope.
+   */
   def apply[P: Propagator]() = implicitly[Propagator[P]]
 }
 

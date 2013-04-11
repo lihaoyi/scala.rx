@@ -30,8 +30,9 @@ import rx.Timer
 package object rx {
 
 
-
-
+  /**
+   * Provides extension methods on [[Rx]][Future]s.
+   */
   implicit class AsyncRx[T](source: Rx[Future[T]]){
     /**
      * Flattens out an Rx[Future[T]] into a Rx[T]. If the first
@@ -39,8 +40,9 @@ package object rx {
      * Afterwards, it updates itself when and with whatever the Futures complete
      * with.
      *
-     * `async` can be configured with a variety of Targets, to configure
-     * its handling of Futures which complete out of order (RunAlways, DiscardLate)
+     * @param default The initial value of this [[Rx]] before any `Future` has completed.
+     * @param discardLate Whether or not to discard the result of `Future`s which complete "late":
+     *                    meaning it was created earlier but completed later than some other `Future`.
      */
     def async[P](default: T,
                  discardLate: Boolean = true)
@@ -49,9 +51,6 @@ package object rx {
 
     }
   }
-
-
-
 
   private[rx] case class Atomic[T](t: T) extends AtomicReference[T](t){
     def apply() = get

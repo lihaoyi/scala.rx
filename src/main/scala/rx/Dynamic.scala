@@ -16,8 +16,7 @@ private object Dynamic{
 }
 
 private class Dynamic[+T](calc: () => T,
-                          val name: String = "",
-                          default: T = null.asInstanceOf[T])
+                          val name: String = "")
                           extends Rx[T]
                           with Reactor[Any]
                           with Spinlock[T]{
@@ -30,7 +29,6 @@ private class Dynamic[+T](calc: () => T,
                               value: Try[T])
                               extends SpinState(timestamp, value)
 
-  object Initial extends State(Nil, 0, 0, Success(default))
   type StateType = State
 
   protected[this] val state = Atomic(makeState)
@@ -53,12 +51,12 @@ private class Dynamic[+T](calc: () => T,
   def getParents = state().parents
 
   override def ping[P: Propagator](incoming: Seq[Emitter[Any]]): Seq[Reactor[Nothing]] = {
-    if (active && getParents.intersect(incoming).isDefinedAt(0)){
+    if (getParents.intersect(incoming).isDefinedAt(0)){
       super.ping(incoming)
     } else Nil
   }
 
-  def level = state().level
+  protected[rx] def level = state().level
 }
 
 
