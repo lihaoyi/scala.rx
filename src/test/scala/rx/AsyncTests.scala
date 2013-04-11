@@ -27,7 +27,7 @@ class AsyncTests extends FreeSpec{
     val o = Obs(b){
       target = b()
     }
-    assert(target === 0)
+    assert(target === 2)
     a() = 2
     assert(target === 4)
     o.active = false
@@ -133,9 +133,10 @@ class AsyncTests extends FreeSpec{
       val b = Rx{ Future.successful(10 + a()) }.async(10)
       var count = 0
       val o = Obs(b){ count += 1 }
+      assert(count === 1)
       a() = 10
 
-      assert(count == 1)
+      assert(count === 2)
 
     }
   }

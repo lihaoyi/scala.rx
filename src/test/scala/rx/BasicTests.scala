@@ -1,7 +1,11 @@
 package rx
 import org.scalatest._
 import util.{Failure, Success}
-class BasicTests extends FreeSpec with Inside{
+import org.scalatest.concurrent.Eventually
+import org.scalatest.time.{Millis, Span}
+
+class BasicTests extends FreeSpec with Inside with Eventually{
+  implicit val patience = (PatienceConfig(Span(10000, Millis)))
   implicit val prop = Propagator.Immediate
   "config tests" - {
     "name" in {
@@ -25,6 +29,7 @@ class BasicTests extends FreeSpec with Inside{
       assert(o2.name === "o2")
     }
   }
+
   "sig tests" - {
     "basic" - {
       "Rx Hello World" in {
@@ -106,9 +111,21 @@ class BasicTests extends FreeSpec with Inside{
       val o = Obs(a){
         count = count + 1
       }
+      assert(count === 1)
+      a() = 2
+      assert(count === 2)
+    }
+    "obs skipInitial" in {
+      val a = Var(1)
+      var count = 0
+      val o = Obs(a, skipInitial=true){
+        count = count + 1
+      }
+      assert(count === 0)
       a() = 2
       assert(count === 1)
     }
+
     "obs simple example" in {
       val a = Var(1)
       val b = Rx{ a() * 2 }
@@ -118,13 +135,30 @@ class BasicTests extends FreeSpec with Inside{
       var cS = 0;     val cO = Obs(c){ cS += 1 }
       var dS = 0;     val dO = Obs(d){ dS += 1 }
 
+      assert(bS === 1);   assert(cS === 1);   assert(dS === 1)
+
       a() = 2
 
-      assert(bS === 1);   assert(cS === 1);   assert(dS === 1)
+      assert(bS === 2);   assert(cS === 2);   assert(dS === 2)
 
       a() = 1
 
-      assert(bS === 2);   assert(cS === 2);   assert(dS === 2)
+      assert(bS === 3);   assert(cS === 3);   assert(dS === 3)
+    }
+
+    "obs getting GCed" in {
+      val a = Var(1)
+      var count = 0
+      Obs(a){
+        count = count + 1
+      }
+      assert(count === 1)
+      eventually{
+        val oldCount = count
+        a() = a() + 1
+        System.gc()
+        assert(oldCount === count)
+      }
     }
 
   }

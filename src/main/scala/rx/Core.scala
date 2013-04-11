@@ -99,8 +99,8 @@ object Obs{
   /**
    * Convenience method for creating a new [[Obs]].
    */
-  def apply[T](es: Emitter[Any], name: String = "")(callback: => Unit) = {
-    new Obs(es, () => callback, name)
+  def apply[T](es: Emitter[Any], name: String = "", skipInitial: Boolean = false)(callback: => Unit) = {
+    new Obs(es, () => callback, name, skipInitial)
   }
 }
 
@@ -112,7 +112,11 @@ object Obs{
  *
  * @param callback a callback to run when this Obs is pinged
  */
-class Obs(source: Emitter[Any], callback: () => Unit, val name: String = "") extends Reactor[Any]{
+class Obs(source: Emitter[Any],
+          callback: () => Unit,
+          val name: String = "",
+          skipInitial: Boolean = false)
+          extends Reactor[Any]{
   /**
    * A flag variable which can be turned off to prevent the [[Obs]] from
    * triggering its `callback`.
@@ -137,4 +141,6 @@ class Obs(source: Emitter[Any], callback: () => Unit, val name: String = "") ext
   def trigger() = {
     this.ping(this.getParents)(Propagator.Immediate)
   }
+
+  if (!skipInitial) trigger()
 }

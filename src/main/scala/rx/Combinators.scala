@@ -9,11 +9,21 @@ import scala.concurrent.{Future, ExecutionContext}
 
 private[rx] trait RxMethods[+T]{ source: Rx[T] =>
 
-/**
- * Creates a new [[Rx]] which ignores Failure conditions of the source Rx; it
- * will not propagate the changes, and simply remain holding on to its last
- * value
- */
+  /**
+   * Causes the given `callback` to run every time this [[Rx]]'s value is
+   * changed. Returns the [[Obs]] which executes this `callback`, which should
+   * generally be assigned to a variable to avoid it from being
+   * garbage-collected.
+   */
+  def foreach(callback: T => Unit, skipInitial: Boolean = false): Obs = {
+    Obs(source, "Foreach " + source.name, skipInitial){callback(source())}
+  }
+
+  /**
+   * Creates a new [[Rx]] which ignores Failure conditions of the source Rx; it
+   * will not propagate the changes, and simply remain holding on to its last
+   * value
+   */
   def skipFailures: Rx[T] = filterAll[T](x => x.isSuccess)
 
 

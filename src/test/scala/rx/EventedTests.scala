@@ -89,27 +89,27 @@ class EventedTests extends FreeSpec with Eventually{
         assert(c() === 2)
       }
 
-      assert(count === 3)
+      assert(count === 4)
     }
 
 
   }
   "delayed" - {
     "simple" in {
-val a = Var(10)
-val b = a.delay(250 millis)
+      val a = Var(10)
+      val b = a.delay(250 millis)
 
-a() = 5
-assert(b() === 10)
-eventually{
-  assert(b() === 5)
-}
+      a() = 5
+      assert(b() === 10)
+      eventually{
+        assert(b() === 5)
+      }
 
-a() = 4
-assert(b() === 5)
-eventually{
-  assert(b() === 4)
-}
+      a() = 4
+      assert(b() === 5)
+      eventually{
+        assert(b() === 4)
+      }
     }
     "longer" in {
       val a = Var(10)
