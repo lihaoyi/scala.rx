@@ -22,7 +22,7 @@ The idea being that 99% of the time, when you re-calculate a variable, you re-ca
 - [Design Considerations](https://github.com/lihaoyi/scala.rx/wiki/Design-Considerations): If you want to find out more about the thought process and considerations that went into Scala.Rx
 - [Related Work](https://github.com/lihaoyi/scala.rx/wiki/Related-Work): Read about other work in the field of Functional Reactive Programming that inspired Scala.Rx
 
-Feel free to fork the repository and try it out. Contributions are welcome!
+Feel free to fork the repository and try it out, or browse the [online ScalaDoc](http://lihaoyi.github.io/scala.rx/#package). Contributions are welcome!
 
 Credits
 =======
