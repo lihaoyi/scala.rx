@@ -36,7 +36,7 @@ class AsyncTests extends FreeSpec{
 
   }
   "async" - {
-    "basic example" taggedAs Tag("omg") in {
+    "basic example" in {
       val p = Promise[Int]()
       val a = Rx{
         p.future
@@ -66,8 +66,6 @@ class AsyncTests extends FreeSpec{
       assert(b() === 9)
     }
     "the propagation should continue after the AsyncRx" in {
-
-
       var p = Promise[Int]()
       val a = Var(1)
       val b = Rx{

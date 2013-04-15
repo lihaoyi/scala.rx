@@ -6,6 +6,7 @@ import concurrent.duration._
 import org.scalatest.time.{Millis, Span}
 import scala.concurrent.ExecutionContext
 import akka.actor.ActorSystem
+import org.scalatest.exceptions.TestFailedDueToTimeoutException
 
 
 /**
@@ -21,25 +22,46 @@ class EventedTests extends FreeSpec with Eventually{
   }
   implicit val system = ActorSystem()
 
-  "a Timer should work properly and give off events on its own" in {
+  "a Timer" - {
+    "should work properly and give off events on its own" in {
+      val t = Timer(100 millis)
+      var count = 0
+      val o = Obs(t){
+        count = count + 1
+      }
 
-    val t = Timer(100 millis)
-    var count = 0
-    val o = Obs(t){
-      count = count + 1
+      for(i <- 3 to 5){
+        eventually{ assert(t() == i) }
+      }
+
+      assert(count >= 5)
     }
+    "should be GCed when its reference is lost" in {
+      var count = 0
+      Timer(100 millis).foreach{ x =>
+        count = count + 1
+      }
 
-    for(i <- 3 to 10){
-      eventually{ assert(t() == i) }
+      eventually{
+        println(count)
+        assert(count == 3)
+      }
+
+      System.gc
+
+      intercept[TestFailedDueToTimeoutException]{
+        eventually{
+          assert(count == 4)
+        }
+      }
     }
-
-    assert(count >= 5)
   }
+
 
   "debounce" - {
     "simple" in {
       val a = Var(10)
-      val b = a.debounce(200 millis)
+      val b = a.debounce(100 millis)
       a() = 5
       assert(b() === 5)
 
@@ -97,7 +119,7 @@ class EventedTests extends FreeSpec with Eventually{
   "delayed" - {
     "simple" in {
       val a = Var(10)
-      val b = a.delay(250 millis)
+      val b = a.delay(100 millis)
 
       a() = 5
       assert(b() === 10)
@@ -113,8 +135,8 @@ class EventedTests extends FreeSpec with Eventually{
     }
     "longer" in {
       val a = Var(10)
-      val b = a.delay(250 millis)
-      val c = Rx( a() * 2 ).delay(250 millis)
+      val b = a.delay(100 millis)
+      val c = Rx( a() * 2 ).delay(100 millis)
       var count = 0
 
       a() = 5

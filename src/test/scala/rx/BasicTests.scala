@@ -109,11 +109,11 @@ class BasicTests extends FreeSpec with Inside with Eventually{
       val a = Var(1)
       var count = 0
       val o = Obs(a){
-        count = count + 1
+        count = a() + 1
       }
-      assert(count === 1)
-      a() = 2
       assert(count === 2)
+      a() = 4
+      assert(count === 5)
     }
     "obs skipInitial" in {
       val a = Var(1)

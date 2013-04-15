@@ -61,11 +61,11 @@ class AdvancedTests extends FreeSpec{
       val a = Var(1)
       var count = 0
       val o = a.foreach{ x =>
-        count = count + 1
+        count = x + 1
       }
-      assert(count === 1)
-      a() = 2
       assert(count === 2)
+      a() = 4
+      assert(count === 5)
     }
     "skipFailure" in {
       val x = Var(10)
