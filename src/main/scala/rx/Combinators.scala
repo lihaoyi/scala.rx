@@ -31,7 +31,7 @@ private[rx] trait RxMethods[+T]{ source: Rx[T] =>
    * Creates a new [[Rx]] which contains the value of the old Rx, except transformed by some
    * function.
    */
-  def map[A](f: T => A): Rx[A] = new Map[T, A](source)(y => y.map(f))
+  def map[A](f: T => A): Rx[A] = new Mapper[T, A](source)(y => y.map(f))
 
   /**
    * Creates a new [[Rx]] which ignores specific Success conditions of the source Rx; it
@@ -40,7 +40,7 @@ private[rx] trait RxMethods[+T]{ source: Rx[T] =>
    * it to filter the Failure conditions as well.
    */
   def filter(successPred: T => Boolean): Rx[T] = {
-    new Reduce(source)(
+    new Reducer(source)(
       (x, y) => (x, y) match {
         case (_, Success(value)) if successPred(value) => Success(value)
         case (_, Failure(thrown)) => Failure(thrown)
@@ -56,7 +56,7 @@ private[rx] trait RxMethods[+T]{ source: Rx[T] =>
    * using the result `s` of the Success.
    */
   def reduce[A >: T](combiner: (A, A) => A): Rx[A] = {
-    new Reduce[A](source)(
+    new Reducer[A](source)(
       (x, y) => (x, y) match{
         case (Success(a), Success(b)) => Success(combiner(a, b))
         case (Failure(_), Success(b)) => Success(b)
@@ -70,19 +70,19 @@ private[rx] trait RxMethods[+T]{ source: Rx[T] =>
    * Identical to map(), except the entire `Try[T]` is available to your
    * transformer rather than just the `T`
    */
-  def mapAll[A](f: Try[T] => Try[A]): Rx[A] = new Map[T, A](source)(f)
+  def mapAll[A](f: Try[T] => Try[A]): Rx[A] = new Mapper[T, A](source)(f)
 
   /**
    * Identical to `filter()`, except the entire `Try[T]` is available to your
    * predicate rather than just the `T`
    */
-  def filterAll[A >: T](predicate: Try[A] => Boolean): Rx[A] = new Reduce[A](source)((x, y) => if (predicate(y)) y else x)
+  def filterAll[A >: T](predicate: Try[A] => Boolean): Rx[A] = new Reducer[A](source)((x, y) => if (predicate(y)) y else x)
 
   /**
    * Identical to `reduce()`, except both `Try[T]`s are available to your combiner,
    * rather than just the `T`s.
    */
-  def reduceAll[A >: T](combiner: (Try[A], Try[A]) => Try[A]): Rx[A] = new Reduce[A](source)(combiner)
+  def reduceAll[A >: T](combiner: (Try[A], Try[A]) => Try[A]): Rx[A] = new Reducer[A](source)(combiner)
 
   /**
    * Creates a new [[Rx]] which debounces the old Rx; updates coming in within `interval`

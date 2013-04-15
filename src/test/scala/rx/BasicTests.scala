@@ -16,8 +16,8 @@ class BasicTests extends FreeSpec with Inside with Eventually{
 
       val s2 = Rx(v2() + 1, name = "s2")
 
-      val o1 = Obs(s1){ println(1) }
-      val o2 = Obs(s2, name = "o2"){ println(1) }
+      val o1 = Obs(s1){ }
+      val o2 = Obs(s2, name = "o2"){ }
 
       assert(v1.name === "")
       assert(v2.name === "v2")

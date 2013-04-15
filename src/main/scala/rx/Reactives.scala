@@ -55,7 +55,7 @@ private[rx] abstract class Wrapper[T, +A](source: Rx[T], prefix: String)
 }
 
 
-private class Reduce[T](source: Rx[T])
+private class Reducer[T](source: Rx[T])
                (transformer: (Try[T], Try[T]) => Try[T])
   extends Wrapper[T, T](source, "Reduce")
   with Spinlock[T]{
@@ -77,7 +77,7 @@ private class Reduce[T](source: Rx[T])
  * transformation function. Generally created via the `.map()` method on a
  * Rx[A].
  */
-private[rx] class Map[T, +A](source: Rx[T])
+private[rx] class Mapper[T, +A](source: Rx[T])
                 (transformer: Try[T] => Try[A])
   extends Wrapper[T, A](source, "Map")
   with Spinlock[A]{
