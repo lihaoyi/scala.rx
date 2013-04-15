@@ -102,7 +102,7 @@ class ParallelTests extends FreeSpec with Eventually{
     def time[P](implicit prop: Propagator[P], post: P => Unit = (x: P) => ()) = {
       def spinner(a: Rx[Int]) = Rx{
         var count = 0
-        for(x <- 0 until 100000000){
+        for(x <- 0 until 150000000){
           count += 1
         }
         count + a()
@@ -124,9 +124,9 @@ class ParallelTests extends FreeSpec with Eventually{
     // serial and parallel should have the same result but parallel
     // should be at least 1.5 times as fast
     (serialResult, parallelResult) match {
-      case ((100000010, 100000010, 100000010, serialTime),
-      (100000010, 100000010, 100000010, parallelTime))
-        if serialTime * 1.0 / parallelTime > 1.5 =>
+      case ((150000010, 150000010, 150000010, serialTime),
+      (150000010, 150000010, 150000010, parallelTime))
+        if serialTime * 1.0 / parallelTime > 2 =>
     }
   }
 }

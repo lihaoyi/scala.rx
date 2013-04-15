@@ -43,7 +43,6 @@ class EventedTests extends FreeSpec with Eventually{
       }
 
       eventually{
-        println(count)
         assert(count == 3)
       }
 
