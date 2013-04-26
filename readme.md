@@ -16,6 +16,14 @@ println(c()) // 6
 
 The idea being that 99% of the time, when you re-calculate a variable, you re-calculate it the same way you initially calculated it. Furthermore, you only re-calculate it when one of the values it depends on changes. Scala.Rx does this for you automatically, and handles all the tedious update logic for you so you can focus on other, more interesting things!
 
+In order to get started, simply add the following to your `build.sbt`:
+
+```scala
+libraryDependencies += "com.scalarx" % "scalarx_2.10" % "0.1"
+```
+
+After that, opening up the `sbt console` and pasting the above example into the console should work! You can proceed through the examples in the [Basic Usage](https://github.com/lihaoyi/scala.rx/wiki/Basic-Usage) page to get a feel for what Scala.Rx can do.
+
 - [Basic Usage](https://github.com/lihaoyi/scala.rx/wiki/Basic-Usage): how to use Scala.Rx to construct *dataflow graphs*, whose values will automatically be kept in sync.
 - [Combinators](https://github.com/lihaoyi/scala.rx/wiki/Combinators): useful ways of transforming `Rx`s to modify their values, combine them, turn them asynchronous, delay them, etc.
 - [How it Works](https://github.com/lihaoyi/scala.rx/wiki/How-it-Works): The nitty-gritty of how Scala.Rx is implemented under the hood
