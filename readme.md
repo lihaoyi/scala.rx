@@ -28,7 +28,7 @@ After that, opening up the `sbt console` and pasting the above example into the 
 - [Combinators](https://github.com/lihaoyi/scala.rx/wiki/Combinators): useful ways of transforming `Rx`s to modify their values, combine them, turn them asynchronous, delay them, etc.
 - [How it Works](https://github.com/lihaoyi/scala.rx/wiki/How-it-Works): The nitty-gritty of how Scala.Rx is implemented under the hood
 - [Design Considerations](https://github.com/lihaoyi/scala.rx/wiki/Design-Considerations): If you want to find out more about the thought process and considerations that went into Scala.Rx
-- [Related Work](https://github.com/lihaoyi/scala.rx/wiki/Related-Work): Read about other work in the field of Functional Reactive Programming that inspired Scala.Rx
+- [Re   lated Work](https://github.com/lihaoyi/scala.rx/wiki/Related-Work): Read about other work in the field of Functional Reactive Programming that inspired Scala.Rx
 
 Feel free to fork the repository and try it out, or browse the [online ScalaDoc](http://lihaoyi.github.io/scala.rx/#package). Contributions are welcome!
 
