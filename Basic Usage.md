@@ -46,7 +46,7 @@ Modifying the value of `a` causes the changes the propagate through the dataflow
 
 As can be seen above, changing the value of `a` causes the change to propagate all the way through `c` `d` `e` to `f`. You can use a `Var` and `Rx` anywhere you an use a normal variable.
 
-The changes propagate through the dataflow graph in *waves*. Each update to a `Var` touches off a propagation wave, which pushes the changes from that `Var` to any `Rx` which is (directly or indirectly) dependent on its value. In the process, it is possible for a `Rx` to be re-calculated more than once.
+The changes propagate through the dataflow graph in *waves*. Each update to a `Var` touches off a propagation, which pushes the changes from that `Var` to any `Rx` which is (directly or indirectly) dependent on its value. In the process, it is possible for a `Rx` to be re-calculated more than once.
 
 Observers
 =========
@@ -71,7 +71,7 @@ When `a` is modified, the observer `o` will perform the side effect:
 
 ![Dataflow Graph](https://github.com/lihaoyi/scala.rx/blob/master/media/Observer2.png?raw=true)
 
-The body of `Rx`s should be side effect free, as they may be run more than once per propagation wave. You should use `Obs`s to perform your side effects, as they are guaranteed to run only once per propagation wave after the values for all `Rx`s have stabilized.
+The body of `Rx`s should be side effect free, as they may be run more than once per propagation. You should use `Obs`s to perform your side effects, as they are guaranteed to run only once per propagation after the values for all `Rx`s have stabilized.
 
 Scala.Rx provides a convenient `.foreach()` combinator, which provides an alternate way of creating an `Obs` from an `Rx`:
 
