@@ -16,7 +16,7 @@ println(c()) // 6
 
 The idea being that 99% of the time, when you re-calculate a variable, you re-calculate it the same way you initially calculated it. Furthermore, you only re-calculate it when one of the values it depends on changes. Scala.Rx does this for you automatically, and handles all the tedious update logic for you so you can focus on other, more interesting things!
 
-This document goes through the usage of Scala.Rx, the implementation that makes everythign work, the design considerations and limitations inherent in the system and ends with a brief overview of related work.
+This document goes through the usage of Scala.Rx, the implementation that makes everything work, the design considerations and limitations inherent in the system and ends with a brief overview of related work.
 
 Scala.Rx is available on [Maven Central](http://search.maven.org/#artifactdetails%7Ccom.scalarx%7Cscalarx_2.10%7C0.1%7Cjar). In order to get started, simply add the following to your `build.sbt`:
 
