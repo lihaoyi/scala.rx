@@ -1,6 +1,6 @@
 Basic Combinators
 -----------------
-Scala.Rx also provides a set of combinators which allow your to easily transform your `Rx`s. The three basic combinators: `map()`, `filter()` and `reduce()` are modelled after the scala collections library, and provide an easy way of transforming the values coming out of a `Rx`.
+Scala.Rx also provides a set of combinators which allow your to easily transform your `Rx`s; this allows the programmer to avoid constantly re-writing logic for the common ways of constructing the dataflow graph. The three basic combinators: `map()`, `filter()` and `reduce()` are modelled after the scala collections library, and provide an easy way of transforming the values coming out of a `Rx`.
 
 ###Map
 ```scala
@@ -61,7 +61,7 @@ Each of these three combinators has a counterpart in `mapAll()`, `filterAll()` a
 
 Advanced Combinators
 --------------------
-These are combinators which do more than simply transforming a value from one to another. Many of them have asynchronous effects, and can spontaneously modify the dataflow graph and begin propagation waves without any external trigger.
+These are combinators which do more than simply transforming a value from one to another. Many of them have asynchronous effects, and can spontaneously modify the dataflow graph and begin propagations without any external trigger. Although this may sound somewhat unsettling, the functionality provided by these combinators is often necessary, and manually writing the logic around something like Debouncing, for example, is far more error prone than simply using the combinatory.
 
 ###Async
 
@@ -124,8 +124,7 @@ assert(count >= 5)
 
 A `Timer` is a `Rx` that generates events on a regular basis. The events are based on the `scheduler` of the implicit `ActorSystem`, which defaults to a maximum precision of about 100 milliseconds. In the example above, the for-loop checks that the value of the timer `t()` increases over time from 0 to 5, and then checks that `count` has been incremented at least that many times.
 
-
-The scheduled task is cancelled automatically when the `Timer` object becomes unreachable, so it can be garbage collected. This means you do not have to worry about managing the life-cycle of the `Timer`.
+The scheduled task is cancelled automatically when the `Timer` object becomes unreachable, so it can be garbage collected. This means you do not have to worry about managing the life-cycle of the `Timer`. On the other hand, this means the programmer should ensure that the reference to the `Timer` is held by the same object as that holding any `Rx` listening to it. This will ensure that the exact moment at which the `Timer` is garbage collected will not matter, since by then the object holding it (and any `Rx` it could possibly affect) are both unreachable. 
 
 ###Delay
 ```scala
@@ -173,6 +172,6 @@ eventually{
 
 The `debounce(t)` combinator creates a version of an `Rx` which will not update more than once every time period `t`.
 
-If multiple updates happen with a short span of time (less than `t` apart), only the first update will take place immediately, and a second update will take place after the time `t` has passed.
+If multiple updates happen with a short span of time (less than `t` apart), the first update will take place immediately, and a second update will take place only after the time `t` has passed. For example, this may be used to limit the rate at which an expensive result is re-calculated: you may be willing to let the calculated value be a few seconds stale if it lets you save on performing the expensive calculation more than once every few seconds.
 
 **Next Section: [How it Works](https://github.com/lihaoyi/scala.rx/wiki/How-it-Works)**
