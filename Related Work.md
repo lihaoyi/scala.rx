@@ -49,9 +49,11 @@ fullName = ko.computed(function() {
 
 is semantically equivalent to the following Scala.Rx code:
 
+```scala
 val firstName = Var("Bob")
 val lastName = Var("Smith")
 fullName = Rx{ firstName() + " " + lastName() }
+```
 
 a `ko.observable` maps directly onto a `Var`, and a `kocomputed` maps directly onto an `Rx`. Apart from the longer variable names and the added verbosity of Javascript, the semantics are almost identical.
 
