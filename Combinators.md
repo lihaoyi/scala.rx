@@ -61,7 +61,9 @@ Each of these three combinators has a counterpart in `mapAll()`, `filterAll()` a
 
 Advanced Combinators
 --------------------
-These are combinators which do more than simply transforming a value from one to another. Many of them have asynchronous effects, and can spontaneously modify the dataflow graph and begin propagations without any external trigger. Although this may sound somewhat unsettling, the functionality provided by these combinators is often necessary, and manually writing the logic around something like Debouncing, for example, is far more error prone than simply using the combinatory.
+These are combinators which do more than simply transforming a value from one to another. Many of them have asynchronous effects, and can spontaneously modify the dataflow graph and begin propagations without any external trigger. Although this may sound somewhat unsettling, the functionality provided by these combinators is often necessary, and manually writing the logic around something like Debouncing, for example, is far more error prone than simply using the combinators.
+
+Note that none of these combinators are doing anything that cannot be done via a combination of `Obs`s and `Var`s; they simply encapsulate the common patterns, saving you manually writing them over and over, and reducing the potential for bugs.
 
 ###Async
 
