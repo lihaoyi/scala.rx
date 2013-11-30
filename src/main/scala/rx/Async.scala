@@ -11,6 +11,9 @@ import java.lang.ref.WeakReference
 import concurrent.duration._
 
 import scala.util.Success
+import rx.Atomic
+import scala.Some
+import scala.util.Success
 
 /**
  * A Rx which flattens out an Rx[Future[T]] into a Rx[T]. If the first
@@ -83,7 +86,7 @@ private[rx] class Debounce[+T](source: Rx[T], interval: FiniteDuration)
 
 private[rx] class Delay[+T](source: Rx[T], delay: FiniteDuration)
                (implicit system: ActorSystem, ex: ExecutionContext)
-  extends Dynamic[T](() => source(), "Delayed " + source.name){
+  extends Dynamic[T](() => source(),"Delayed " + source.name){
 
   override def ping[P: Propagator](incoming: Seq[Emitter[Any]]): Seq[Reactor[Nothing]] = {
     system.scheduler.scheduleOnce(delay){
@@ -118,6 +121,8 @@ private[rx] class Timer[P](interval: FiniteDuration, delay: FiniteDuration)
   }
   protected[rx] def level = 0
   def toTry = Success(count.get)
+  def getParents: Seq[rx.Emitter[Any]] = Nil
+  def ping[P: Propagator](incoming: Seq[rx.Emitter[Any]]) = this.getChildren
 }
 
 private[rx] class WeakTimerHolder[P](val target: WeakReference[Timer[P]], interval: FiniteDuration, delay: FiniteDuration)

@@ -119,7 +119,10 @@ class ParallelTests extends FreeSpec with Eventually{
 
 
     val serialResult = time[Unit](Propagator.Immediate)
-    val parallelResult = time[Future[Unit]](new Propagator.Parallelizing()(ExecutionContext.global), Await.result(_, 10 seconds))
+    val parallelResult = time[Future[Unit]](
+      new Propagator.Parallelizing()(ExecutionContext.global),
+      Await.result(_, 10 seconds)
+    )
 
     // serial and parallel should have the same result but parallel
     // should be at least 1.5 times as fast

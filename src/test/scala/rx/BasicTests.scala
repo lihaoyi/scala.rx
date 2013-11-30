@@ -5,7 +5,7 @@ import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{Millis, Span}
 
 class BasicTests extends FreeSpec with Inside with Eventually{
-  implicit val patience = (PatienceConfig(Span(10000, Millis)))
+  implicit val patience = PatienceConfig(Span(10000, Millis))
   implicit val prop = Propagator.Immediate
   "config tests" - {
     "name" in {
@@ -14,7 +14,7 @@ class BasicTests extends FreeSpec with Inside with Eventually{
 
       val s1 = Rx{v1() + 1}
 
-      val s2 = Rx(v2() + 1, name = "s2")
+      val s2 = Rx(name="s2")(v2() + 1)
 
       val o1 = Obs(s1){ }
       val o2 = Obs(s2, name = "o2"){ }
@@ -27,6 +27,7 @@ class BasicTests extends FreeSpec with Inside with Eventually{
 
       assert(o1.name === "")
       assert(o2.name === "o2")
+
     }
   }
 
@@ -53,6 +54,24 @@ class BasicTests extends FreeSpec with Inside with Eventually{
         assert(f() === 26)
         a() = 3
         assert(f() === 38)
+
+        // getParents
+        assert(a.getParents == Nil)
+        assert(b.getParents == Nil)
+        assert(c.getParents.toSet == Set(a, b))
+        assert(f.getParents.toSet == Set(d, e))
+
+        // getChildren
+        assert(a.getChildren.toSet == Set(c))
+        assert(f.getChildren == Nil)
+
+        // dependents
+        assert(d.dependents.toSet == Set(f))
+        assert(c.dependents.toSet == Set(d, e, f))
+
+        // dependencies
+        assert(d.dependencies.toSet == Set(a, b, c))
+        assert(c.dependencies.toSet == Set(a, b))
       }
 
       "complex values inside Var[]s and Rx[]s" in {
@@ -69,6 +88,8 @@ class BasicTests extends FreeSpec with Inside with Eventually{
         e() = "wtfbbq"
         assert(f() === "omgomgomgwtfbbq")
 
+        assert(e.dependents.toSet == Set(f))
+        assert(c.dependencies.toSet == Set(a, b))
       }
     }
     "language features" - {

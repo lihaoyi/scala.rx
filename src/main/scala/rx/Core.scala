@@ -8,6 +8,11 @@ import java.util.concurrent.atomic.AtomicReference
 object Rx{
 
   /**
+   * This guys sole purpose is to help implement a "keyword-only" argument
+   * list in Rx.apply
+   */
+  object Cookie
+  /**
    * Creates an [[Rx]] that is defined relative to other [[Rx]]s, and
    * updates automatically when they change.
    *
@@ -18,7 +23,13 @@ object Rx{
    * @param default The default value for this [[Rx]]
    * @tparam T The type of the value this [[Rx]] contains
    */
-  def apply[T](calc: => T, name: String = ""): Rx[T] = {
+  def apply[T](calc: => T): Rx[T] = {
+    new rx.Dynamic(() => calc)
+  }
+
+  def apply[T](c: Cookie.type = Cookie,
+               name: String = "")
+              (calc: => T): Rx[T] = {
     new rx.Dynamic(() => calc, name)
   }
 }
@@ -28,7 +39,7 @@ object Rx{
  * changes to notify any dependent [[Rx]]s that they need to update.
  *
  */
-trait Rx[+T] extends Emitter[T] with RxMethods[T]{
+trait Rx[+T] extends Emitter[T] with Reactor[Any] with RxMethods[T]{
 
   protected[this] def currentValue: T = toTry.get
 
@@ -93,15 +104,21 @@ class Var[T](initValue: => T, val name: String = "") extends Rx[T]{
 
   protected[rx] def level = 0
   def toTry = state.get()
+  def getParents: Seq[rx.Emitter[Any]] = Nil
+  def ping[P: Propagator](incoming: Seq[rx.Emitter[Any]]) = {
+    this.getChildren
+  }
 }
 
 object Obs{
   /**
    * Convenience method for creating a new [[Obs]].
    */
-  def apply[T](es: Emitter[Any], name: String = "", skipInitial: Boolean = false)(callback: => Unit) = {
+  def apply[T](es: Emitter[Any], name: String = "", skipInitial: Boolean = false)
+              (callback: => Unit) = {
     new Obs(es, () => callback, name, skipInitial)
   }
+
 }
 
 /**

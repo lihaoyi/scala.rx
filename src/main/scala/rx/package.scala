@@ -1,6 +1,7 @@
 
 
 import annotation.tailrec
+import java.io.{ByteArrayInputStream, ObjectInputStream, ObjectOutputStream, ByteArrayOutputStream}
 import scala.concurrent.{ExecutionContext, Future}
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
 import rx.Timer
@@ -30,6 +31,22 @@ import rx.Timer
 package object rx {
 
 
+  implicit class WithDependents(r: Emitter[_]){
+    def dependents: Seq[Node] = {
+      r.getChildren ++ r.getChildren.flatMap{
+        case c: Emitter[_] => c.dependents
+        case c => Nil
+      }
+    }
+  }
+  implicit class WithDependencies(r: Reactor[_]){
+    def dependencies: Seq[Node] = {
+      r.getParents ++ r.getParents.flatMap{
+        case c: Reactor[_] => c.dependencies
+        case _ =>  Nil
+      }
+    }
+  }
   /**
    * Provides extension methods on [[Rx]][Future]s.
    */

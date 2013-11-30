@@ -21,8 +21,6 @@ private class Dynamic[+T](calc: () => T,
                           with Reactor[Any]
                           with Spinlock[T]{
 
-
-
   protected[this] class State(val parents: Seq[Emitter[Any]],
                               val level: Long,
                               timestamp: Long,
