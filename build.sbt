@@ -1,6 +1,6 @@
-//lazy val root = project.in(file(".")).aggregate(js)
-//
-//lazy val js = project.in(file("js"))
+lazy val root = project.in(file(".")).aggregate(js)
+
+lazy val js = project.in(file("js"))
 
 Build.sharedSettings
 

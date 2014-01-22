@@ -3,7 +3,6 @@ package rx
 import scala.concurrent.{ExecutionContext, Future}
 
 import scala.util.{Success, Try}
-import akka.actor.{Cancellable, ActorSystem}
 import java.util.concurrent.atomic.{AtomicLong, AtomicReference}
 import java.lang.ref.WeakReference
 import concurrent.duration._

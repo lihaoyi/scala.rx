@@ -1,9 +1,7 @@
 package rx
 
 import org.scalatest._
-import concurrent.Eventually
 import scala.concurrent.{ExecutionContext, Future, Promise}
-import scala.concurrent.duration._
 
 
 /**
@@ -27,12 +25,12 @@ class AsyncTests extends FreeSpec{
     val o = Obs(b){
       target = b()
     }
-    assert(target === 2)
+    assert(target == 2)
     a() = 2
-    assert(target === 4)
+    assert(target == 4)
     o.active = false
     a() = 3
-    assert(target === 4)
+    assert(target == 4)
 
   }
   "async" - {
@@ -41,10 +39,10 @@ class AsyncTests extends FreeSpec{
       val a = Rx{
         p.future
       }.async(10)
-      assert(a() === 10)
+      assert(a() == 10)
 
       p.success(5)
-      assert(a() === 5)
+      assert(a() == 5)
     }
     "repeatedly sending out Futures" in {
       var p = Promise[Int]()
@@ -53,17 +51,17 @@ class AsyncTests extends FreeSpec{
         val A = a()
         p.future.map{_ + A}
       }.async(10)
-      assert(b() === 10)
+      assert(b() == 10)
 
       p.success(5)
-      assert(b() === 6)
+      assert(b() == 6)
 
       p = Promise[Int]()
       a() = 2
-      assert(b() === 6)
+      assert(b() == 6)
 
       p.success(7)
-      assert(b() === 9)
+      assert(b() == 9)
     }
     "the propagation should continue after the AsyncRx" in {
       var p = Promise[Int]()
@@ -73,17 +71,17 @@ class AsyncTests extends FreeSpec{
         p.future.map{x => x + A}
       }.async(10)
       val c = Rx{ b() + 1 }
-      assert(c() === 11)
+      assert(c() == 11)
 
       p.success(5)
-      assert(c() === 7)
+      assert(c() == 7)
 
       p = Promise[Int]()
       a() = 2
-      assert(c() === 7)
+      assert(c() == 7)
 
       p.success(7)
-      assert(c() === 10)
+      assert(c() == 10)
 
     }
     "ensuring that sent futures that get completed out of order are received out of order" in {
@@ -91,39 +89,39 @@ class AsyncTests extends FreeSpec{
       val a = Var(0)
       val b = Rx{ p(a()).future }.async(10, false)
 
-      assert(b() === 10)
+      assert(b() == 10)
 
       a() = 1
       a() = 2
 
       p(2).success(2)
 
-      assert(b() === 2)
+      assert(b() == 2)
 
       p(1).success(1)
-      assert(b() === 1)
+      assert(b() == 1)
 
       p(0).success(0)
-      assert(b() === 0)
+      assert(b() == 0)
     }
     "dropping the result of Futures which return out of order" in {
       var p = Seq[Promise[Int]](Promise(), Promise(), Promise())
       val a = Var(0)
       val b = Rx{ p(a()).future }.async(10, true)
 
-      assert(b() === 10)
+      assert(b() == 10)
 
       a() = 1
       a() = 2
 
       p(2).success(2)
-      assert(b() === 2)
+      assert(b() == 2)
 
       p(1).success(1)
-      assert(b() === 2)
+      assert(b() == 2)
 
       p(0).success(0)
-      assert(b() === 2)
+      assert(b() == 2)
     }
 
     "ensuring that events emerge from the .async Dynamic" in {
@@ -131,10 +129,10 @@ class AsyncTests extends FreeSpec{
       val b = Rx{ Future.successful(10 + a()) }.async(10)
       var count = 0
       val o = Obs(b){ count += 1 }
-      assert(count === 1)
+      assert(count == 1)
       a() = 10
 
-      assert(count === 2)
+      assert(count == 2)
 
     }
   }

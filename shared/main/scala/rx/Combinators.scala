@@ -3,7 +3,6 @@ package rx
 import scala.Predef._
 import scala.util.{Try, Failure, Success}
 import scala.concurrent.duration.FiniteDuration
-import akka.actor.ActorSystem
 import scala.concurrent.{Future, ExecutionContext}
 import scala.rx.Scheduler
 

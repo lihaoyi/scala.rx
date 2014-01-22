@@ -1,24 +1,21 @@
 package rx
 
 import org.scalatest._
-import concurrent.Eventually
+
 import scala.concurrent._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import akka.actor.ActorSystem
-
-import time.{Millis, Span}
 import java.util.concurrent.CountDownLatch
 
 /**
  * Tests that force Rxs to run in parallel (whether the same Rx or different Rxs)
  * to verify their behavior in such situations.
  */
-class ConcurrentTests extends FreeSpec with Eventually{
-  implicit val patience = (PatienceConfig(Span(500, Millis)))
+class ConcurrentTests extends FreeSpec {
+
   implicit val system = new TestScheduler()
   implicit class awaitable[T](f: Future[T]){
-    def await(x: Duration = 10 seconds) = Await.result(f, x)
+    def await(x: Duration = 10.seconds) = Await.result(f, x)
   }
   implicit val prop = Propagator.Immediate
   "parallel execution of a single Rx" - {
@@ -64,9 +61,9 @@ class ConcurrentTests extends FreeSpec with Eventually{
       ps(1).countDown()
 
       set1.await()
-      assert(b() === 2)
+      assert(b() == 2)
       set2.await()
-      assert(b() === 2)
+      assert(b() == 2)
     }
 
     /**
@@ -89,11 +86,11 @@ class ConcurrentTests extends FreeSpec with Eventually{
 
       ps(1).countDown()
       set1.await()
-      assert(b() === 1)
+      assert(b() == 1)
       ps(2).countDown()
 
       set2.await()
-      assert(b() === 2)
+      assert(b() == 2)
     }
   }
 }

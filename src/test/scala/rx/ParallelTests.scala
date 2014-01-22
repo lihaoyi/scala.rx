@@ -8,14 +8,14 @@ import scala.concurrent.duration._
 import akka.actor.ActorSystem
 
 import time.{Millis, Span}
-import java.util.concurrent.CountDownLatch
 
+import Eventually._
 /**
  * Tests that force Rxs to run in parallel (whether the same Rx or different Rxs)
  * to verify their behavior in such situations.
  */
-class ParallelTests extends FreeSpec with Eventually{
-  implicit val patience = (PatienceConfig(Span(500, Millis)))
+class ParallelTests extends FreeSpec {
+  implicit val patience = PatienceConfig(Span(500, Millis))
   implicit val system = ActorSystem()
   implicit class awaitable[T](f: Future[T]){
     def await(x: Duration = 10 seconds) = Await.result(f, x)
@@ -39,7 +39,7 @@ class ParallelTests extends FreeSpec with Eventually{
       val start = System.currentTimeMillis()
       post(a() = 10)
       val end = System.currentTimeMillis()
-      (b(), c(), d(), (end - start))
+      (b(), c(), d(), end - start)
     }
 
 
