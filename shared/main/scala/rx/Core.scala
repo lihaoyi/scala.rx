@@ -27,7 +27,7 @@ object Rx{
     new rx.Dynamic(() => calc)
   }
 
-  def apply[T](c: Cookie.type = Cookie,
+  def +[T](c: Cookie.type = Cookie,
                name: String = "")
               (calc: => T): Rx[T] = {
     new rx.Dynamic(() => calc, name)
@@ -39,7 +39,7 @@ object Rx{
  * changes to notify any dependent [[Rx]]s that they need to update.
  *
  */
-trait Rx[+T] extends Emitter[T] with Reactor[Any] with RxMethods[T]{
+trait Rx[+T] extends Emitter[T] with Reactor[Any] with Combinators[T]{
 
   protected[this] def currentValue: T = toTry.get
 

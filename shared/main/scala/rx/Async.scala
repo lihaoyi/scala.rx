@@ -1,19 +1,14 @@
 package rx
 
-import rx._
 import scala.concurrent.{ExecutionContext, Future}
 
 import scala.util.{Success, Try}
-import scala.concurrent.duration.{Deadline, FiniteDuration}
 import akka.actor.{Cancellable, ActorSystem}
 import java.util.concurrent.atomic.{AtomicLong, AtomicReference}
 import java.lang.ref.WeakReference
 import concurrent.duration._
+import scala.rx.Scheduler
 
-import scala.util.Success
-import rx.Atomic
-import scala.Some
-import scala.util.Success
 
 /**
  * A Rx which flattens out an Rx[Future[T]] into a Rx[T]. If the first
@@ -25,10 +20,12 @@ import scala.util.Success
  * its handling of Futures which complete out of order (RunAlways, DiscardLate)
  */
 private[rx] class Async[+T, P](default: => T,
-                           source: Rx[Future[T]],
-                           discardLate: Boolean)
-                          (implicit ec: ExecutionContext, p: Propagator[P])
-                           extends Rx[T] with Incrementing[T] with Reactor[Future[_]]{
+                               source: Rx[Future[T]],
+                               discardLate: Boolean)
+                              (implicit ec: ExecutionContext, p: Propagator[P])
+                               extends Rx[T]
+                               with Incrementing[T]
+                               with Reactor[Future[_]]{
 
   source.linkChild(this)
   def name = "Async " + source.name
@@ -61,7 +58,7 @@ private[rx] class Async[+T, P](default: => T,
 
 
 private[rx] class Debounce[+T](source: Rx[T], interval: FiniteDuration)
-                          (implicit system: ActorSystem, ex: ExecutionContext)
+                          (implicit scheduler: Scheduler, ex: ExecutionContext)
                            extends rx.Dynamic[T](() => source(), "Debounced " + source.name){
 
   val nextPingTime = new AtomicReference(Deadline.now)
@@ -73,7 +70,7 @@ private[rx] class Debounce[+T](source: Rx[T], interval: FiniteDuration)
     if (Deadline.now > npt && nextPingTime.compareAndSet(npt, Deadline.now + interval)) {
       super.ping(incoming)
     } else {
-      system.scheduler.scheduleOnce(npt - Deadline.now){
+      scheduler.scheduleOnce(npt - Deadline.now){
         if (nextPingTime.compareAndSet(npt, Deadline.now)) {
           if(ping(incoming) != Nil)this.propagate()
         }
@@ -85,11 +82,11 @@ private[rx] class Debounce[+T](source: Rx[T], interval: FiniteDuration)
 }
 
 private[rx] class Delay[+T](source: Rx[T], delay: FiniteDuration)
-               (implicit system: ActorSystem, ex: ExecutionContext)
+               (implicit scheduler: Scheduler, ex: ExecutionContext)
   extends Dynamic[T](() => source(),"Delayed " + source.name){
 
   override def ping[P: Propagator](incoming: Seq[Emitter[Any]]): Seq[Reactor[Nothing]] = {
-    system.scheduler.scheduleOnce(delay){
+    scheduler.scheduleOnce(delay){
       if(super.ping(incoming) != Nil) this.propagate()
     }
     Nil
@@ -101,14 +98,14 @@ private[rx] class Delay[+T](source: Rx[T], delay: FiniteDuration)
 
 private[rx] object Timer{
   def apply[P](interval: FiniteDuration, delay: FiniteDuration = 0 seconds)
-              (implicit system: ActorSystem, p: Propagator[P], ec: ExecutionContext) = {
+              (implicit scheduler: Scheduler, p: Propagator[P], ec: ExecutionContext) = {
 
     new Timer(interval, delay)
   }
 }
 
 private[rx] class Timer[P](interval: FiniteDuration, delay: FiniteDuration)
-                          (implicit system: ActorSystem, p: Propagator[P], ec: ExecutionContext)
+                          (implicit scheduler: Scheduler, p: Propagator[P], ec: ExecutionContext)
                            extends Rx[Long]{
   val count = new AtomicLong(0L)
   val holder = new WeakTimerHolder(new WeakReference(this), interval, delay)
@@ -125,13 +122,21 @@ private[rx] class Timer[P](interval: FiniteDuration, delay: FiniteDuration)
   def ping[P: Propagator](incoming: Seq[rx.Emitter[Any]]) = this.getChildren
 }
 
-private[rx] class WeakTimerHolder[P](val target: WeakReference[Timer[P]], interval: FiniteDuration, delay: FiniteDuration)
-                        (implicit system: ActorSystem, p: Propagator[P], ec: ExecutionContext){
-
-  val scheduledTask: Cancellable = system.scheduler.schedule(delay, interval){
-    target.get() match{
-      case null => scheduledTask.cancel()
-      case timer => timer.timerPing()
+private[rx] class WeakTimerHolder[P](val target: WeakReference[Timer[P]],
+                                     interval: FiniteDuration,
+                                     delay: FiniteDuration)
+                                    (implicit scheduler: Scheduler,
+                                     p: Propagator[P],
+                                     ec: ExecutionContext){
+  def schedule(delay: FiniteDuration): Unit = {
+    scheduler.scheduleOnce(delay){
+      target.get() match{
+        case null =>
+        case timer =>
+          schedule(interval)
+          timer.timerPing()
+      }
     }
   }
+  schedule(delay)
 }

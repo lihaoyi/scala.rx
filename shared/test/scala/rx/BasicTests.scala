@@ -3,6 +3,7 @@ import org.scalatest._
 import util.{Failure, Success}
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{Millis, Span}
+import scala.concurrent.ExecutionContext
 
 class BasicTests extends FreeSpec with Inside with Eventually{
   implicit val patience = PatienceConfig(Span(10000, Millis))
@@ -14,7 +15,7 @@ class BasicTests extends FreeSpec with Inside with Eventually{
 
       val s1 = Rx{v1() + 1}
 
-      val s2 = Rx(name="s2")(v2() + 1)
+      val s2 = Rx.+(name="s2")(v2() + 1)
 
       val o1 = Obs(s1){ }
       val o2 = Obs(s2, name = "o2"){ }

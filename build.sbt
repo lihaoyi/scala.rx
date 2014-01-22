@@ -1,10 +1,12 @@
-organization  := "com.rx"
+//lazy val root = project.in(file(".")).aggregate(js)
+//
+//lazy val js = project.in(file("js"))
 
-name          := "scalarx"
+Build.sharedSettings
 
-version       := "0.1"
+unmanagedSourceDirectories in Compile <+= baseDirectory(_ / "shared" / "main")
 
-scalaVersion  := "2.10.2"
+unmanagedSourceDirectories in Test <+= baseDirectory(_ / "shared" / "test")
 
 libraryDependencies ++= Seq(
     "org.scalatest" % "scalatest_2.10" % "2.0" % "test",

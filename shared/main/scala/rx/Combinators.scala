@@ -5,9 +5,10 @@ import scala.util.{Try, Failure, Success}
 import scala.concurrent.duration.FiniteDuration
 import akka.actor.ActorSystem
 import scala.concurrent.{Future, ExecutionContext}
+import scala.rx.Scheduler
 
 
-private[rx] trait RxMethods[+T]{ source: Rx[T] =>
+private[rx] trait Combinators[+T]{ source: Rx[T] =>
 
   /**
    * Causes the given `callback` to run every time this [[Rx]]'s value is
@@ -90,7 +91,7 @@ private[rx] trait RxMethods[+T]{ source: Rx[T] =>
    * un-applied update (if any) will be applied to update the value of the Rx
    */
   def debounce(interval: FiniteDuration)
-              (implicit system: ActorSystem, ex: ExecutionContext): Rx[T] = {
+              (implicit scheduler: Scheduler, ex: ExecutionContext): Rx[T] = {
     new Debounce(source, interval)
   }
 
@@ -100,7 +101,7 @@ private[rx] trait RxMethods[+T]{ source: Rx[T] =>
    * un-applied update (if any) will be applied to update the value of the Rx
    */
   def delay(delay: FiniteDuration)
-           (implicit system: ActorSystem, ex: ExecutionContext): Rx[T] = {
+           (implicit scheduler: Scheduler, ex: ExecutionContext): Rx[T] = {
     new Delay(source, delay)
   }
 }

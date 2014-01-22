@@ -17,14 +17,16 @@ private[rx] trait Incrementing[+T] extends Rx[T]{
   private val updateCount = new AtomicLong(0)
   def getStamp = updateCount.getAndIncrement
 
-  class SpinState(val timestamp: Long,
-                  val value: Try[T])
-
+  class SpinState(val timestamp: Long, val value: Try[T])
   type StateType <: SpinState
+
   protected[this] val state: Atomic[StateType]
   def toTry = state().value
 
 }
+
+
+
 private[rx] trait Spinlock[+T] extends Incrementing[T]{
 
   def makeState: StateType
@@ -32,9 +34,8 @@ private[rx] trait Spinlock[+T] extends Incrementing[T]{
   def ping[P: Propagator](incoming: Seq[Emitter[Any]]): Seq[Reactor[Nothing]] = {
 
     val newState = makeState
-    val set = state.spinSetOpt{oldState =>
-      if (newState.value != oldState.value
-        && newState.timestamp >= oldState.timestamp){
+    val set = state.spinSetOpt{ oldState =>
+      if (newState.value != oldState.value && newState.timestamp >= oldState.timestamp){
         Some(newState)
       }else{
         None

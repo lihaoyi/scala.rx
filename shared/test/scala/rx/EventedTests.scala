@@ -20,7 +20,7 @@ class EventedTests extends FreeSpec with Eventually{
     def reportFailure(t: Throwable) { t.printStackTrace() }
     def execute(runnable: Runnable) {runnable.run()}
   }
-  implicit val system = ActorSystem()
+  implicit val scheduler = new TestScheduler()
 
   "a Timer" - {
     "should work properly and give off events on its own" in {

@@ -4,7 +4,6 @@ import annotation.tailrec
 import java.io.{ByteArrayInputStream, ObjectInputStream, ObjectOutputStream, ByteArrayOutputStream}
 import scala.concurrent.{ExecutionContext, Future}
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
-import rx.Timer
 
 /**
  * '''Scala.Rx''' is an experimental change propagation library for [[http://www.scala-lang.org/ Scala]].
