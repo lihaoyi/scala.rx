@@ -29,12 +29,15 @@ object Inside{
 }
 package concurrent{
   object Eventually{
-    def eventually[T](t: T): T = {
+    def eventually[T](t: T)(p: PatienceConfig): T = {
       val start = System.currentTimeMillis()
       while(System.currentTimeMillis() - start < 1000){
         return t
       }
       throw new AssertionError()
     }
+    case class PatienceConfig(x: AnyRef)
   }
 }
+
+

@@ -11,3 +11,4 @@ class DomScheduler extends Scheduler {
     org.scalajs.dom.setTimeout(() => thunk, interval.toMillis)
   }
 }
+

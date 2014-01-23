@@ -1,10 +1,10 @@
 package rx
 
-import Eventually._
+
 import org.scalatest.FreeSpec
 import concurrent.duration._
 import scala.concurrent.ExecutionContext
-import org.scalatest.concurrent.Eventually
+import org.scalatest.concurrent.Eventually._
 
 
 
@@ -13,6 +13,7 @@ import org.scalatest.concurrent.Eventually
  * entirely on their own. Timers, Delays, Debounces, etc.
  */
 class EventedTests extends FreeSpec {
+  implicit val patience = PatienceConfig(1 second)
   implicit val prop = Propagator.Immediate
   implicit val executionContext = new ExecutionContext {
     def reportFailure(t: Throwable) { t.printStackTrace() }
@@ -29,7 +30,7 @@ class EventedTests extends FreeSpec {
       }
 
       for(i <- 3 to 5){
-        eventually{ assert(t() == i) }
+        eventually{ assert(t() == i) }(patience)
       }
 
       assert(count >= 5)
@@ -50,14 +51,14 @@ class EventedTests extends FreeSpec {
 
       eventually{
         assert(b() == 2)
-      }
+      }(patience)
 
       a() = 1
       assert(b() == 2)
 
       eventually{
         assert(b() == 1)
-      }
+      }(patience)
     }
     "longer" in {
       val a = Var(10)
@@ -80,7 +81,7 @@ class EventedTests extends FreeSpec {
       eventually{
         assert(b() == 7)
         assert(c() == 14)
-      }
+      }(patience)
 
       a() = 1
       assert(b() == 7)
@@ -89,7 +90,7 @@ class EventedTests extends FreeSpec {
       eventually{
         assert(b() == 1)
         assert(c() == 2)
-      }
+      }(patience)
 
       assert(count == 4)
     }
@@ -105,13 +106,13 @@ class EventedTests extends FreeSpec {
       assert(b() == 10)
       eventually{
         assert(b() == 5)
-      }
+      }(patience)
 
       a() = 4
       assert(b() == 5)
       eventually{
         assert(b() == 4)
-      }
+      }(patience)
     }
     "longer" in {
       val a = Var(10)
@@ -125,7 +126,7 @@ class EventedTests extends FreeSpec {
       eventually{
         assert(b() == 5)
         assert(c() == 10)
-      }
+      }(patience)
 
       a() = 4
       assert(b() == 5)
@@ -133,7 +134,7 @@ class EventedTests extends FreeSpec {
       eventually{
         assert(b() == 4)
         assert(c() == 8)
-      }
+      }(patience)
 
       a() = 7
       assert(b() == 4)
@@ -141,7 +142,7 @@ class EventedTests extends FreeSpec {
       eventually{
         assert(b() == 7)
         assert(c() == 14)
-      }
+      }(patience)
     }
   }
 }

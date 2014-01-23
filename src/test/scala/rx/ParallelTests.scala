@@ -54,7 +54,7 @@ class ParallelTests extends FreeSpec {
     (serialResult, parallelResult) match {
       case ((150000010, 150000010, 150000010, serialTime),
       (150000010, 150000010, 150000010, parallelTime))
-        if serialTime * 1.0 / parallelTime > 2 =>
+        if serialTime * 1.0 / parallelTime > 1.5 =>
     }
   }
 }
