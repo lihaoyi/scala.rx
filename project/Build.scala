@@ -2,7 +2,7 @@ import sbt._
 import Keys._
 object Build extends sbt.Build{
   val sharedSettings = Seq(
-    organization := "com.sscalarx",
+    organization := "com.scalarx",
     name := "scalarx",
     scalaVersion := "2.10.3",
 

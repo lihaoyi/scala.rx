@@ -24,7 +24,7 @@ Contents
 - [Getting Started](#getting-started)
 - [ScalaJS](#scalajs)
 - [Using Scala.Rx](#using-scalarx)
-  - [Basic Operations](#basic-operations)
+  - [Basic Usage](#basic-operations)
   - [Combinators](#combinators)
   - [Graph Inspection](#graph-inspection)
   - [Logging and Debugging](#logging-and-debugging)
@@ -36,13 +36,51 @@ Contents
 
 This document goes through the usage of Scala.Rx, the implementation that makes everything work, the design considerations and limitations inherent in the system and ends with a brief overview of related work.
 
+Getting Started
+===============
+
 Scala.Rx is available on [Maven Central](http://search.maven.org/#artifactdetails%7Ccom.scalarx%7Cscalarx_2.10%7C0.1%7Cjar). In order to get started, simply add the following to your `build.sbt`:
 
 ```scala
-libraryDependencies += "com.scalarx" % "scalarx_2.10" % "0.1"
+libraryDependencies += "com.scalarx" % "scalarx_2.10" % "0.2.0"
 ```
 
-After that, opening up the `sbt console` and pasting the above example into the console should work! You can proceed through the examples in the [Basic Usage](https://github.com/lihaoyi/scala.rx/wiki/Basic-Usage) page to get a feel for what Scala.Rx can do.
+After that, opening up the `sbt console` and pasting the above example into the console should work! You can proceed through the examples in the [Basic Usage](#basic-usage) page to get a feel for what Scala.Rx can do.
+
+ScalaJS
+=======
+
+In addition to running on the JVM, Scala.Rx also compiles to [Scala-Js]()! This artifact can be found on Maven Central at:
+
+```scala
+libraryDependencies += "com.scalarx" % "scalarx_2.10" % "0.2.0-JS"
+```
+
+There are some minor differences between running Scala.Rx on the JVM and in Javascript particularly around [asynchronous operations](), the [concurrency model]() and [garbage collection](). In general, though, all the examples given in the documentation below will work perfectly when cross-compiled to javascript and run in the browser!
+
+Using Scala.Rx
+==============
+Basic Usage
+-----------
+Combinators
+-----------
+Graph Inspection
+----------------
+Logging and Debugging
+---------------------
+
+Execution Model
+===============
+Concurrency
+-----------
+Garbage Collection
+------------------
+Internals
+---------
+
+Related Work
+============
+
 
 - [Basic Usage](https://github.com/lihaoyi/scala.rx/wiki/Basic-Usage): how to use Scala.Rx to construct *dataflow graphs*, whose values will automatically be kept in sync.
 - [Combinators](https://github.com/lihaoyi/scala.rx/wiki/Combinators): useful ways of transforming `Rx`s to modify their values, combine them, turn them asynchronous, delay them, etc.
