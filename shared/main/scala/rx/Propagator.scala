@@ -6,34 +6,6 @@ import concurrent.{Future, ExecutionContext}
 
 object Propagator{
 
-  /**
-   * Data schema
-   */
-  object Persistent{
-    case class Pickle[T](data: T,
-                         timestamp: Long,
-                         path: String,
-                         dependencies: Seq[String])
-
-
-  }
-  class Persistent(val root: String)(implicit ec: ExecutionContext) extends Propagator[Unit]{
-    implicit val pinger = this
-
-    def propagate(nodes: Seq[(Emitter[Any], Reactor[Nothing])]): Unit = {
-      if (nodes.length != 0){
-        val minLevel = nodes.map(_._2.level).min
-        val (now, later) = nodes.partition(_._2.level == minLevel)
-        val next = now.groupBy(_._2)
-          .mapValues(_.map(_._1).distinct)
-          .toSeq
-          .map{ case (target, pingers) =>
-          target.ping(pingers).map(target.asInstanceOf[Emitter[Any]] -> _)
-        }
-        propagate(next.flatten ++ later)
-      }
-    }
-  }
 
   /**
    * A propagator which runs propagation waves on the given `ExecutionContext`.
