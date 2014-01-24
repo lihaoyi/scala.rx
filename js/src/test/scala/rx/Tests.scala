@@ -3,5 +3,4 @@ package rx
 object AdvancedTestsJs extends AdvancedTests
 object AsyncTestsJs extends AsyncTests
 object BasicTestsJs extends BasicTests
-object ConcurrentTestsJs extends ConcurrentTests
 object EventedTestsJs extends EventedTests
