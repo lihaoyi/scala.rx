@@ -18,6 +18,22 @@ The idea being that 99% of the time, when you re-calculate a variable, you re-ca
 
 Apart from basic change-propagation, Scala.Rx provides a host of other functionality, such as a set of combinators for easily constructing the dataflow graph, automatic parallelization of updates, and seamless interop with existing Scala code. This means it can be easily embedded in an existing Scala application.
 
+Contents
+========
+
+- [Getting Started](#getting-started)
+- [ScalaJS](#scalajs)
+- [Using Scala.Rx](#using-scalarx)
+  - [Basic Operations](#basic-operations)
+  - [Combinators](#combinators)
+  - [Graph Inspection](#graph-inspection)
+  - [Logging and Debugging](#logging-and-debugging)
+- [Execution Model](#execution-model)
+  - [Concurrency](#concurrency)
+  - [Garbage Collection](#garbage-collection)
+  - [Internals](#internals)
+- [Related Work](#related-work)
+
 This document goes through the usage of Scala.Rx, the implementation that makes everything work, the design considerations and limitations inherent in the system and ends with a brief overview of related work.
 
 Scala.Rx is available on [Maven Central](http://search.maven.org/#artifactdetails%7Ccom.scalarx%7Cscalarx_2.10%7C0.1%7Cjar). In order to get started, simply add the following to your `build.sbt`:
