@@ -5,6 +5,8 @@ import concurrent.duration._
 import scala.concurrent.ExecutionContext
 import org.scalatest.concurrent.Eventually._
 
+import rx.core.Propagator
+import rx.ops.Timer
 
 
 /**

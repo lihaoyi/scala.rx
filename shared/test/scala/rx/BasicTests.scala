@@ -3,7 +3,8 @@ import org.scalatest._
 import util.{Failure, Success}
 import Inside._
 import Assertions._
-import scala.rx.Util
+
+import rx.core.Propagator
 
 class BasicTests extends FreeSpec{
 

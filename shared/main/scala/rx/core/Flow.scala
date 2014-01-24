@@ -1,7 +1,7 @@
-package rx
-
+package rx.core
 
 import ref.WeakReference
+
 
 private[rx] trait Node{
   protected[rx] def level: Long
@@ -28,6 +28,16 @@ trait Emitter[+T] extends Node{
   def children: Seq[Reactor[Nothing]] = childrenHolder.get.flatMap(_.get)
 
   /**
+   * All children, children's children, etc. recursively
+   * @return
+   */
+  def descendants: Seq[Reactor[Nothing]] = {
+    children ++ children.flatMap{
+      case c: Emitter[_] => c.descendants
+      case c => Nil
+    }
+  }
+  /**
    * Binds the [[Reactor]] `child` to this [[Emitter]]. Any pings by this
    * [[Emitter]] will cause `child` to react.
    */
@@ -51,10 +61,19 @@ trait Emitter[+T] extends Node{
 trait Reactor[-T] extends Node{
 
   /**
-   * Returns the list of [[Emitter]]s which this [[Reactor]] is currently bound to.
+   * The list of [[Emitter]]s which this [[Reactor]] is currently bound to.
    */
   def parents: Seq[Emitter[Any]]
 
+  /**
+   * All parents, parents parents, etc. recursively.
+   */
+  def ancestors: Seq[Emitter[Any]] = {
+    parents ++ parents.flatMap{
+      case c: Reactor[_] => c.ancestors
+      case _ =>  Nil
+    }
+  }
   /**
    * Pings this [[Reactor]] with some [[Emitter]]s, causing it to react.
    */

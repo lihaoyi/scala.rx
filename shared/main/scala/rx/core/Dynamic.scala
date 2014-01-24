@@ -1,21 +1,22 @@
-package rx
+package rx.core
 
-import util.{DynamicVariable, Failure, Try}
-import scala.util.Success
-import java.util.concurrent.atomic.{AtomicLong, AtomicReference}
+import util.{DynamicVariable, Try}
+
 
 
 import concurrent.duration._
 
-import scala.util.Success
+
+import rx.ops.Spinlock
+
+import scala.Some
 
 
-
-private object Dynamic{
+object Dynamic{
   private[rx] val enclosing = new DynamicVariable[Option[(Dynamic[Any], List[Rx[Any]])]](None)
 }
 
-private class Dynamic[+T](calc: () => T,
+class Dynamic[+T](calc: () => T,
                           val name: String = "")
                           extends Rx[T]
                           with Reactor[Any]

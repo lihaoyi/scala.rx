@@ -1,10 +1,4 @@
 
-
-import annotation.tailrec
-import java.io.{ByteArrayInputStream, ObjectInputStream, ObjectOutputStream, ByteArrayOutputStream}
-import scala.concurrent.{ExecutionContext, Future}
-import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
-
 /**
  * '''Scala.Rx''' is an experimental change propagation library for [[http://www.scala-lang.org/ Scala]].
  * Scala.Rx gives you Reactive variables ([[Rx]]s), which are smart variables who auto-update themselves
@@ -28,67 +22,13 @@ import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
  * instructions on how to use this package, or browse the classes on the left.
  */
 package object rx {
+  val Rx = core.Rx
+  type Rx[+T] = core.Rx[T]
 
+  val Obs = core.Obs
+  type Obs = core.Obs
 
-  implicit class WithDescendents(r: Emitter[_]){
-    def descendants: Seq[Reactor[_]] = {
-      r.children ++ r.children.flatMap{
-        case c: Emitter[_] => c.descendants
-        case c => Nil
-      }
-    }
-  }
-  implicit class WithAncestors(r: Reactor[_]){
-    def ancestors: Seq[Emitter[_]] = {
-      r.parents ++ r.parents.flatMap{
-        case c: Reactor[_] => c.ancestors
-        case _ =>  Nil
-      }
-    }
-  }
-  /**
-   * Provides extension methods on [[Rx]][Future]s.
-   */
-  implicit class AsyncRx[T](source: Rx[Future[T]]){
-    /**
-     * Flattens out an Rx[Future[T]] into a Rx[T]. If the first
-     * Future has not yet arrived, the Async contains its default value.
-     * Afterwards, it updates itself when and with whatever the Futures complete
-     * with.
-     *
-     * @param default The initial value of this [[Rx]] before any `Future` has completed.
-     * @param discardLate Whether or not to discard the result of `Future`s which complete "late":
-     *                    meaning it was created earlier but completed later than some other `Future`.
-     */
-    def async[P](default: T,
-                 discardLate: Boolean = true)
-                (implicit executor: ExecutionContext, p: Propagator[P]): Rx[T] = {
-      new Async(default, source, discardLate)
-
-    }
-  }
-
-  private[rx] case class Atomic[T](t: T) extends AtomicReference[T](t){
-    def apply() = get
-    def update(t: T) = set(t)
-    @tailrec final def spinSet(transform: T => T): Unit = {
-      val oldV = this()
-      val newV = transform(oldV)
-      if (!compareAndSet(oldV, newV)) {
-        spinSet(transform)
-      }
-    }
-    @tailrec final def spinSetOpt(transform: T => Option[T]): Boolean = {
-      val oldV = this()
-      val newVOpt = transform(oldV)
-      newVOpt match{
-        case Some(newV) => if (!compareAndSet(oldV, newV)) {
-          spinSetOpt(transform)
-        } else true
-        case None => false
-      }
-
-    }
-  }
+  val Var = core.Var
+  type Var[T] = core.Var[T]
 }
 

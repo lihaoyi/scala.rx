@@ -12,6 +12,8 @@ import time.{Millis, Span}
 import Eventually._
 import java.util.concurrent.CountDownLatch
 
+import rx.core.Propagator
+
 /**
  * Tests that force Rxs to run in parallel (whether the same Rx or different Rxs)
  * to verify their behavior in such situations.

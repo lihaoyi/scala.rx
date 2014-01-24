@@ -1,12 +1,17 @@
 package rx
+package ops
 
 import scala.concurrent.{ExecutionContext, Future}
 
-import scala.util.{Success, Try}
+import scala.util.Try
 import java.util.concurrent.atomic.{AtomicLong, AtomicReference}
 import java.lang.ref.WeakReference
 import concurrent.duration._
-import scala.rx.Scheduler
+import rx._
+import rx.core.Atomic
+import scala.Some
+import scala.util.Success
+import rx.core.{Reactor, Emitter, Propagator, Rx}
 
 
 /**
@@ -58,7 +63,7 @@ private[rx] class Async[+T, P](default: => T,
 
 private[rx] class Debounce[+T](source: Rx[T], interval: FiniteDuration)
                           (implicit scheduler: Scheduler, ex: ExecutionContext)
-                           extends rx.Dynamic[T](() => source(), "Debounced " + source.name){
+                           extends core.Dynamic[T](() => source(), "Debounced " + source.name){
 
   val nextPingTime = new AtomicReference(Deadline.now)
 
@@ -82,7 +87,7 @@ private[rx] class Debounce[+T](source: Rx[T], interval: FiniteDuration)
 
 private[rx] class Delay[+T](source: Rx[T], delay: FiniteDuration)
                (implicit scheduler: Scheduler, ex: ExecutionContext)
-  extends Dynamic[T](() => source(),"Delayed " + source.name){
+  extends core.Dynamic[T](() => source(),"Delayed " + source.name){
 
   override def ping[P: Propagator](incoming: Seq[Emitter[Any]]): Seq[Reactor[Nothing]] = {
     scheduler.scheduleOnce(delay){
@@ -117,8 +122,8 @@ private[rx] class Timer[P](interval: FiniteDuration, delay: FiniteDuration)
   }
   protected[rx] def level = 0
   def toTry = Success(count.get)
-  def parents: Seq[rx.Emitter[Any]] = Nil
-  def ping[P: Propagator](incoming: Seq[rx.Emitter[Any]]) = this.children
+  def parents: Seq[Emitter[Any]] = Nil
+  def ping[P: Propagator](incoming: Seq[Emitter[Any]]) = this.children
 }
 
 private[rx] class WeakTimerHolder[P](val target: WeakReference[Timer[P]],
@@ -139,4 +144,22 @@ private[rx] class WeakTimerHolder[P](val target: WeakReference[Timer[P]],
     }
   }
   schedule(delay)
+}
+class AsyncRx[T](source: Rx[Future[T]]){
+  /**
+   * Flattens out an Rx[Future[T]] into a Rx[T]. If the first
+   * Future has not yet arrived, the Async contains its default value.
+   * Afterwards, it updates itself when and with whatever the Futures complete
+   * with.
+   *
+   * @param default The initial value of this [[Rx]] before any `Future` has completed.
+   * @param discardLate Whether or not to discard the result of `Future`s which complete "late":
+   *                    meaning it was created earlier but completed later than some other `Future`.
+   */
+  def async[P](default: T,
+               discardLate: Boolean = true)
+              (implicit executor: ExecutionContext, p: Propagator[P]): Rx[T] = {
+    new Async(default, source, discardLate)
+
+  }
 }

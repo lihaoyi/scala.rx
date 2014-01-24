@@ -1,10 +1,10 @@
 package rx
+package ops
 
-import scala.Predef._
 import scala.util.{Try, Failure, Success}
 import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.{Future, ExecutionContext}
-import scala.rx.Scheduler
+import scala.concurrent.ExecutionContext
+import rx.core.{Obs, Rx}
 
 
 private[rx] trait Combinators[+T]{ source: Rx[T] =>

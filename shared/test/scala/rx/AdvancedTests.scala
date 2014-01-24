@@ -2,7 +2,8 @@ package rx
 
 import org.scalatest._
 import util.{Success, Failure}
-import scala.rx.Util
+import rx.core.Propagator
+
 
 class AdvancedTests extends FreeSpec{
   implicit val prop = Propagator.Immediate

@@ -2,6 +2,7 @@ package rx
 
 import org.scalatest._
 import scala.concurrent.{ExecutionContext, Future, Promise}
+import rx.core.Propagator
 
 
 /**
@@ -70,7 +71,7 @@ class AsyncTests extends FreeSpec{
 
       }
       "ensuring that sent futures that get completed out of order are received out of order" in {
-        var p = Seq[Promise[Int]](Promise(), Promise(), Promise())
+        val p = Seq.fill(3)(Promise[Int]())
         val a = Var(0)
         val b = Rx{ p(a()).future }.async(10, discardLate=false)
 

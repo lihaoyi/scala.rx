@@ -1,6 +1,5 @@
-package rx
+package rx.core
 
-import annotation.tailrec
 import concurrent.{Future, ExecutionContext}
 
 

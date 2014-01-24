@@ -7,6 +7,9 @@ import concurrent.duration._
 import org.scalatest.exceptions.TestFailedDueToTimeoutException
 import Assertions._
 import scala.concurrent.ExecutionContext.Implicits.global
+import ops.Timer
+
+
 class GcTests extends FreeSpec {
   implicit val patience = PatienceConfig(1 second)
   implicit val scheduler = new TestScheduler

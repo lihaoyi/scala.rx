@@ -1,6 +1,6 @@
-package scala.rx
+package rx
 
-import rx.{Rx, Var}
+
 
 object Util {
   /**

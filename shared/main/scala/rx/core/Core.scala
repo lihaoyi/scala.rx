@@ -1,9 +1,10 @@
-package rx
+package rx.core
 
-import util.{Try, Success}
+import util.Try
 
-import concurrent.Future
 import java.util.concurrent.atomic.AtomicReference
+import rx.core
+import rx.ops.Combinators
 
 object Rx{
 
@@ -24,13 +25,13 @@ object Rx{
    * @tparam T The type of the value this [[Rx]] contains
    */
   def apply[T](calc: => T): Rx[T] = {
-    new rx.Dynamic(() => calc)
+    new Dynamic(() => calc)
   }
 
   def +[T](c: Cookie.type = Cookie,
                name: String = "")
               (calc: => T): Rx[T] = {
-    new rx.Dynamic(() => calc, name)
+    new core.Dynamic(() => calc, name)
   }
 }
 
@@ -117,8 +118,8 @@ class Var[T](initValue: => T, val name: String = "") extends Rx[T]{
 
   protected[rx] def level = 0
   def toTry = state.get()
-  def parents: Seq[rx.Emitter[Any]] = Nil
-  def ping[P: Propagator](incoming: Seq[rx.Emitter[Any]]) = {
+  def parents: Seq[Emitter[Any]] = Nil
+  def ping[P: Propagator](incoming: Seq[Emitter[Any]]) = {
     this.children
   }
 }

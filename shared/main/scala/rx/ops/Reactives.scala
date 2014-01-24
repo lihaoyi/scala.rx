@@ -2,11 +2,13 @@
  * Useful Rxs which generally should not be publicaly usable
  */
 package rx
+package ops
 
 import java.util.concurrent.atomic.AtomicLong
 import scala.util.Try
 
 import scala.Some
+import rx.core.{Reactor, Emitter, Propagator, Atomic}
 
 
 /**
