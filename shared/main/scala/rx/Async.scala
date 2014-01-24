@@ -127,9 +127,10 @@ private[rx] class WeakTimerHolder[P](val target: WeakReference[Timer[P]],
                                     (implicit scheduler: Scheduler,
                                      p: Propagator[P],
                                      ec: ExecutionContext){
+
   def schedule(delay: FiniteDuration): Unit = {
     scheduler.scheduleOnce(delay){
-      target.get() match{
+      (target.get: Timer[_]) match{
         case null =>
         case timer =>
           schedule(interval)

@@ -20,7 +20,22 @@ class AtomicReference[T](var value: T) extends java.io.Serializable{
     old
   }
 }
-class AtomicLong(v: Long) extends AtomicReference[Long](v){
+class AtomicLong(var value: Long) extends Serializable{
+  def get() = value
+  def set(newValue: Long) = value = newValue
+  def lazySet(newValue: Long) = set(newValue)
+  def compareAndSet(expect: Long, newValue: Long) = {
+    if (expect != value) false else {
+      value = newValue
+      true
+    }
+  }
+  def weakCompareAndSet(expect: Long, newValue: Long) = compareAndSet(expect, newValue)
+  def getAndSet(newValue: Long) = {
+    val old = value
+    value = newValue
+    old
+  }
   def getAndIncrement() = {
     value += 1
     value - 1
