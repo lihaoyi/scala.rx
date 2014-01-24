@@ -17,7 +17,7 @@ object Propagator{
    * @param ec The `ExecutionContext` on which the distribute the individual
    *           updates of each propagation wave.
    */
-  class Parallelizing(implicit ec: ExecutionContext) extends Propagator[Future[Unit]]{
+  class ExecContext(implicit ec: ExecutionContext) extends Propagator[Future[Unit]]{
     implicit val pinger = this
     def propagate(nodes: Seq[(Emitter[Any], Reactor[Nothing])]): Future[Unit] = {
       if (nodes.length != 0){

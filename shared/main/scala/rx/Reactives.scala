@@ -41,7 +41,7 @@ private[rx] trait Spinlock[+T] extends Incrementing[T]{
         None
       }
     }
-    if(set) this.getChildren
+    if(set) this.children
     else Nil
   }
 }
@@ -51,7 +51,7 @@ private[rx] abstract class Wrapper[T, +A](source: Rx[T], prefix: String)
   with Reactor[Any]{
   source.linkChild(this)
   def level = source.level + 1
-  def getParents = Seq(source)
+  def parents = Seq(source)
   def name = prefix + " " + source.name
 }
 

@@ -124,7 +124,7 @@ class ParallelTests extends FreeSpec {
 
       val serialResult = time[Unit](Propagator.Immediate)
       val parallelResult = time[Future[Unit]](
-        new Propagator.Parallelizing()(ExecutionContext.global),
+        new Propagator.ExecContext()(ExecutionContext.global),
         Await.result(_, 10 seconds)
       )
 

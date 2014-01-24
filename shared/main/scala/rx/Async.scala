@@ -48,7 +48,7 @@ private[rx] class Async[+T, P](default: => T,
     }
     Nil
   }
-  def getParents = Seq(source)
+  def parents = Seq(source)
 
   protected[rx] def level = source.level + 1
 
@@ -117,8 +117,8 @@ private[rx] class Timer[P](interval: FiniteDuration, delay: FiniteDuration)
   }
   protected[rx] def level = 0
   def toTry = Success(count.get)
-  def getParents: Seq[rx.Emitter[Any]] = Nil
-  def ping[P: Propagator](incoming: Seq[rx.Emitter[Any]]) = this.getChildren
+  def parents: Seq[rx.Emitter[Any]] = Nil
+  def ping[P: Propagator](incoming: Seq[rx.Emitter[Any]]) = this.children
 }
 
 private[rx] class WeakTimerHolder[P](val target: WeakReference[Timer[P]],

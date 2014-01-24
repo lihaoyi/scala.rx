@@ -3,6 +3,8 @@ import org.scalatest._
 import util.{Failure, Success}
 import Inside._
 import Assertions._
+import scala.rx.Util
+
 class BasicTests extends FreeSpec{
 
   implicit val prop = Propagator.Immediate
@@ -27,7 +29,6 @@ class BasicTests extends FreeSpec{
 
         assert(o1.name == "")
         assert(o2.name == "o2")
-
       }
     }
 
@@ -42,36 +43,29 @@ class BasicTests extends FreeSpec{
 
         }
         "long chain" in {
-          val a = Var(1) // 3
-
-          val b = Var(2) // 2
-
-          val c = Rx{ a() + b() } // 5
-          val d = Rx{ c() * 5 } // 25
-          val e = Rx{ c() + 4 } // 9
-          val f = Rx{ d() + e() + 4 } // 25 + 9 + 4 =
+          val (a, b, c, d, e, f) = Util.initGraph
 
           assert(f() == 26)
           a() = 3
           assert(f() == 38)
 
           // getParents
-          assert(a.getParents == Nil)
-          assert(b.getParents == Nil)
-          assert(c.getParents.toSet == Set(a, b))
-          assert(f.getParents.toSet == Set(d, e))
+          assert(a.parents == Nil)
+          assert(b.parents == Nil)
+          assert(c.parents.toSet == Set(a, b))
+          assert(f.parents.toSet == Set(d, e))
 
           // getChildren
-          assert(a.getChildren.toSet == Set(c))
-          assert(f.getChildren == Nil)
+          assert(a.children.toSet == Set(c))
+          assert(f.children == Nil)
 
           // dependents
-          assert(d.dependents.toSet == Set(f))
-          assert(c.dependents.toSet == Set(d, e, f))
+          assert(d.descendants.toSet == Set(f))
+          assert(c.descendants.toSet == Set(d, e, f))
 
           // dependencies
-          assert(d.dependencies.toSet == Set(a, b, c))
-          assert(c.dependencies.toSet == Set(a, b))
+          assert(d.ancestors.toSet == Set(a, b, c))
+          assert(c.ancestors.toSet == Set(a, b))
         }
 
         "complex values inside Var[]s and Rx[]s" in {
@@ -88,8 +82,8 @@ class BasicTests extends FreeSpec{
           e() = "wtfbbq"
           assert(f() == "omgomgomgwtfbbq")
 
-          assert(e.dependents.toSet == Set(f))
-          assert(c.dependencies.toSet == Set(a, b))
+          assert(e.descendants.toSet == Set(f))
+          assert(c.ancestors.toSet == Set(a, b))
         }
       }
       "language features" - {
@@ -173,7 +167,7 @@ class BasicTests extends FreeSpec{
         val a = Var(1L)
         val b = Rx{ 1 / a() }
         assert(b() == 1)
-        assert(b.toTry == Success(1))
+        assert(b.toTry == Success(1L))
         a() = 0
         intercept[Exception]{
           b()

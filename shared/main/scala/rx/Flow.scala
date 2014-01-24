@@ -1,7 +1,5 @@
 package rx
 
-import scala.util.{DynamicVariable, Try, Failure, Success}
-
 
 import ref.WeakReference
 
@@ -23,18 +21,26 @@ private[rx] trait Node{
  * [[Reactor]]s which need to be pinged when an event is fired.
  */
 trait Emitter[+T] extends Node{
-  private[this] val children = Atomic[List[WeakReference[Reactor[T]]]](Nil)
+  private[this] val childrenHolder = Atomic[List[WeakReference[Reactor[T]]]](Nil)
   /**
    * Returns the list of [[Reactor]]s which are currently bound to this [[Emitter]].
    */
-  def getChildren: Seq[Reactor[Nothing]] = children.get.flatMap(_.get)
+  def children: Seq[Reactor[Nothing]] = childrenHolder.get.flatMap(_.get)
 
   /**
    * Binds the [[Reactor]] `child` to this [[Emitter]]. Any pings by this
    * [[Emitter]] will cause `child` to react.
    */
   def linkChild[R >: T](child: Reactor[R]): Unit = {
-    children.spinSet(c => (WeakReference(child) :: c.filter(_.get.isDefined)).distinct)
+
+    childrenHolder.spinSet{c =>
+      if (c.toIterator.map(_.get).contains(Some(child))) c
+      else WeakReference(child) :: c
+    }
+  }
+
+  def unlinkChild(child: Reactor[_]): Unit = {
+    childrenHolder.spinSet(c => c.filter(_.get != Some(child)))
   }
 }
 
@@ -47,13 +53,24 @@ trait Reactor[-T] extends Node{
   /**
    * Returns the list of [[Emitter]]s which this [[Reactor]] is currently bound to.
    */
-  def getParents: Seq[Emitter[Any]]
+  def parents: Seq[Emitter[Any]]
 
   /**
    * Pings this [[Reactor]] with some [[Emitter]]s, causing it to react.
    */
   def ping[P: Propagator](incoming: Seq[Emitter[Any]]): Seq[Reactor[Nothing]]
 
+  /**
+   * Stops this Reactor from listening for updates. [[Obs]]s would stop
+   * triggering, [[Rx]]s would stop updating and propagating. In Scala-JS,
+   * this is necessary to allow the Reactor to be garbage collected, while
+   * in Scala-JVM this is unnecessary because of weak references.
+   */
+  def kill(): Unit = {
+    for (parent <- parents){
+      parent.unlinkChild(this)
+    }
+  }
 }
 
 

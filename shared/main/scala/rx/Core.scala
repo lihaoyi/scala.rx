@@ -70,13 +70,26 @@ trait Rx[+T] extends Emitter[T] with Reactor[Any] with Combinators[T]{
   }
 
   def propagate[P: Propagator]() = {
-    Propagator().propagate(this.getChildren.map(this -> _))
+    Propagator().propagate(this.children.map(this -> _))
   }
 
   /**
    * Returns the current value stored within this [[Rx]] as a `Try`
    */
   def toTry: Try[T]
+
+  /**
+   * descndents
+   * descendants
+   * ancestors
+   * Shorthand to call `.kill()` on this [[Rx]] as well as any of its
+   */
+  def killAll(): Unit = {
+    this.kill()
+    for (desc <- this.descendants){
+      desc.kill()
+    }
+  }
 }
 
 
@@ -104,9 +117,9 @@ class Var[T](initValue: => T, val name: String = "") extends Rx[T]{
 
   protected[rx] def level = 0
   def toTry = state.get()
-  def getParents: Seq[rx.Emitter[Any]] = Nil
+  def parents: Seq[rx.Emitter[Any]] = Nil
   def ping[P: Propagator](incoming: Seq[rx.Emitter[Any]]) = {
-    this.getChildren
+    this.children
   }
 }
 
@@ -134,18 +147,13 @@ class Obs(source: Emitter[Any],
           val name: String = "",
           skipInitial: Boolean = false)
           extends Reactor[Any]{
-  /**
-   * A flag variable which can be turned off to prevent the [[Obs]] from
-   * triggering its `callback`.
-   */
-  @volatile var active = true
 
   source.linkChild(this)
-  def getParents = Seq(source)
+  def parents = Seq(source)
   protected[rx] def level = Long.MaxValue
 
   def ping[P: Propagator](incoming: Seq[Emitter[Any]]) = {
-    if (active && getParents.intersect(incoming).isDefinedAt(0)){
+    if (parents.intersect(incoming).isDefinedAt(0)){
       callback()
     }
     Nil
@@ -156,7 +164,7 @@ class Obs(source: Emitter[Any],
    * Manually trigger this observer, causing its callback to run.
    */
   def trigger() = {
-    this.ping(this.getParents)(Propagator.Immediate)
+    this.ping(this.parents)(Propagator.Immediate)
   }
 
   if (!skipInitial) trigger()

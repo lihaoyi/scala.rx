@@ -46,10 +46,10 @@ private class Dynamic[+T](calc: () => T,
     )
   }
 
-  def getParents = state().parents
+  def parents = state().parents
 
   override def ping[P: Propagator](incoming: Seq[Emitter[Any]]): Seq[Reactor[Nothing]] = {
-    if (getParents.intersect(incoming).isDefinedAt(0)){
+    if (parents.intersect(incoming).isDefinedAt(0)){
       super.ping(incoming)
     } else Nil
   }

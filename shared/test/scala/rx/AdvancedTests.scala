@@ -2,6 +2,7 @@ package rx
 
 import org.scalatest._
 import util.{Success, Failure}
+import scala.rx.Util
 
 class AdvancedTests extends FreeSpec{
   implicit val prop = Propagator.Immediate
@@ -168,6 +169,79 @@ class AdvancedTests extends FreeSpec{
         assert(c() == 1337)
         a() = 10
         assert(c() == 1347)
+      }
+    }
+    "kill" - {
+      "kill Obs" in {
+        val a = Var(1)
+        val b = Rx{ 2 * a() }
+        var target = 0
+        val o = Obs(b){
+          target = b()
+        }
+
+        assert(a.children == Seq(b))
+        assert(b.children == Seq(o))
+
+        assert(target == 2)
+        a() = 2
+        assert(target == 4)
+        o.kill()
+
+        assert(a.children == Seq(b))
+        assert(b.children == Nil)
+
+        a() = 3
+        assert(target == 4)
+      }
+
+      "kill Rx" in {
+        val (a, b, c, d, e, f) = Util.initGraph
+
+        assert(c() == 3)
+        assert(e() == 7)
+        assert(f() == 26)
+        a() = 3
+        assert(c() == 5)
+        assert(e() == 9)
+        assert(f() == 38)
+
+        // Killing d stops it from updating, but the changes can still
+        // propagate through e to reach f
+        d.kill()
+        a() = 1
+        assert(f() == 36)
+
+        // After killing f, it stops updating but others continue to do so
+        assert(e.children == Seq(f))
+        f.kill()
+        assert(e.children == Nil)
+        a() = 3
+        assert(c() == 5)
+        assert(e() == 9)
+        assert(f() == 36)
+
+        // After killing c, the everyone doesn't get updates anymore
+        assert(a.children == Seq(c))
+        assert(b.children == Seq(c))
+        c.kill()
+        assert(a.children == Nil)
+        assert(b.children == Nil)
+        a() = 1
+        assert(c() == 5)
+        assert(e() == 9)
+        assert(f() == 36)
+      }
+      "killAll Rx" in {
+        val (a, b, c, d, e, f) = Util.initGraph
+
+        // killAll-ing d makes f die too
+        d.killAll()
+
+        a() = 3
+        assert(c() == 5)
+        assert(e() == 9)
+        assert(f() == 26)
       }
     }
   }

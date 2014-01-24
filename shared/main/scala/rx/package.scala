@@ -30,18 +30,18 @@ import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
 package object rx {
 
 
-  implicit class WithDependents(r: Emitter[_]){
-    def dependents: Seq[Node] = {
-      r.getChildren ++ r.getChildren.flatMap{
-        case c: Emitter[_] => c.dependents
+  implicit class WithDescendents(r: Emitter[_]){
+    def descendants: Seq[Reactor[_]] = {
+      r.children ++ r.children.flatMap{
+        case c: Emitter[_] => c.descendants
         case c => Nil
       }
     }
   }
-  implicit class WithDependencies(r: Reactor[_]){
-    def dependencies: Seq[Node] = {
-      r.getParents ++ r.getParents.flatMap{
-        case c: Reactor[_] => c.dependencies
+  implicit class WithAncestors(r: Reactor[_]){
+    def ancestors: Seq[Emitter[_]] = {
+      r.parents ++ r.parents.flatMap{
+        case c: Reactor[_] => c.ancestors
         case _ =>  Nil
       }
     }

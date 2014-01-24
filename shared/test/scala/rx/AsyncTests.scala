@@ -17,22 +17,7 @@ class AsyncTests extends FreeSpec{
     def execute(runnable: Runnable) {runnable.run()}
   }
   "AsyncTests" - {
-    "disabling obs" in {
 
-      val a = Var(1)
-      val b = Rx{ 2 * a() }
-      var target = 0
-      val o = Obs(b){
-        target = b()
-      }
-      assert(target == 2)
-      a() = 2
-      assert(target == 4)
-      o.active = false
-      a() = 3
-      assert(target == 4)
-
-    }
     "async" - {
       "basic example" in {
         val p = Promise[Int]()
@@ -87,7 +72,7 @@ class AsyncTests extends FreeSpec{
       "ensuring that sent futures that get completed out of order are received out of order" in {
         var p = Seq[Promise[Int]](Promise(), Promise(), Promise())
         val a = Var(0)
-        val b = Rx{ p(a()).future }.async(10, false)
+        val b = Rx{ p(a()).future }.async(10, discardLate=false)
 
         assert(b() == 10)
 
@@ -105,9 +90,9 @@ class AsyncTests extends FreeSpec{
         assert(b() == 0)
       }
       "dropping the result of Futures which return out of order" in {
-        var p = Seq[Promise[Int]](Promise(), Promise(), Promise())
+        val p = Seq.fill(3)(Promise[Int]())
         val a = Var(0)
-        val b = Rx{ p(a()).future }.async(10, true)
+        val b = Rx{ p(a()).future }.async(10)
 
         assert(b() == 10)
 

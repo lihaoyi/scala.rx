@@ -5,15 +5,18 @@ import scala.ref.ReferenceQueue
 
 object Main {
   def main(args: Array[String]): Unit = {
-    println(1L / 0L)
-    throw new Exception()
-//    val a = Var(1)
-//    val b = Rx{ 1 / a() }
-//    println(b() == 1)
-//    println(b.toTry)// == Success(1))
-//    a() = 0
-//
-//    println(b.toTry) //{ case Failure(_) => () }
+    val a = Var(1)
+    val b = Rx{ 2 * a() }
+    var target = 0
+    val o = Obs(b){
+      target = b()
+    }
+    println(target == 2)
+    a() = 2
+    println(target == 4)
+    o.kill()
+    a() = 3
+    println(target == 4)
   }
 }
 
