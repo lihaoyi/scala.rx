@@ -1,5 +1,7 @@
 package rx
 import concurrent.duration._
+import rx.ops.DomScheduler
+
 /**
  * Created by haoyi on 1/25/14.
  */
