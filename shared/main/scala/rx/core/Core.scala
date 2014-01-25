@@ -4,7 +4,6 @@ import util.Try
 
 import java.util.concurrent.atomic.AtomicReference
 import rx.core
-import rx.ops.Combinators
 
 object Rx{
 
@@ -40,7 +39,7 @@ object Rx{
  * changes to notify any dependent [[Rx]]s that they need to update.
  *
  */
-trait Rx[+T] extends Emitter[T] with Reactor[Any] with Combinators[T]{
+trait Rx[+T] extends Emitter[T] with Reactor[Any]{
 
   protected[this] def currentValue: T = toTry.get
 
@@ -163,7 +162,9 @@ class Obs(source: Emitter[Any],
           extends Reactor[Any]{
 
   source.linkChild(this)
+
   def parents = Seq(source)
+
   protected[rx] def level = Long.MaxValue
 
   def ping[P: Propagator](incoming: Seq[Emitter[Any]]) = {

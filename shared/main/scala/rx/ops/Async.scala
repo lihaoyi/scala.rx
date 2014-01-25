@@ -34,7 +34,7 @@ class Async[+T, P](default: => T,
   source.linkChild(this)
   def name = "Async " + source.name
 
-  type StateType = SpinState
+  protected[this] type StateType = SpinState
 
   protected[this] val state = SpinSet(new SpinState(0, Try(default)))
 
@@ -89,7 +89,7 @@ class Debounce[+T](source: Rx[T], interval: FiniteDuration)
 }
 
 /**
- * An [[Rx]] which wraps and existing [[Rx]] but delays the propagation by
+ * An [[Rx]] which wraps and existin[[Rx]] but delays the propagation by
  * `delay`.
  */
 class Delay[+T](source: Rx[T], delay: FiniteDuration)
@@ -122,21 +122,26 @@ object Timer{
 class Timer[P](interval: FiniteDuration, delay: FiniteDuration)
               (implicit scheduler: Scheduler, p: Propagator[P], ec: ExecutionContext)
                extends Rx[Long]{
-  val count = new AtomicLong(0L)
-  val holder = new WeakTimerHolder(new WeakReference(this), interval, delay)
 
-  def name = "Timer"
 
-  def timerPing() = {
-    count.getAndIncrement
-    propagate()
-  }
+  private[rx] val count = new AtomicLong(0L)
+  private[this] val holder = new WeakTimerHolder(new WeakReference(this), interval, delay)
+
+  def name = "Timer" + this.hashCode()
+
   protected[rx] def level = 0
   def toTry = Success(count.get)
   def parents: Seq[Emitter[Any]] = Nil
-  def ping[P: Propagator](incoming: Seq[Emitter[Any]]) = this.children
+  def ping[P: Propagator](incoming: Seq[Emitter[Any]]) = {
+    this.children
+  }
 }
 
+/**
+ * Wraps a timer, which is managed by Akka or the DOM depending if this is
+ * JVM or Javascript. Ensures that the timer gets shut off when the [[Timer]]
+ * is killed or garbage collected.
+ */
 private[rx] class WeakTimerHolder[P](val target: WeakReference[Timer[P]],
                                      interval: FiniteDuration,
                                      delay: FiniteDuration)
@@ -150,7 +155,9 @@ private[rx] class WeakTimerHolder[P](val target: WeakReference[Timer[P]],
         case null =>
         case timer if timer.alive =>
           schedule(interval)
-          timer.timerPing()
+          timer.count.getAndIncrement
+          timer.propagate()
+
         case _ =>
       }
     }

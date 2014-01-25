@@ -20,7 +20,7 @@ private[rx] trait Incrementing[+T] extends Rx[T]{
   def getStamp = updateCount.getAndIncrement
 
   class SpinState(val timestamp: Long, val value: Try[T])
-  type StateType <: SpinState
+  protected[this] type StateType <: SpinState
 
   protected[this] val state: SpinSet[StateType]
   def toTry = state().value
@@ -31,7 +31,7 @@ private[rx] trait Incrementing[+T] extends Rx[T]{
 
 private[rx] trait Spinlock[+T] extends Incrementing[T]{
 
-  def makeState: StateType
+  protected[this] def makeState: StateType
 
   def ping[P: Propagator](incoming: Seq[Emitter[Any]]): Seq[Reactor[Nothing]] = {
 
@@ -63,7 +63,7 @@ private class Reducer[T](source: Rx[T])
                          extends Wrapper[T, T](source, "Reduce")
   with Spinlock[T]{
 
-  type StateType = SpinState
+  protected[this] type StateType = SpinState
   protected[this] val state = SpinSet(new SpinState(
     getStamp,
     source.toTry
@@ -83,9 +83,9 @@ private class Reducer[T](source: Rx[T])
 private[rx] class Mapper[T, +A](source: Rx[T])
                                (transformer: Try[T] => Try[A])
                                 extends Wrapper[T, A](source, "Map")
-  with Spinlock[A]{
+                                with Spinlock[A]{
 
-  type StateType = SpinState
+  protected[this] type StateType = SpinState
   def makeState = new SpinState(
     getStamp,
     transformer(source.toTry)

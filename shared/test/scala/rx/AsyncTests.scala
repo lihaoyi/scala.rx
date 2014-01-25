@@ -3,7 +3,7 @@ package rx
 import org.scalatest._
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import rx.core.Propagator
-
+import ops._
 
 /**
  * Tests combinators with asynchronous behavior. All tests are run using a

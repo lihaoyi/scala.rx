@@ -32,11 +32,11 @@ class Dynamic[+T](calc: () => T,
                               value: Try[T])
                               extends SpinState(timestamp, value)
 
-  type StateType = State
+  protected[this] type StateType = State
 
   protected[this] val state = SpinSet(makeState)
 
-  def makeState = {
+  protected[this]  def makeState = {
     val startCalc = getStamp
     val (newValue, deps) =
       Dynamic.enclosing.withValue(Some(this -> Nil)){

@@ -4,7 +4,7 @@ import org.scalatest._
 import util.{Success, Failure}
 import rx.core.Propagator
 
-
+import ops._
 class AdvancedTests extends FreeSpec{
   implicit val prop = Propagator.Immediate
   "AdvancedTests" - {

@@ -8,7 +8,10 @@ private[rx] trait Node{
 
   /**
    * The name of this object, generally passed in as a `String` when it is
-   * created. This can be inspected later.
+   * created.
+   *
+   * This can be inspected later, and is handy for debugging and logging
+   * purposes.
    */
   def name: String
   protected[this] def debug(s: String) {
@@ -49,6 +52,9 @@ trait Emitter[+T] extends Node{
     }
   }
 
+  /**
+   * Manually unbinds the [[Reactor]] `child` to this [[Emitter]].
+   */
   def unlinkChild(child: Reactor[_]): Unit = {
     childrenHolder.spinSet(c => c.filter(_.get != Some(child)))
   }
@@ -69,11 +75,14 @@ trait Reactor[-T] extends Node{
   def alive = _alive
   /**
    * The list of [[Emitter]]s which this [[Reactor]] is currently bound to.
+   *
+   * Any of these [[Emitters]] emitting a ping will cause this [[Reactor]]
+   * to react.
    */
   def parents: Seq[Emitter[Any]]
 
   /**
-   * All parents, parents parents, etc. recursively.
+   * All parents, parent's parents, etc. recursively.
    */
   def ancestors: Seq[Emitter[Any]] = {
     parents ++ parents.flatMap{

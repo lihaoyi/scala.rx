@@ -6,7 +6,7 @@ import scala.concurrent.ExecutionContext
 import org.scalatest.concurrent.Eventually._
 
 import rx.core.Propagator
-import rx.ops.Timer
+import rx.ops._
 
 
 /**
