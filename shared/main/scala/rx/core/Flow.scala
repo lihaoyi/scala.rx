@@ -46,10 +46,10 @@ trait Emitter[+T] extends Node{
    * @return
    */
   def descendants: Seq[Reactor[Nothing]] = {
-    children ++ children.flatMap{
+    (children ++ children.flatMap{
       case c: Emitter[_] => c.descendants
       case c => Nil
-    }
+    }).distinct
   }
   /**
    * Binds the [[Reactor]] `child` to this [[Emitter]]. Any pings by this
@@ -96,10 +96,10 @@ trait Reactor[-T] extends Node{
    * All parents, parent's parents, etc. recursively.
    */
   def ancestors: Seq[Emitter[Any]] = {
-    parents ++ parents.flatMap{
+    (parents.toSeq ++ parents.flatMap{
       case c: Reactor[_] => c.ancestors
       case _ =>  Nil
-    }
+    }).distinct
   }
   /**
    * Pings this [[Reactor]] with some [[Emitter]]s, causing it to react.

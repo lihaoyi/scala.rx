@@ -17,7 +17,7 @@ class BasicTests extends FreeSpec{
 
         val s1 = Rx{v1() + 1}
 
-        val s2 = Rx.+(name="s2")(v2() + 1)
+        val s2 = Rx(name="s2")(v2() + 1)
 
         val o1 = Obs(s1){ }
         val o2 = Obs(s2, name = "o2"){ }
@@ -62,11 +62,15 @@ class BasicTests extends FreeSpec{
 
           // dependents
           assert(d.descendants.toSet == Set(f))
+          assert(d.descendants.length == 1)
           assert(c.descendants.toSet == Set(d, e, f))
+          assert(c.descendants.length == 3)
 
           // dependencies
           assert(d.ancestors.toSet == Set(a, b, c))
+          assert(d.ancestors.length == 3)
           assert(c.ancestors.toSet == Set(a, b))
+          assert(c.ancestors.length == 2)
         }
 
         "complex values inside Var[]s and Rx[]s" in {

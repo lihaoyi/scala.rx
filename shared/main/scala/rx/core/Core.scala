@@ -27,7 +27,7 @@ object Rx{
     new Dynamic(() => calc)
   }
 
-  def +[T](c: Cookie.type = Cookie,
+  def apply[T](c: Cookie.type = Cookie,
                name: String = "")
               (calc: => T): Rx[T] = {
     new core.Dynamic(() => calc, name)
