@@ -106,13 +106,13 @@ println(f()) // 38
 
 The dataflow graph for this program looks like this:
 
-![Dataflow Graph](https://github.com/lihaoyi/scala.rx/blob/master/media/Intro.png?raw=true)
+![Dataflow Graph](media/Intro.png?raw=true)
 
 Where the Var[3]s are represented by squares, the Rx[1]s by circles and the dependencies by arrows. Each Rx[1] is labelled with its name, its body and its value.
 
 Modifying the value of `a` causes the changes the propagate through the dataflow graph
 
-![Dataflow Graph](https://github.com/lihaoyi/scala.rx/blob/master/media/IntroProp.png?raw=true)
+![Dataflow Graph](media/IntroProp.png?raw=true)
 
 As can be seen above, changing the value of `a` causes the change to propagate all the way through `c` `d` `e` to `f`. You can use a Var[3] and Rx[1] anywhere you an use a normal variable.
 
@@ -135,11 +135,11 @@ println(count) // 5
 
 This creates a dataflow graph that looks like:
 
-![Dataflow Graph](https://github.com/lihaoyi/scala.rx/blob/master/media/Observer.png?raw=true)
+![Dataflow Graph](media/Observer.png?raw=true)
 
 When `a` is modified, the observer `o` will perform the side effect:
 
-![Dataflow Graph](https://github.com/lihaoyi/scala.rx/blob/master/media/Observer2.png?raw=true)
+![Dataflow Graph](media/Observer2.png?raw=true)
 
 The body of Rx[1]s should be side effect free, as they may be run more than once per propagation. You should use Obs[2]s to perform your side effects, as they are guaranteed to run only once per propagation after the values for all Rx[1]s have stabilized.
 
@@ -268,11 +268,11 @@ inside(g.toTry){case Failure(_) => () }
 
 Creates a dependency graph that looks like the follows:
 
-![Dataflow Graph](https://github.com/lihaoyi/scala.rx/blob/master/media/Errors.png?raw=true)
+![Dataflow Graph](media/Errors.png?raw=true)
 
 In this example, initially all the values for `a`, `b`, `c`, `d`, `e`, `f` and `g` are well defined. However, when `b` is set to `0`:
 
-![Dataflow Graph](https://github.com/lihaoyi/scala.rx/blob/master/media/Errors2.png?raw=true)
+![Dataflow Graph](media/Errors2.png?raw=true)
 
 `c` and `e` both result in exceptions, and the exception from `c` propagates to `g`. Attempting to extract the value from `g` using `g()`, for example, will re-throw the ArithmeticException. Again, using `toTry` works too.
 
@@ -334,7 +334,7 @@ In this case, we define a web page which has a `html` value (a `Rx[String]`). Ho
 
 Having a `Rx[WebPage]`, where the `WebPage` has an `Rx[String]` inside, seems natural and obvious, and Scala.Rx lets you do it simply and naturally. This kind of objects-within-objects situation arises very naturally when modelling a problem in an object-oriented way. The ability of Scala.Rx to gracefully handle the corresponding Rx[1]s within Rx[1]s allows it to gracefully fit into this paradigm, something I found lacking in most of the [[Related-Work]] I surveyed.
 
-Most of the examples here are taken from the [unit tests](https://github.com/lihaoyi/scala.rx/blob/master/src/test/scala/rx/BasicTests.scala), which provide more examples on guidance on how to use this library.
+Most of the examples here are taken from the [unit tests](src/test/scala/rx/BasicTests.scala), which provide more examples on guidance on how to use this library.
 
 
 Additional Operations
@@ -668,7 +668,7 @@ In general, the rules for parallel execution of an individual node in the depend
 - When a single propagation happens, Scala.Rx guarantees that although the dataflow graph may be transiently inconsistent, the Obs[2] which produce side effects will only fire once everything has stabilized.
 - In the presence of multiple propagations happening in parallel, Scala.Rx guarantees that each Obs[2] will fire *at most* once per propagation that occurs. Furthermore, by the time the propagations have completed and the system has stabilized, each Obs[2] will have fired *at least once* after the Rx[1] it is observing has reached its final value.
 
-This policy is implemented using the __java.util.concurrent.Atomic*__ classes. The final compare-start-times-and-replace-if-timestamp-is-greater action is implemented as a STM-style retry-loop on an __AtomicReference__. This approach is [lock free](http://en.wikipedia.org/wiki/Non-blocking_algorithm#Lock-freedom), and since the time required to compute the result is probably far greater than the time spent trying to commit it, the number of retries should in practice be minimal.
+This policy is implemented using the __java.util.concurrent.AtomicXXX__ classes. The final compare-start-times-and-replace-if-timestamp-is-greater action is implemented as a STM-style retry-loop on an __AtomicReference__. This approach is [lock free](http://en.wikipedia.org/wiki/Non-blocking_algorithm#Lock-freedom), and since the time required to compute the result is probably far greater than the time spent trying to commit it, the number of retries should in practice be minimal.
 
 Apart from the main update loop, peripheral methods like `children`, `parents`, `ancestors` and `descendents` are also affected by parallelism. In these cases, if the system is quiescent you're guaranteed to get the correct value. If there are parallel updates and modifications going on, you're guaranteed to get a set of nodes which were part of the list some time during the duration it takes for the method to run, and any node which was part of the list for the entire duration.
 
