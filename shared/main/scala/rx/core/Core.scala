@@ -127,7 +127,7 @@ class Var[T](initValue: => T, val name: String = "") extends Rx[T]{
   def updateSilent(newValue: => T) = {
     state.set(Try(newValue))
   }
-  protected[rx] def level = 0
+  def level = 0
 
   def toTry = state.get()
   def parents: Seq[Emitter[Any]] = Nil
@@ -165,7 +165,7 @@ class Obs(source: Emitter[Any],
 
   def parents = Seq(source)
 
-  protected[rx] def level = Long.MaxValue
+  def level = Long.MaxValue
 
   def ping[P: Propagator](incoming: Seq[Emitter[Any]]) = {
     if (parents.intersect(incoming).isDefinedAt(0)){

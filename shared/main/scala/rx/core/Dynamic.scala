@@ -36,7 +36,7 @@ class Dynamic[+T](calc: () => T,
 
   protected[this] val state = SpinSet(makeState)
 
-  protected[this]  def makeState = {
+  protected[this] def makeState = {
     val startCalc = getStamp
     val (newValue, deps) =
       Dynamic.enclosing.withValue(Some(this -> Nil)){
@@ -59,7 +59,7 @@ class Dynamic[+T](calc: () => T,
     } else Nil
   }
 
-  protected[rx] def level = state().level
+  def level = state().level
 }
 
 

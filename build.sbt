@@ -4,9 +4,9 @@ lazy val js = project.in(file("js"))
 
 Build.sharedSettings
 
-unmanagedSourceDirectories in Compile <+= baseDirectory(_ / "shared" / "main")
+unmanagedSourceDirectories in Compile <+= baseDirectory(_ / "shared" / "main" / "scala")
 
-unmanagedSourceDirectories in Test <+= baseDirectory(_ / "shared" / "test")
+unmanagedSourceDirectories in Test <+= baseDirectory(_ / "shared" / "test" / "scala")
 
 libraryDependencies ++= Seq(
     "org.scalatest" % "scalatest_2.10" % "2.0" % "test",

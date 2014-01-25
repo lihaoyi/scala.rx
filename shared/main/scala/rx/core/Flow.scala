@@ -3,8 +3,22 @@ package rx.core
 import ref.WeakReference
 
 
-private[rx] trait Node{
-  protected[rx] def level: Long
+/**
+ * A member of a Scala.Rx dataflow graph. Apart from the fact that it has a name
+ * and a current level in the graph, we don't really know much about it. It could
+ * be either a [[Emitter]] or a [[Reactor]] or both.
+ */
+sealed trait Node{
+  /**
+   * A number giving an approximate ordering of the current [[Node]] in the
+   * dataflow graph it is part of.
+   *
+   * [[Var]]s have it set to 0 and [[Obs]] have it set to Long.MaxValue because
+   * they're always the root and leaves of the graph. For other [[Rx]]s it
+   * depends on their location within the dataflow graph, and can change over
+   * time if the shape of the graph is changing.
+   */
+  def level: Long
 
   /**
    * The name of this object, generally passed in as a `String` when it is
@@ -14,9 +28,6 @@ private[rx] trait Node{
    * purposes.
    */
   def name: String
-  protected[this] def debug(s: String) {
-    println(name + ": " + s)
-  }
 }
 
 /**
@@ -47,8 +58,8 @@ trait Emitter[+T] extends Node{
   def linkChild[R >: T](child: Reactor[R]): Unit = {
 
     childrenHolder.spinSet{c =>
-      if (c.toIterator.map(_.get).contains(Some(child))) c
-      else WeakReference(child) :: c
+      if (c.toIterator.map(_.get).contains(Some(child))) c.filter(_.get != None)
+      else WeakReference(child) :: c.filter(_.get != None)
     }
   }
 

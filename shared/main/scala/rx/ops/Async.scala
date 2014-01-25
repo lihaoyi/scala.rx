@@ -55,7 +55,7 @@ class Async[+T, P](default: => T,
   }
   def parents = Seq(source)
 
-  protected[rx] def level = source.level + 1
+  def level = source.level + 1
 
   this.ping(Seq(source))
 }
@@ -94,7 +94,7 @@ class Debounce[+T](source: Rx[T], interval: FiniteDuration)
  */
 class Delay[+T](source: Rx[T], delay: FiniteDuration)
                (implicit scheduler: Scheduler, ex: ExecutionContext)
-  extends core.Dynamic[T](() => source(),"Delayed " + source.name){
+                extends core.Dynamic[T](() => source(),"Delayed " + source.name){
 
   override def ping[P: Propagator](incoming: Seq[Emitter[Any]]): Seq[Reactor[Nothing]] = {
     scheduler.scheduleOnce(delay){
@@ -103,7 +103,7 @@ class Delay[+T](source: Rx[T], delay: FiniteDuration)
     Nil
   }
 
-  protected[rx] override def level = source.level + 1
+  override def level = source.level + 1
 }
 
 
@@ -129,7 +129,7 @@ class Timer[P](interval: FiniteDuration, delay: FiniteDuration)
 
   def name = "Timer" + this.hashCode()
 
-  protected[rx] def level = 0
+  def level = 0
   def toTry = Success(count.get)
   def parents: Seq[Emitter[Any]] = Nil
   def ping[P: Propagator](incoming: Seq[Emitter[Any]]) = {

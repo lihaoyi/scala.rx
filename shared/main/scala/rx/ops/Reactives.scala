@@ -61,7 +61,7 @@ private[rx] abstract class Wrapper[T, +A](source: Rx[T], prefix: String)
 private class Reducer[T](source: Rx[T])
                         (transformer: (Try[T], Try[T]) => Try[T])
                          extends Wrapper[T, T](source, "Reduce")
-  with Spinlock[T]{
+                         with Spinlock[T]{
 
   protected[this] type StateType = SpinState
   protected[this] val state = SpinSet(new SpinState(

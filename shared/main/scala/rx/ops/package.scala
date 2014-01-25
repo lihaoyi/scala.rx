@@ -11,7 +11,7 @@ package object ops {
    * Extends an `Rx[Future[T]]` to allow you to flatten it into an `Rx[T]` via
    * the `.async()` method
    */
-  implicit class AsyncRx[T](val source: Rx[Future[T]]) extends AnyVal{
+  implicit class AsyncRxOps[T](val source: Rx[Future[T]]) extends AnyVal{
     /**
      * Flattens out an Rx[Future[T]] into a Rx[T]. If the first
      * Future has not yet arrived, the Async contains its default value.
