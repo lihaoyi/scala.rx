@@ -111,19 +111,32 @@ object Var {
 class Var[T](initValue: => T, val name: String = "") extends Rx[T]{
 
   private val state = new AtomicReference(Try(initValue))
+
+  /**
+   * Updates the value in this `Var` and propagates the change through to its
+   * children and descendents
+   */
   def update[P: Propagator](newValue: => T): P = {
-    state.set(Try(newValue))
+    updateSilent(newValue)
     propagate()
   }
 
+  /**
+   * Updates the value in this `Var` *without* propagating the change through
+   * to its children and descendents
+   */
+  def updateSilent(newValue: => T) = {
+    state.set(Try(newValue))
+  }
   protected[rx] def level = 0
+
   def toTry = state.get()
   def parents: Seq[Emitter[Any]] = Nil
+
   def ping[P: Propagator](incoming: Seq[Emitter[Any]]) = {
     this.children
   }
 }
-
 object Obs{
   /**
    * Convenience method for creating a new [[Obs]].

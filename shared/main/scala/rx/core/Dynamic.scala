@@ -16,11 +16,15 @@ object Dynamic{
   private[rx] val enclosing = new DynamicVariable[Option[(Dynamic[Any], List[Rx[Any]])]](None)
 }
 
+/**
+ * An `Rx` whose dependencies are set dynamically at runtime when `calc` is
+ * evaluated, and may change again any time it gets re-evaluated
+ */
 class Dynamic[+T](calc: () => T,
-                          val name: String = "")
-                          extends Rx[T]
-                          with Reactor[Any]
-                          with Spinlock[T]{
+                  val name: String = "")
+                  extends Rx[T]
+                  with Reactor[Any]
+                  with Spinlock[T]{
 
   protected[this] class State(val parents: Seq[Emitter[Any]],
                               val level: Long,
@@ -30,7 +34,7 @@ class Dynamic[+T](calc: () => T,
 
   type StateType = State
 
-  protected[this] val state = Atomic(makeState)
+  protected[this] val state = SpinSet(makeState)
 
   def makeState = {
     val startCalc = getStamp

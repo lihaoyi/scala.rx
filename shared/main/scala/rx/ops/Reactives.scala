@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicLong
 import scala.util.Try
 
 import scala.Some
-import rx.core.{Reactor, Emitter, Propagator, Atomic}
+import rx.core.{Reactor, Emitter, Propagator, SpinSet}
 
 
 /**
@@ -22,7 +22,7 @@ private[rx] trait Incrementing[+T] extends Rx[T]{
   class SpinState(val timestamp: Long, val value: Try[T])
   type StateType <: SpinState
 
-  protected[this] val state: Atomic[StateType]
+  protected[this] val state: SpinSet[StateType]
   def toTry = state().value
 
 }
@@ -49,8 +49,8 @@ private[rx] trait Spinlock[+T] extends Incrementing[T]{
 }
 
 private[rx] abstract class Wrapper[T, +A](source: Rx[T], prefix: String)
-  extends Rx[A]
-  with Reactor[Any]{
+                                          extends Rx[A]
+                                          with Reactor[Any]{
   source.linkChild(this)
   def level = source.level + 1
   def parents = Seq(source)
@@ -59,12 +59,12 @@ private[rx] abstract class Wrapper[T, +A](source: Rx[T], prefix: String)
 
 
 private class Reducer[T](source: Rx[T])
-               (transformer: (Try[T], Try[T]) => Try[T])
-  extends Wrapper[T, T](source, "Reduce")
+                        (transformer: (Try[T], Try[T]) => Try[T])
+                         extends Wrapper[T, T](source, "Reduce")
   with Spinlock[T]{
 
   type StateType = SpinState
-  protected[this] val state = Atomic(new SpinState(
+  protected[this] val state = SpinSet(new SpinState(
     getStamp,
     source.toTry
   ))
@@ -81,8 +81,8 @@ private class Reducer[T](source: Rx[T])
  * Rx[A].
  */
 private[rx] class Mapper[T, +A](source: Rx[T])
-                (transformer: Try[T] => Try[A])
-  extends Wrapper[T, A](source, "Map")
+                               (transformer: Try[T] => Try[A])
+                                extends Wrapper[T, A](source, "Map")
   with Spinlock[A]{
 
   type StateType = SpinState
@@ -91,5 +91,5 @@ private[rx] class Mapper[T, +A](source: Rx[T])
     transformer(source.toTry)
   )
 
-  protected[this] val state = Atomic(makeState)
+  protected[this] val state = SpinSet(makeState)
 }

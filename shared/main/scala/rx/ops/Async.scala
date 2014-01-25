@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.{AtomicLong, AtomicReference}
 import java.lang.ref.WeakReference
 import concurrent.duration._
 import rx._
-import rx.core.Atomic
+import rx.core.SpinSet
 import scala.Some
 import scala.util.Success
 import rx.core.{Reactor, Emitter, Propagator, Rx}
@@ -23,20 +23,20 @@ import rx.core.{Reactor, Emitter, Propagator, Rx}
  * The Async can be configured with a variety of Targets, to configure
  * its handling of Futures which complete out of order (RunAlways, DiscardLate)
  */
-private[rx] class Async[+T, P](default: => T,
-                               source: Rx[Future[T]],
-                               discardLate: Boolean)
-                              (implicit ec: ExecutionContext, p: Propagator[P])
-                               extends Rx[T]
-                               with Incrementing[T]
-                               with Reactor[Future[_]]{
+class Async[+T, P](default: => T,
+                   source: Rx[Future[T]],
+                   discardLate: Boolean)
+                  (implicit ec: ExecutionContext, p: Propagator[P])
+                   extends Rx[T]
+                   with Incrementing[T]
+                   with Reactor[Future[_]]{
 
   source.linkChild(this)
   def name = "Async " + source.name
 
   type StateType = SpinState
 
-  protected[this] val state = Atomic(new SpinState(0, Try(default)))
+  protected[this] val state = SpinSet(new SpinState(0, Try(default)))
 
   override def ping[P](incoming: Seq[Emitter[Any]])(implicit p: Propagator[P]): Seq[Reactor[Nothing]] = {
     val stamp = getStamp
@@ -60,10 +60,13 @@ private[rx] class Async[+T, P](default: => T,
   this.ping(Seq(source))
 }
 
-
-private[rx] class Debounce[+T](source: Rx[T], interval: FiniteDuration)
-                          (implicit scheduler: Scheduler, ex: ExecutionContext)
-                           extends core.Dynamic[T](() => source(), "Debounced " + source.name){
+/**
+ * An [[Rx]] which wraps an existing [[Rx]] but only emits changes at most once
+ * every `interval`.
+ */
+class Debounce[+T](source: Rx[T], interval: FiniteDuration)
+                  (implicit scheduler: Scheduler, ex: ExecutionContext)
+                   extends core.Dynamic[T](() => source(), "Debounced " + source.name){
 
   val nextPingTime = new AtomicReference(Deadline.now)
 
@@ -85,7 +88,11 @@ private[rx] class Debounce[+T](source: Rx[T], interval: FiniteDuration)
   override def level = source.level + 1
 }
 
-private[rx] class Delay[+T](source: Rx[T], delay: FiniteDuration)
+/**
+ * An [[Rx]] which wraps and existing [[Rx]] but delays the propagation by
+ * `delay`.
+ */
+class Delay[+T](source: Rx[T], delay: FiniteDuration)
                (implicit scheduler: Scheduler, ex: ExecutionContext)
   extends core.Dynamic[T](() => source(),"Delayed " + source.name){
 
@@ -100,7 +107,7 @@ private[rx] class Delay[+T](source: Rx[T], delay: FiniteDuration)
 }
 
 
-private[rx] object Timer{
+object Timer{
   def apply[P](interval: FiniteDuration, delay: FiniteDuration = 0 seconds)
               (implicit scheduler: Scheduler, p: Propagator[P], ec: ExecutionContext) = {
 
@@ -108,9 +115,13 @@ private[rx] object Timer{
   }
 }
 
-private[rx] class Timer[P](interval: FiniteDuration, delay: FiniteDuration)
-                          (implicit scheduler: Scheduler, p: Propagator[P], ec: ExecutionContext)
-                           extends Rx[Long]{
+/**
+ * An [[Rx]] which begins a propagation once every `interval` after an initial
+ * delay of `delay`. Its value is the number of times it has emitted.
+ */
+class Timer[P](interval: FiniteDuration, delay: FiniteDuration)
+              (implicit scheduler: Scheduler, p: Propagator[P], ec: ExecutionContext)
+               extends Rx[Long]{
   val count = new AtomicLong(0L)
   val holder = new WeakTimerHolder(new WeakReference(this), interval, delay)
 
@@ -137,29 +148,13 @@ private[rx] class WeakTimerHolder[P](val target: WeakReference[Timer[P]],
     scheduler.scheduleOnce(delay){
       (target.get: Timer[_]) match{
         case null =>
-        case timer =>
+        case timer if timer.alive =>
           schedule(interval)
           timer.timerPing()
+        case _ =>
       }
     }
   }
-  schedule(delay)
-}
-class AsyncRx[T](source: Rx[Future[T]]){
-  /**
-   * Flattens out an Rx[Future[T]] into a Rx[T]. If the first
-   * Future has not yet arrived, the Async contains its default value.
-   * Afterwards, it updates itself when and with whatever the Futures complete
-   * with.
-   *
-   * @param default The initial value of this [[Rx]] before any `Future` has completed.
-   * @param discardLate Whether or not to discard the result of `Future`s which complete "late":
-   *                    meaning it was created earlier but completed later than some other `Future`.
-   */
-  def async[P](default: T,
-               discardLate: Boolean = true)
-              (implicit executor: ExecutionContext, p: Propagator[P]): Rx[T] = {
-    new Async(default, source, discardLate)
 
-  }
+  schedule(delay)
 }

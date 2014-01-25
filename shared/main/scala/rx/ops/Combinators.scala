@@ -6,7 +6,6 @@ import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.ExecutionContext
 import rx.core.{Obs, Rx}
 
-
 private[rx] trait Combinators[+T]{ source: Rx[T] =>
 
   /**

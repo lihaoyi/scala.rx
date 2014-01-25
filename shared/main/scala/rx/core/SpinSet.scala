@@ -3,7 +3,11 @@ package rx.core
 import java.util.concurrent.atomic.AtomicReference
 import scala.annotation.tailrec
 
-case class Atomic[T](t: T) extends AtomicReference[T](t){
+/**
+ * A wrapper around `AtomicReference`, allowing you to apply "atomic"
+ * transforms to the boxed data by using a Compare-And-Set retry loop.
+ */
+case class SpinSet[T](t: T) extends AtomicReference[T](t){
   def apply() = get
   def update(t: T) = set(t)
   @tailrec final def spinSet(transform: T => T): Unit = {

@@ -21,7 +21,7 @@ private[rx] trait Node{
  * [[Reactor]]s which need to be pinged when an event is fired.
  */
 trait Emitter[+T] extends Node{
-  private[this] val childrenHolder = Atomic[List[WeakReference[Reactor[T]]]](Nil)
+  private[this] val childrenHolder = SpinSet[List[WeakReference[Reactor[T]]]](Nil)
   /**
    * Returns the list of [[Reactor]]s which are currently bound to this [[Emitter]].
    */
@@ -60,6 +60,13 @@ trait Emitter[+T] extends Node{
  */
 trait Reactor[-T] extends Node{
 
+  private[this] var _alive = true
+
+  /**
+   * Whether or not this [[Reactor]] is currently alive. Only [[Reactor]]s
+   * which are alive will receive updates and propagate changes.
+   */
+  def alive = _alive
   /**
    * The list of [[Emitter]]s which this [[Reactor]] is currently bound to.
    */
@@ -84,8 +91,11 @@ trait Reactor[-T] extends Node{
    * triggering, [[Rx]]s would stop updating and propagating. In Scala-JS,
    * this is necessary to allow the Reactor to be garbage collected, while
    * in Scala-JVM this is unnecessary because of weak references.
+   *
+   * `.kill()` is irreversible.
    */
   def kill(): Unit = {
+    _alive = false
     for (parent <- parents){
       parent.unlinkChild(this)
     }
