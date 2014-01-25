@@ -1,9 +1,8 @@
 package rx.ops
 
 import akka.actor.ActorSystem
-import scala.concurrent.duration.{FiniteDuration, Duration}
+import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.ExecutionContext
-import rx.ops.Scheduler
 
 /**
  * A [[Scheduler]] that wraps an `ActorSystem`'s scheduler.

@@ -130,9 +130,9 @@ class Var[T](initValue: => T, val name: String = "") extends Rx[T]{
   def level = 0
 
   def toTry = state.get()
-  def parents: Seq[Emitter[Any]] = Nil
+  def parents: Set[Emitter[Any]] = Set.empty
 
-  def ping[P: Propagator](incoming: Seq[Emitter[Any]]) = {
+  def ping[P: Propagator](incoming: Set[Emitter[_]]) = {
     this.children
   }
 }
@@ -163,16 +163,15 @@ class Obs(source: Emitter[Any],
 
   source.linkChild(this)
 
-  def parents = Seq(source)
+  def parents = Set(source)
 
   def level = Long.MaxValue
 
-  def ping[P: Propagator](incoming: Seq[Emitter[Any]]) = {
-    if (parents.intersect(incoming).isDefinedAt(0)){
+  def ping[P: Propagator](incoming: Set[Emitter[_]]) = {
+    if (!parents.intersect(incoming).isEmpty){
       callback()
     }
-    Nil
-
+    Set.empty
   }
 
   /**

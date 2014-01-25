@@ -27,13 +27,11 @@ private[rx] trait Incrementing[+T] extends Rx[T]{
 
 }
 
-
-
 private[rx] trait Spinlock[+T] extends Incrementing[T]{
 
   protected[this] def makeState: StateType
 
-  def ping[P: Propagator](incoming: Seq[Emitter[Any]]): Seq[Reactor[Nothing]] = {
+  def ping[P: Propagator](incoming: Set[Emitter[_]]): Set[Reactor[_]] = {
 
     val newState = makeState
     val set = state.spinSetOpt{ oldState =>
@@ -44,7 +42,7 @@ private[rx] trait Spinlock[+T] extends Incrementing[T]{
       }
     }
     if(set) this.children
-    else Nil
+    else Set()
   }
 }
 
@@ -53,7 +51,7 @@ private[rx] abstract class Wrapper[T, +A](source: Rx[T], prefix: String)
                                           with Reactor[Any]{
   source.linkChild(this)
   def level = source.level + 1
-  def parents = Seq(source)
+  def parents = Set(source)
   def name = prefix + " " + source.name
 }
 

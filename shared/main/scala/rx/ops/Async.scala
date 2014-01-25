@@ -38,7 +38,7 @@ class Async[+T, P](default: => T,
 
   protected[this] val state = SpinSet(new SpinState(0, Try(default)))
 
-  override def ping[P](incoming: Seq[Emitter[Any]])(implicit p: Propagator[P]): Seq[Reactor[Nothing]] = {
+  override def ping[P](incoming: Set[Emitter[_]])(implicit p: Propagator[P]) = {
     val stamp = getStamp
     source().onComplete{ x =>
       val set = state.spinSetOpt{oldState =>
@@ -51,13 +51,13 @@ class Async[+T, P](default: => T,
 
       if(set) propagate()
     }
-    Nil
+    Set.empty
   }
-  def parents = Seq(source)
+  def parents = Set(source)
 
   def level = source.level + 1
 
-  this.ping(Seq(source))
+  this.ping(parents)
 }
 
 /**
@@ -70,7 +70,7 @@ class Debounce[+T](source: Rx[T], interval: FiniteDuration)
 
   val nextPingTime = new AtomicReference(Deadline.now)
 
-  override def ping[P: Propagator](incoming: Seq[Emitter[Any]]): Seq[Reactor[Nothing]] = {
+  override def ping[P: Propagator](incoming: Set[Emitter[_]]): Set[Reactor[_]] = {
 
     val npt = nextPingTime.get
 
@@ -82,7 +82,7 @@ class Debounce[+T](source: Rx[T], interval: FiniteDuration)
           if(ping(incoming) != Nil)this.propagate()
         }
       }
-      Nil
+      Set.empty
     }
   }
   override def level = source.level + 1
@@ -94,13 +94,13 @@ class Debounce[+T](source: Rx[T], interval: FiniteDuration)
  */
 class Delay[+T](source: Rx[T], delay: FiniteDuration)
                (implicit scheduler: Scheduler, ex: ExecutionContext)
-                extends core.Dynamic[T](() => source(),"Delayed " + source.name){
+                extends core.Dynamic[T](() => source(), "Delayed " + source.name){
 
-  override def ping[P: Propagator](incoming: Seq[Emitter[Any]]): Seq[Reactor[Nothing]] = {
+  override def ping[P: Propagator](incoming: Set[Emitter[_]]): Set[Reactor[_]] = {
     scheduler.scheduleOnce(delay){
       if(super.ping(incoming) != Nil) this.propagate()
     }
-    Nil
+    Set.empty
   }
 
   override def level = source.level + 1
@@ -131,8 +131,8 @@ class Timer[P](interval: FiniteDuration, delay: FiniteDuration)
 
   def level = 0
   def toTry = Success(count.get)
-  def parents: Seq[Emitter[Any]] = Nil
-  def ping[P: Propagator](incoming: Seq[Emitter[Any]]) = {
+  def parents: Set[Emitter[_]] = Set.empty
+  def ping[P: Propagator](incoming: Set[Emitter[_]]) = {
     this.children
   }
 }

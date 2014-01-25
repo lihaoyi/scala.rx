@@ -51,26 +51,26 @@ class BasicTests extends FreeSpec{
           assert(f() == 38)
 
           // getParents
-          assert(a.parents == Nil)
-          assert(b.parents == Nil)
+          assert(a.parents == Set())
+          assert(b.parents == Set())
           assert(c.parents.toSet == Set(a, b))
           assert(f.parents.toSet == Set(d, e))
 
           // getChildren
           assert(a.children.toSet == Set(c))
-          assert(f.children == Nil)
+          assert(f.children == Set())
 
           // dependents
-          assert(d.descendants.toSet == Set(f))
-          assert(d.descendants.length == 1)
-          assert(c.descendants.toSet == Set(d, e, f))
-          assert(c.descendants.length == 3)
+          assert(d.descendants == Set(f))
+          assert(d.descendants.size == 1)
+          assert(c.descendants == Set(d, e, f))
+          assert(c.descendants.size == 3)
 
           // dependencies
-          assert(d.ancestors.toSet == Set(a, b, c))
-          assert(d.ancestors.length == 3)
-          assert(c.ancestors.toSet == Set(a, b))
-          assert(c.ancestors.length == 2)
+          assert(d.ancestors == Set(a, b, c))
+          assert(d.ancestors.size == 3)
+          assert(c.ancestors == Set(a, b))
+          assert(c.ancestors.size == 2)
         }
 
         "complex values inside Var[]s and Rx[]s" in {
@@ -116,7 +116,7 @@ class BasicTests extends FreeSpec{
           assert(c() == "0 and 2: Range(0, 1, 2)")
         }
         "use in by name parameters" in {
-          val a = Var(1);
+          val a = Var(1)
 
           val b = Rx{ Some(1).getOrElse(a()) }
           assert(b() == 1)

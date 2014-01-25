@@ -35,11 +35,11 @@ sealed trait Node{
  * [[Reactor]]s which need to be pinged when an event is fired.
  */
 trait Emitter[+T] extends Node{
-  private[this] val childrenHolder = SpinSet[List[WeakReference[Reactor[T]]]](Nil)
+  private[this] val childrenHolder = SpinSet[Set[WeakReference[Reactor[_]]]](Set.empty)
   /**
    * Returns the list of [[Reactor]]s which are currently bound to this [[Emitter]].
    */
-  def children: Seq[Reactor[Nothing]] = {
+  def children: Set[Reactor[_]] = {
     childrenHolder().flatMap(_.get).filter(_.parents.contains(this))
   }
 
@@ -47,11 +47,11 @@ trait Emitter[+T] extends Node{
    * All children, children's children, etc. recursively
    * @return
    */
-  def descendants: Seq[Reactor[Nothing]] = {
-    (children ++ children.flatMap{
+  def descendants: Set[Reactor[_]] = {
+    children ++ children.flatMap{
       case c: Emitter[_] => c.descendants
       case c => Nil
-    }).distinct
+    }
   }
   /**
    * Binds the [[Reactor]] `child` to this [[Emitter]]. Any pings by this
@@ -61,7 +61,7 @@ trait Emitter[+T] extends Node{
 
     childrenHolder.spinSet{c =>
       if (c.toIterator.map(_.get).contains(Some(child))) { c.filter(_.get != None)
-      } else WeakReference(child) :: c.filter(_.get != None)
+      } else c.filter(_.get != None) + WeakReference(child)
     }
   }
 
@@ -92,21 +92,21 @@ trait Reactor[-T] extends Node{
    * Any of these [[Emitters]] emitting a ping will cause this [[Reactor]]
    * to react.
    */
-  def parents: Seq[Emitter[Any]]
+  def parents: Set[Emitter[_]]
 
   /**
    * All parents, parent's parents, etc. recursively.
    */
-  def ancestors: Seq[Emitter[Any]] = {
-    (parents.toSeq ++ parents.flatMap{
+  def ancestors: Set[Emitter[_]] = {
+    parents ++ parents.flatMap{
       case c: Reactor[_] => c.ancestors
       case _ =>  Nil
-    }).distinct
+    }
   }
   /**
    * Pings this [[Reactor]] with some [[Emitter]]s, causing it to react.
    */
-  def ping[P: Propagator](incoming: Seq[Emitter[Any]]): Seq[Reactor[Nothing]]
+  def ping[P: Propagator](incoming: Set[Emitter[_]]): Set[Reactor[_]]
 
   /**
    * Stops this Reactor from listening for updates. [[Obs]]s would stop

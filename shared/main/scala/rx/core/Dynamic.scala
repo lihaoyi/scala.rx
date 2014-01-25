@@ -26,7 +26,7 @@ class Dynamic[+T](calc: () => T,
                   with Reactor[Any]
                   with Spinlock[T]{
 
-  protected[this] class State(val parents: Seq[Emitter[Any]],
+  protected[this] class State(val parents: Seq[Emitter[_]],
                               val level: Long,
                               timestamp: Long,
                               value: Try[T])
@@ -53,12 +53,12 @@ class Dynamic[+T](calc: () => T,
     )
   }
 
-  def parents = state().parents
+  def parents = state().parents.toSet
 
-  override def ping[P: Propagator](incoming: Seq[Emitter[Any]]): Seq[Reactor[Nothing]] = {
-    if (parents.intersect(incoming).isDefinedAt(0)){
+  override def ping[P: Propagator](incoming: Set[Emitter[_]]): Set[Reactor[_]] = {
+    if (!parents.intersect(incoming).isEmpty){
       super.ping(incoming)
-    } else Nil
+    } else Set.empty
   }
 
   def level = state().level

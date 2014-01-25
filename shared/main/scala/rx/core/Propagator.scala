@@ -18,17 +18,17 @@ object Propagator{
    */
   class ExecContext(implicit ec: ExecutionContext) extends Propagator[Future[Unit]]{
     implicit val pinger = this
-    def propagate(nodes: Seq[(Emitter[Any], Reactor[Nothing])]): Future[Unit] = {
-      if (nodes.length != 0){
+    def propagate(nodes: Set[(Emitter[_], Reactor[_])]): Future[Unit] = {
+      if (nodes.size != 0){
         val minLevel = nodes.map(_._2.level).min
         val (now, later) = nodes.partition(_._2.level == minLevel)
         val next = now.groupBy(_._2)
-                      .mapValues(_.map(_._1).distinct)
-                      .toSeq
+                      .mapValues(_.map(_._1))
                       .map{ case (target, pingers) => Future{
           target.ping(pingers).map(target.asInstanceOf[Emitter[Any]] -> _)
         }}
-        Future.sequence[Seq[(Emitter[Any], Reactor[Nothing])], Seq](next).map(_.flatten ++ later).flatMap(propagate)
+
+        Future.sequence(next.toSet).map(_.flatten ++ later).flatMap(propagate)
       }else Future.successful(())
     }
   }
@@ -38,17 +38,16 @@ object Propagator{
    * it. Returns `Unit` when the propagation wave is complete.
    */
   implicit object Immediate extends Propagator[Unit]{
-    def propagate(nodes: Seq[(Emitter[Any], Reactor[Nothing])]): Unit = {
-      if (nodes.length != 0){
+    def propagate(nodes: Set[(Emitter[_], Reactor[_])]): Unit = {
+      if (nodes.size != 0){
         val minLevel = nodes.map(_._2.level).min
         val (now, later) = nodes.partition(_._2.level == minLevel)
         val next = now.groupBy(_._2)
-                      .mapValues(_.map(_._1).distinct)
-                      .toSeq
+                      .mapValues(_.map(_._1))
                       .map{ case (target, pingers) =>
           target.ping(pingers).map(target.asInstanceOf[Emitter[Any]] -> _)
         }
-        propagate(next.flatten ++ later)
+        propagate(next.flatten.toSet ++ later)
       }
     }
   }
@@ -91,7 +90,7 @@ trait Propagator[P]{
    * @param pings The set of pings which begin this propagation wave
    * @return Some value of type P, dependent on the implementation
    */
-  def propagate(pings: Seq[(Emitter[Any], Reactor[Nothing])]): P
+  def propagate(pings: Set[(Emitter[_], Reactor[_])]): P
 
 
 }

@@ -181,16 +181,16 @@ class AdvancedTests extends FreeSpec{
           target = b()
         }
 
-        assert(a.children == Seq(b))
-        assert(b.children == Seq(o))
+        assert(a.children == Set(b))
+        assert(b.children == Set(o))
 
         assert(target == 2)
         a() = 2
         assert(target == 4)
         o.kill()
 
-        assert(a.children == Seq(b))
-        assert(b.children == Nil)
+        assert(a.children == Set(b))
+        assert(b.children == Set())
 
         a() = 3
         assert(target == 4)
@@ -214,20 +214,20 @@ class AdvancedTests extends FreeSpec{
         assert(f() == 36)
 
         // After killing f, it stops updating but others continue to do so
-        assert(e.children == Seq(f))
+        assert(e.children == Set(f))
         f.kill()
-        assert(e.children == Nil)
+        assert(e.children == Set())
         a() = 3
         assert(c() == 5)
         assert(e() == 9)
         assert(f() == 36)
 
         // After killing c, the everyone doesn't get updates anymore
-        assert(a.children == Seq(c))
-        assert(b.children == Seq(c))
+        assert(a.children == Set(c))
+        assert(b.children == Set(c))
         c.kill()
-        assert(a.children == Nil)
-        assert(b.children == Nil)
+        assert(a.children == Set())
+        assert(b.children == Set())
         a() = 1
         assert(c() == 5)
         assert(e() == 9)
