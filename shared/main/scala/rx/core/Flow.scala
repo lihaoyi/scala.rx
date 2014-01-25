@@ -39,7 +39,9 @@ trait Emitter[+T] extends Node{
   /**
    * Returns the list of [[Reactor]]s which are currently bound to this [[Emitter]].
    */
-  def children: Seq[Reactor[Nothing]] = childrenHolder.get.flatMap(_.get)
+  def children: Seq[Reactor[Nothing]] = {
+    childrenHolder().flatMap(_.get).filter(_.parents.contains(this))
+  }
 
   /**
    * All children, children's children, etc. recursively
@@ -58,8 +60,8 @@ trait Emitter[+T] extends Node{
   def linkChild[R >: T](child: Reactor[R]): Unit = {
 
     childrenHolder.spinSet{c =>
-      if (c.toIterator.map(_.get).contains(Some(child))) c.filter(_.get != None)
-      else WeakReference(child) :: c.filter(_.get != None)
+      if (c.toIterator.map(_.get).contains(Some(child))) { c.filter(_.get != None)
+      } else WeakReference(child) :: c.filter(_.get != None)
     }
   }
 
@@ -116,9 +118,7 @@ trait Reactor[-T] extends Node{
    */
   def kill(): Unit = {
     _alive = false
-    for (parent <- parents){
-      parent.unlinkChild(this)
-    }
+    parents.foreach(_.unlinkChild(this))
   }
 }
 

@@ -9,7 +9,9 @@ import Assertions._
 import scala.concurrent.ExecutionContext.Implicits.global
 import ops.Timer
 
-
+/**
+ * Checking that weak references are doing their job on the JVM by forcing GCs.
+ */
 class GcTests extends FreeSpec {
   implicit val patience = PatienceConfig(1 second)
   implicit val scheduler = new TestScheduler
@@ -38,7 +40,7 @@ class GcTests extends FreeSpec {
         assert(count == 3)
       }(patience)
 
-      System.gc
+      System.gc()
 
       intercept[TestFailedDueToTimeoutException]{
         eventually{

@@ -65,11 +65,12 @@ object Propagator{
  * Scala.Rx dataflow graph. It is parametrized on the type P which it returns
  * after performing a propagation wave. The two existing Propagators are:
  *
- * - Immediate (`Propagator[Unit]`), which runs the propagation wave immediately
- *   and returns Unit when it is complete.
- * - Parallelizing (`Propagator[Future[Unit]]`), which runs the propagation wave
- *   on the given `ExecutionContext` and returns a `Future[Unit]` representing
- *   the completion of the propagation wave.
+ * [[Propagator.Immediate]] (`Propagator[Unit]`), which runs the propagation wave immediately
+ * and returns Unit when it is complete.
+ *
+ * [[Propagator.ExecContext]] (`Propagator[Future[Unit]]`), which runs the propagation wave
+ * on the given `ExecutionContext` and returns a `Future[Unit]` representing
+ * the completion of the propagation wave.
  *
  * It is conceivable that custom propagators could use the return type `P` to
  * return other things, e.g. the number of updates performed, or the number
@@ -85,7 +86,7 @@ trait Propagator[P]{
    *     Emitter -> Reactor
    *
    * pings. See the implementation of [[Propagator.Immediate]] or
-   * [[Propagator.Parallelizing]] to see how this is generally done
+   * [[Propagator.ExecContext]] to see how this is generally done
    *
    * @param pings The set of pings which begin this propagation wave
    * @return Some value of type P, dependent on the implementation

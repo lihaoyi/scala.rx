@@ -15,7 +15,7 @@ import rx.core.{Reactor, Emitter, Propagator, Rx}
 
 
 /**
- * A Rx which flattens out an Rx[Future[T]] into a Rx[T]. If the first
+ * A [[Rx]] which flattens out an Rx[Future[T]] into a Rx[T]. If the first
  * Future has not yet arrived, the Async contains its default value.
  * Afterwards, it updates itself when and with whatever the Futures complete
  * with.
@@ -89,7 +89,7 @@ class Debounce[+T](source: Rx[T], interval: FiniteDuration)
 }
 
 /**
- * An [[Rx]] which wraps and existin[[Rx]] but delays the propagation by
+ * An [[Rx]] which wraps and existing [[Rx]] but delays the propagation by
  * `delay`.
  */
 class Delay[+T](source: Rx[T], delay: FiniteDuration)

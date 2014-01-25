@@ -670,6 +670,8 @@ In general, the rules for parallel execution of an individual node in the depend
 
 This policy is implemented using the __java.util.concurrent.Atomic*__ classes. The final compare-start-times-and-replace-if-timestamp-is-greater action is implemented as a STM-style retry-loop on an __AtomicReference__. This approach is [lock free](http://en.wikipedia.org/wiki/Non-blocking_algorithm#Lock-freedom), and since the time required to compute the result is probably far greater than the time spent trying to commit it, the number of retries should in practice be minimal.
 
+Apart from the main update loop, peripheral methods like `children`, `parents`, `ancestors` and `descendents` are also affected by parallelism. In these cases, if the system is quiescent you're guaranteed to get the correct value. If there are parallel updates and modifications going on, you're guaranteed to get a set of nodes which were part of the list some time during the duration it takes for the method to run, and any node which was part of the list for the entire duration.
+
 ###Weak Forward References
 The weak-forward-references to an Rx[1] from its dependencies is unusual in that unlike the rest of the state regarding the Rx[1], it is not kept within the Rx[1] itself! Rather, it is kept within its parents. Hence updates to these weak references cannot conveniently be serialized by encapsulating the state within that Rx[1]'s state.
 

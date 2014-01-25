@@ -37,7 +37,9 @@ class Dynamic[+T](calc: () => T,
   protected[this] val state = SpinSet(makeState)
 
   protected[this] def makeState = {
+
     val startCalc = getStamp
+
     val (newValue, deps) =
       Dynamic.enclosing.withValue(Some(this -> Nil)){
         (Try(calc()), Dynamic.enclosing.value.get._2)
