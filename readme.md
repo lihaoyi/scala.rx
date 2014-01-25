@@ -33,6 +33,8 @@ Contents
   - [Garbage Collection](#garbage-collection)
   - [Internals](#internals)
 - [Related Work](#related-work)
+- [Mailing List]()
+- [Scaladoc]() (and the [ScalaJS version]())
 
 This document goes through the usage of Scala.Rx, the implementation that makes everything work, the design considerations and limitations inherent in the system and ends with a brief overview of related work.
 
@@ -60,33 +62,33 @@ There are some minor differences between running Scala.Rx on the JVM and in Java
 
 Using Scala.Rx
 ==============
+
 Basic Usage
 -----------
+
 Combinators
 -----------
+
 Graph Inspection
 ----------------
+
 Logging and Debugging
 ---------------------
 
 Execution Model
 ===============
+
 Concurrency
 -----------
+
 Garbage Collection
 ------------------
+
 Internals
 ---------
 
 Related Work
 ============
-
-
-- [Basic Usage](https://github.com/lihaoyi/scala.rx/wiki/Basic-Usage): how to use Scala.Rx to construct *dataflow graphs*, whose values will automatically be kept in sync.
-- [Combinators](https://github.com/lihaoyi/scala.rx/wiki/Combinators): useful ways of transforming `Rx`s to modify their values, combine them, turn them asynchronous, delay them, etc.
-- [How it Works](https://github.com/lihaoyi/scala.rx/wiki/How-it-Works): The nitty-gritty of how Scala.Rx is implemented under the hood
-- [Design Considerations](https://github.com/lihaoyi/scala.rx/wiki/Design-Considerations): If you want to find out more about the thought process and considerations that went into Scala.Rx
-- [Related Work](https://github.com/lihaoyi/scala.rx/wiki/Related-Work): Read about other work in the field of Functional Reactive Programming that inspired Scala.Rx
 
 Feel free to fork the repository and try it out, or browse the [online ScalaDoc](http://lihaoyi.github.io/scala.rx/#package). Contributions are welcome!
 

@@ -36,7 +36,6 @@ class EventedTests extends FreeSpec {
 
         assert(count >= 5)
       }
-
     }
 
 
