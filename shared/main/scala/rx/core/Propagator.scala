@@ -91,6 +91,4 @@ trait Propagator[P]{
    * @return Some value of type P, dependent on the implementation
    */
   def propagate(pings: Set[(Emitter[_], Reactor[_])]): P
-
-
 }

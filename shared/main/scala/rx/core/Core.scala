@@ -86,9 +86,7 @@ trait Rx[+T] extends Emitter[T] with Reactor[Any]{
    */
   def killAll(): Unit = {
     this.kill()
-    for (desc <- this.descendants){
-      desc.kill()
-    }
+    descendants.foreach(_.kill())
   }
 }
 

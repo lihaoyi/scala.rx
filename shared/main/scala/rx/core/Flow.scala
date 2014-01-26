@@ -50,7 +50,7 @@ trait Emitter[+T] extends Node{
   def descendants: Set[Reactor[_]] = {
     children ++ children.flatMap{
       case c: Emitter[_] => c.descendants
-      case c => Nil
+      case c => Set.empty[Reactor[_]]
     }
   }
   /**
@@ -58,10 +58,11 @@ trait Emitter[+T] extends Node{
    * [[Emitter]] will cause `child` to react.
    */
   def linkChild[R >: T](child: Reactor[R]): Unit = {
-
     childrenHolder.spinSet{c =>
-      if (c.toIterator.map(_.get).contains(Some(child))) { c.filter(_.get != None)
-      } else c.filter(_.get != None) + WeakReference(child)
+      val newC = c.filter(_.get != None)
+      val someChild = Some(child)
+      if (newC.exists(_.get == someChild)) newC
+      else newC + WeakReference(child)
     }
   }
 
@@ -100,7 +101,7 @@ trait Reactor[-T] extends Node{
   def ancestors: Set[Emitter[_]] = {
     parents ++ parents.flatMap{
       case c: Reactor[_] => c.ancestors
-      case _ =>  Nil
+      case _ =>  Set.empty[Emitter[_]]
     }
   }
   /**
