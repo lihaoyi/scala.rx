@@ -36,8 +36,7 @@ Contents
   - [Garbage Collection](#garbage-collection)
   - [Internals](#internals)
 - [Related Work](#related-work)
-- [Mailing List]()
-- [Scaladoc]() (and the [ScalaJS version]())
+- [Scaladoc](https://lihaoyi.github.io/scala.rx)
 
 Getting Started
 ===============
