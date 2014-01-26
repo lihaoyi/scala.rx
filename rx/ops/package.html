@@ -1,0 +1,244 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+        <head>
+          <title>ops - rx.ops</title>
+          <meta name="description" content="ops - rx.ops" />
+          <meta name="keywords" content="ops rx.ops" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../index.html';
+            var hash = 'rx.ops.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img src="../../lib/package_big.png" />
+        <p id="owner"><a href="../package.html" class="extype" name="rx">rx</a></p>
+        <h1>ops</h1>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ops</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <span class="toggle">Linear Supertypes</span>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        <div id="order">
+              <span class="filtertype">Ordering</span>
+              <ol>
+                
+                <li class="alpha in"><span>Alphabetic</span></li>
+                <li class="inherit out"><span>By inheritance</span></li>
+              </ol>
+            </div>
+        <div id="ancestors">
+                <span class="filtertype">Inherited<br />
+                </span>
+                <ol id="linearization">
+                  <li class="in" name="rx.ops"><span>ops</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                </ol>
+              </div><div id="ancestors">
+            <span class="filtertype"></span>
+            <ol>
+              <li class="hideall out"><span>Hide All</span></li>
+              <li class="showall in"><span>Show all</span></li>
+            </ol>
+            <a href="http://docs.scala-lang.org/overviews/scaladoc/usage.html#members" target="_blank">Learn more about member selection</a>
+          </div>
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="rx.ops.AkkaScheduler" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AkkaSchedulerextendsScheduler"></a>
+      <a id="AkkaScheduler:AkkaScheduler"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="AkkaScheduler.html"><span class="name">AkkaScheduler</span></a><span class="result"> extends <a href="Scheduler.html" class="extype" name="rx.ops.Scheduler">Scheduler</a></span>
+      </span>
+      </h4>
+      <p class="comment cmt">A <a href="Scheduler.html" class="extype" name="rx.ops.Scheduler">Scheduler</a> that wraps an <code>ActorSystem</code>'s scheduler.</p>
+    </li><li name="rx.ops.Async" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Async[+T,P]extendsRx[T]withIncrementing[T]withReactor[scala.concurrent.Future[_]]"></a>
+      <a id="Async[+T,P]:Async[T,P]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Async.html"><span class="name">Async</span></a><span class="tparams">[<span name="T">+T</span>, <span name="P">P</span>]</span><span class="result"> extends <a href="../core/Rx.html" class="extype" name="rx.core.Rx">core.Rx</a>[<span class="extype" name="rx.ops.Async.T">T</span>] with <span class="extype" name="rx.ops.Incrementing">Incrementing</span>[<span class="extype" name="rx.ops.Async.T">T</span>] with <a href="../core/Reactor.html" class="extype" name="rx.core.Reactor">Reactor</a>[<span class="extype" name="scala.concurrent.Future">Future</span>[_]]</span>
+      </span>
+      </h4>
+      <p class="comment cmt">A <a href="../package.html#Rx[+T]=rx.core.Rx[T]" class="extmbr" name="rx.Rx">Rx</a> which flattens out an Rx[Future[T]] into a Rx[T].</p>
+    </li><li name="rx.ops.AsyncRxOps" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AsyncRxOps[T]extendsAnyVal"></a>
+      <a id="AsyncRxOps[T]:AsyncRxOps[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit final </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$AsyncRxOps.html"><span class="name">AsyncRxOps</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyVal">AnyVal</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">Extends an <code>Rx[Future[T]]</code> to allow you to flatten it into an <code>Rx[T]</code> via
+the <code>.async()</code> method
+</p>
+    </li><li name="rx.ops.Debounce" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Debounce[+T]extendsDynamic[T]"></a>
+      <a id="Debounce[+T]:Debounce[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Debounce.html"><span class="name">Debounce</span></a><span class="tparams">[<span name="T">+T</span>]</span><span class="result"> extends <a href="../core/Dynamic.html" class="extype" name="rx.core.Dynamic">Dynamic</a>[<span class="extype" name="rx.ops.Debounce.T">T</span>]</span>
+      </span>
+      </h4>
+      <p class="comment cmt">An <a href="../package.html#Rx[+T]=rx.core.Rx[T]" class="extmbr" name="rx.Rx">Rx</a> which wraps an existing <a href="../package.html#Rx[+T]=rx.core.Rx[T]" class="extmbr" name="rx.Rx">Rx</a> but only emits changes at most once
+every <code>interval</code>.</p>
+    </li><li name="rx.ops.Delay" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Delay[+T]extendsDynamic[T]"></a>
+      <a id="Delay[+T]:Delay[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Delay.html"><span class="name">Delay</span></a><span class="tparams">[<span name="T">+T</span>]</span><span class="result"> extends <a href="../core/Dynamic.html" class="extype" name="rx.core.Dynamic">Dynamic</a>[<span class="extype" name="rx.ops.Delay.T">T</span>]</span>
+      </span>
+      </h4>
+      <p class="comment cmt">An <a href="../package.html#Rx[+T]=rx.core.Rx[T]" class="extmbr" name="rx.Rx">Rx</a> which wraps and existing <a href="../package.html#Rx[+T]=rx.core.Rx[T]" class="extmbr" name="rx.Rx">Rx</a> but delays the propagation by
+<code>delay</code>.</p>
+    </li><li name="rx.ops.RxOps" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RxOps[+T]extendsAnyVal"></a>
+      <a id="RxOps[+T]:RxOps[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit final </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$RxOps.html"><span class="name">RxOps</span></a><span class="tparams">[<span name="T">+T</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyVal">AnyVal</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="rx.ops.Scheduler" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="SchedulerextendsAnyRef"></a>
+      <a id="Scheduler:Scheduler"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Scheduler.html"><span class="name">Scheduler</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">A generic interface which can be used to schedule tasks.</p>
+    </li><li name="rx.ops.Timer" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Timer[P]extendsRx[Long]"></a>
+      <a id="Timer[P]:Timer[P]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Timer.html"><span class="name">Timer</span></a><span class="tparams">[<span name="P">P</span>]</span><span class="result"> extends <a href="../core/Rx.html" class="extype" name="rx.core.Rx">core.Rx</a>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4>
+      <p class="comment cmt">An <a href="../package.html#Rx[+T]=rx.core.Rx[T]" class="extmbr" name="rx.Rx">Rx</a> which begins a propagation once every <code>interval</code> after an initial
+delay of <code>delay</code>.</p>
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="rx.ops.Timer" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Timer"></a>
+      <a id="Timer:Timer"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Timer$.html"><span class="name">Timer</span></a>
+      </span>
+      </h4>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        <div class="parent" name="scala.AnyRef">
+              <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
+            </div><div class="parent" name="scala.Any">
+              <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
+            </div>
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+      <script defer="defer" type="text/javascript" id="jquery-js" src="../../lib/jquery.js"></script><script defer="defer" type="text/javascript" id="jquery-ui-js" src="../../lib/jquery-ui.js"></script><script defer="defer" type="text/javascript" id="tools-tooltip-js" src="../../lib/tools.tooltip.js"></script><script defer="defer" type="text/javascript" id="template-js" src="../../lib/template.js"></script>
+    </body>
+      </html>

@@ -1,0 +1,283 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+        <head>
+          <title>core - rx.core</title>
+          <meta name="description" content="core - rx.core" />
+          <meta name="keywords" content="core rx.core" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../index.html';
+            var hash = 'rx.core.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img src="../../lib/package_big.png" />
+        <p id="owner"><a href="../package.html" class="extype" name="rx">rx</a></p>
+        <h1>core</h1>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">core</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        
+        
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="rx.core.Dynamic" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Dynamic[+T]extendsRx[T]withReactor[Any]withSpinlock[T]"></a>
+      <a id="Dynamic[+T]:Dynamic[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Dynamic.html"><span class="name">Dynamic</span></a><span class="tparams">[<span name="T">+T</span>]</span><span class="result"> extends <a href="Rx.html" class="extype" name="rx.core.Rx">Rx</a>[<span class="extype" name="rx.core.Dynamic.T">T</span>] with <a href="Reactor.html" class="extype" name="rx.core.Reactor">Reactor</a>[<span class="extype" name="scala.Any">Any</span>] with <span class="extype" name="rx.ops.Spinlock">Spinlock</span>[<span class="extype" name="rx.core.Dynamic.T">T</span>]</span>
+      </span>
+      </h4>
+      <p class="comment cmt">An <code>Rx</code> whose dependencies are set dynamically at runtime when <code>calc</code> is
+evaluated, and may change again any time it gets re-evaluated
+</p>
+    </li><li name="rx.core.Emitter" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="Emitter[+T]extendsNode"></a>
+      <a id="Emitter[+T]:Emitter[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Emitter.html"><span class="name">Emitter</span></a><span class="tparams">[<span name="T">+T</span>]</span><span class="result"> extends <a href="Node.html" class="extype" name="rx.core.Node">Node</a></span>
+      </span>
+      </h4>
+      <p class="comment cmt">Something that emits pings.</p>
+    </li><li name="rx.core.Node" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="NodeextendsAnyRef"></a>
+      <a id="Node:Node"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Node.html"><span class="name">Node</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">A member of a Scala.</p>
+    </li><li name="rx.core.Obs" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ObsextendsReactor[Any]"></a>
+      <a id="Obs:Obs"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Obs.html"><span class="name">Obs</span></a><span class="result"> extends <a href="Reactor.html" class="extype" name="rx.core.Reactor">Reactor</a>[<span class="extype" name="scala.Any">Any</span>]</span>
+      </span>
+      </h4>
+      <p class="comment cmt">An <a href="Obs.html" class="extype" name="rx.core.Obs">Obs</a> is something that produces side-effects when the source <a href="Rx.html" class="extype" name="rx.core.Rx">Rx</a>
+changes.</p>
+    </li><li name="rx.core.Propagator" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="Propagator[P]extendsAnyRef"></a>
+      <a id="Propagator[P]:Propagator[P]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Propagator.html"><span class="name">Propagator</span></a><span class="tparams">[<span name="P">P</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">A Propagator is an object which performs a propagation wave over the
+Scala.</p>
+    </li><li name="rx.core.Reactor" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="Reactor[-T]extendsNode"></a>
+      <a id="Reactor[-T]:Reactor[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Reactor.html"><span class="name">Reactor</span></a><span class="tparams">[<span name="T">-T</span>]</span><span class="result"> extends <a href="Node.html" class="extype" name="rx.core.Node">Node</a></span>
+      </span>
+      </h4>
+      <p class="comment cmt">Something that can receive pings and react to them in some way.</p>
+    </li><li name="rx.core.Rx" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="Rx[+T]extendsEmitter[T]withReactor[Any]"></a>
+      <a id="Rx[+T]:Rx[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Rx.html"><span class="name">Rx</span></a><span class="tparams">[<span name="T">+T</span>]</span><span class="result"> extends <a href="Emitter.html" class="extype" name="rx.core.Emitter">Emitter</a>[<span class="extype" name="rx.core.Rx.T">T</span>] with <a href="Reactor.html" class="extype" name="rx.core.Reactor">Reactor</a>[<span class="extype" name="scala.Any">Any</span>]</span>
+      </span>
+      </h4>
+      <p class="comment cmt">An <a href="Rx.html" class="extype" name="rx.core.Rx">Rx</a> is a value that can change over time, emitting pings whenever it
+changes to notify any dependent <a href="Rx.html" class="extype" name="rx.core.Rx">Rx</a>s that they need to update.</p>
+    </li><li name="rx.core.SpinSet" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SpinSet[T]extendsAtomicReference[T]withProductwithSerializable"></a>
+      <a id="SpinSet[T]:SpinSet[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="SpinSet.html"><span class="name">SpinSet</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="t">t: <span class="extype" name="rx.core.SpinSet.T">T</span></span>)</span><span class="result"> extends <span class="extype" name="java.util.concurrent.atomic.AtomicReference">AtomicReference</span>[<span class="extype" name="rx.core.SpinSet.T">T</span>] with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">A wrapper around <code>AtomicReference</code>, allowing you to apply &quot;atomic&quot;
+transforms to the boxed data by using a Compare-And-Set retry loop.</p>
+    </li><li name="rx.core.Var" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Var[T]extendsRx[T]"></a>
+      <a id="Var[T]:Var[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Var.html"><span class="name">Var</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <a href="Rx.html" class="extype" name="rx.core.Rx">Rx</a>[<span class="extype" name="rx.core.Var.T">T</span>]</span>
+      </span>
+      </h4>
+      <p class="comment cmt">A <a href="Var.html" class="extype" name="rx.core.Var">Var</a> is an <a href="Rx.html" class="extype" name="rx.core.Rx">Rx</a> which can be changed manually via assignment.</p>
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="rx.core.Dynamic" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Dynamic"></a>
+      <a id="Dynamic:Dynamic"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Dynamic$.html"><span class="name">Dynamic</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="rx.core.Obs" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Obs"></a>
+      <a id="Obs:Obs"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Obs$.html"><span class="name">Obs</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="rx.core.Propagator" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Propagator"></a>
+      <a id="Propagator:Propagator"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Propagator$.html"><span class="name">Propagator</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="rx.core.Rx" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Rx"></a>
+      <a id="Rx:Rx"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Rx$.html"><span class="name">Rx</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="rx.core.Var" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Var"></a>
+      <a id="Var:Var"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Var$.html"><span class="name">Var</span></a>
+      </span>
+      </h4>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+      <script defer="defer" type="text/javascript" id="jquery-js" src="../../lib/jquery.js"></script><script defer="defer" type="text/javascript" id="jquery-ui-js" src="../../lib/jquery-ui.js"></script><script defer="defer" type="text/javascript" id="tools-tooltip-js" src="../../lib/tools.tooltip.js"></script><script defer="defer" type="text/javascript" id="template-js" src="../../lib/template.js"></script>
+    </body>
+      </html>

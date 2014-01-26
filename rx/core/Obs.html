@@ -2,22 +2,17 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html>
         <head>
-          <title>Reactor - rx.Reactor</title>
-          <meta name="description" content="Reactor - rx.Reactor" />
-          <meta name="keywords" content="Reactor rx.Reactor" />
+          <title>Obs - rx.core.Obs</title>
+          <meta name="description" content="Obs - rx.core.Obs" />
+          <meta name="keywords" content="Obs rx.core.Obs" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
-      <link href="../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
-      <link href="../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
-      <script type="text/javascript" src="../lib/jquery.js" id="jquery-js"></script>
-      <script type="text/javascript" src="../lib/jquery-ui.js"></script>
-      <script type="text/javascript" src="../lib/template.js"></script>
-      <script type="text/javascript" src="../lib/tools.tooltip.js"></script>
-      
+      <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
       <script type="text/javascript">
          if(top === self) {
-            var url = '../index.html';
-            var hash = 'rx.Reactor';
+            var url = '../../index.html';
+            var hash = 'rx.core.Obs';
             var anchor = window.location.hash;
             var anchor_opt = '';
             if (anchor.length >= 1)
@@ -29,29 +24,28 @@
         </head>
         <body class="type">
       <div id="definition">
-        <img src="../lib/trait_big.png" />
-        <p id="owner"><a href="package.html" class="extype" name="rx">rx</a></p>
-        <h1>Reactor</h1>
+        <a href="Obs$.html" title="Go to companion"><img src="../../lib/class_to_object_big.png" /></a>
+        <p id="owner"><a href="../package.html" class="extype" name="rx">rx</a>.<a href="package.html" class="extype" name="rx.core">core</a></p>
+        <h1><a href="Obs$.html" title="Go to companion">Obs</a></h1>
       </div>
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">trait</span>
+        <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">Reactor</span><span class="tparams">[<span name="T">-T</span>]</span><span class="result"> extends <span class="extype" name="rx.Node">Node</span></span>
+        <span class="name">Obs</span><span class="result"> extends <a href="Reactor.html" class="extype" name="rx.core.Reactor">Reactor</a>[<span class="extype" name="scala.Any">Any</span>]</span>
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Something that can receive pings and react to them in some way. How it reacts
-is up to the implementation.
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>An <a href="" class="extype" name="rx.core.Obs">Obs</a> is something that produces side-effects when the source <a href="Rx.html" class="extype" name="rx.core.Rx">Rx</a>
+changes. An <a href="" class="extype" name="rx.core.Obs">Obs</a> is always run right at the end of every propagation wave,
+ensuring it is only called once per wave (in contrast with <a href="Rx.html" class="extype" name="rx.core.Rx">Rx</a>s, which
+may update multiple times before settling).
 </p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><span class="extype" name="rx.Node">Node</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
-        </div><div class="toggleContainer block">
-          <span class="toggle">Known Subclasses</span>
-          <div class="subClasses hiddenContent"><a href="Obs.html" class="extype" name="rx.Obs">Obs</a></div>
+          <div class="superTypes hiddenContent"><a href="Reactor.html" class="extype" name="rx.core.Reactor">Reactor</a>[<span class="extype" name="scala.Any">Any</span>], <a href="Node.html" class="extype" name="rx.core.Node">Node</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -69,7 +63,7 @@ is up to the implementation.
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="rx.Reactor"><span>Reactor</span></li><li class="in" name="rx.Node"><span>Node</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="rx.core.Obs"><span>Obs</span></li><li class="in" name="rx.core.Reactor"><span>Reactor</span></li><li class="in" name="rx.core.Node"><span>Node</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -87,72 +81,31 @@ is up to the implementation.
 
       <div id="template">
         <div id="allMembers">
-        
-
-        
-
-        <div id="values" class="values members">
-              <h3>Abstract Value Members</h3>
-              <ol><li name="rx.Reactor#getParents" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="getParents:Seq[rx.Emitter[Any]]"></a>
-      <a id="getParents:Seq[Emitter[Any]]"></a>
+        <div id="constructors" class="members">
+              <h3>Instance Constructors</h3>
+              <ol><li name="rx.core.Obs#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&lt;init&gt;(source:rx.core.Emitter[Any],callback:()=&gt;Unit,name:String,skipInitial:Boolean):rx.core.Obs"></a>
+      <a id="&lt;init&gt;:Obs"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
+        <span class="modifier"></span>
+        <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">getParents</span><span class="result">: <span class="extype" name="scala.Seq">Seq</span>[<a href="Emitter.html" class="extype" name="rx.Emitter">Emitter</a>[<span class="extype" name="scala.Any">Any</span>]]</span>
+        <span class="name">Obs</span><span class="params">(<span name="source">source: <a href="Emitter.html" class="extype" name="rx.core.Emitter">Emitter</a>[<span class="extype" name="scala.Any">Any</span>]</span>, <span name="callback">callback: () ⇒ <span class="extype" name="scala.Unit">Unit</span></span>, <span name="name">name: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>, <span name="skipInitial">skipInitial: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>)</span>
       </span>
       </h4>
-      <p class="shortcomment cmt">Returns the list of <a href="Emitter.html" class="extype" name="rx.Emitter">Emitter</a>s which this <a href="" class="extype" name="rx.Reactor">Reactor</a> is currently bound to.</p>
-    </li><li name="rx.Node#level" visbl="prt" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="level:Long"></a>
-      <a id="level:Long"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">level</span><span class="result">: <span class="extype" name="scala.Long">Long</span></span>
-      </span>
-      </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="package.html" class="extype" name="rx">rx</a>] </dd><dt>Definition Classes</dt><dd>Node</dd></dl></div>
-    </li><li name="rx.Node#name" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="name:String"></a>
-      <a id="name:String"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">name</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
-      </span>
-      </h4>
-      <p class="shortcomment cmt">The name of this object, generally passed in as a <code>String</code> when it is
-created.</p><div class="fullcomment"><div class="comment cmt"><p>The name of this object, generally passed in as a <code>String</code> when it is
-created. This can be inspected later.
-</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd>Node</dd></dl></div>
-    </li><li name="rx.Reactor#ping" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="ping[P](incoming:Seq[rx.Emitter[Any]])(implicitevidence$1:rx.Propagator[P]):Seq[rx.Reactor[Nothing]]"></a>
-      <a id="ping[P](Seq[Emitter[Any]])(Propagator[P]):Seq[Reactor[Nothing]]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">ping</span><span class="tparams">[<span name="P">P</span>]</span><span class="params">(<span name="incoming">incoming: <span class="extype" name="scala.Seq">Seq</span>[<a href="Emitter.html" class="extype" name="rx.Emitter">Emitter</a>[<span class="extype" name="scala.Any">Any</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="Propagator.html" class="extype" name="rx.Propagator">Propagator</a>[<span class="extype" name="rx.Reactor.ping.P">P</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Seq">Seq</span>[<a href="" class="extype" name="rx.Reactor">Reactor</a>[<span class="extype" name="scala.Nothing">Nothing</span>]]</span>
-      </span>
-      </h4>
-      <p class="shortcomment cmt">Pings this <a href="" class="extype" name="rx.Reactor">Reactor</a> with some <a href="Emitter.html" class="extype" name="rx.Emitter">Emitter</a>s, causing it to react.</p>
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">callback</dt><dd class="cmt"><p>a callback to run when this Obs is pinged
+</p></dd></dl></div>
     </li></ol>
             </div>
 
+        
+
+        
+
         <div id="values" class="values members">
-              <h3>Concrete Value Members</h3>
+              <h3>Value Members</h3>
               <ol><li name="scala.AnyRef#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:AnyRef):Boolean"></a>
       <a id="!=(AnyRef):Boolean"></a>
@@ -218,6 +171,35 @@ created. This can be inspected later.
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="rx.core.Reactor#alive" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="alive:Boolean"></a>
+      <a id="alive:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">alive</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Whether or not this <a href="Reactor.html" class="extype" name="rx.core.Reactor">Reactor</a> is currently alive.</p><div class="fullcomment"><div class="comment cmt"><p>Whether or not this <a href="Reactor.html" class="extype" name="rx.core.Reactor">Reactor</a> is currently alive. Only <a href="Reactor.html" class="extype" name="rx.core.Reactor">Reactor</a>s
+which are alive will receive updates and propagate changes.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Reactor.html" class="extype" name="rx.core.Reactor">Reactor</a></dd></dl></div>
+    </li><li name="rx.core.Reactor#ancestors" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ancestors:Set[rx.core.Emitter[_]]"></a>
+      <a id="ancestors:Set[Emitter[_]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ancestors</span><span class="result">: <span class="extype" name="scala.Predef.Set">Set</span>[<a href="Emitter.html" class="extype" name="rx.core.Emitter">Emitter</a>[_]]</span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">All parents, parent's parents, etc.</p><div class="fullcomment"><div class="comment cmt"><p>All parents, parent's parents, etc. recursively.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Reactor.html" class="extype" name="rx.core.Reactor">Reactor</a></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
@@ -243,23 +225,13 @@ created. This can be inspected later.
         <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
-                <span class="name">@throws</span><span class="args">()</span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
+    </span>)</span>
               
         </dd></dl></div>
-    </li><li name="rx.Node#debug" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="debug(s:String):Unit"></a>
-      <a id="debug(String):Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">debug</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[this] </dd><dt>Definition Classes</dt><dd>Node</dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -298,8 +270,11 @@ created. This can be inspected later.
         <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
-                <span class="name">@throws</span><span class="args">()</span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="symbol">classOf[java.lang.Throwable]</span>
+    </span>)</span>
               
         </dd></dl></div>
     </li><li name="scala.AnyRef#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -341,6 +316,59 @@ created. This can be inspected later.
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="rx.core.Reactor#kill" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="kill():Unit"></a>
+      <a id="kill():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">kill</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Stops this Reactor from listening for updates.</p><div class="fullcomment"><div class="comment cmt"><p>Stops this Reactor from listening for updates. <a href="" class="extype" name="rx.core.Obs">Obs</a>s would stop
+triggering, <a href="Rx.html" class="extype" name="rx.core.Rx">Rx</a>s would stop updating and propagating. In Scala-JS,
+this is necessary to allow the Reactor to be garbage collected, while
+in Scala-JVM this is unnecessary because of weak references.</p><p><code>.kill()</code> is irreversible.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Reactor.html" class="extype" name="rx.core.Reactor">Reactor</a></dd></dl></div>
+    </li><li name="rx.core.Obs#level" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="level:Long"></a>
+      <a id="level:Long"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">level</span><span class="result">: <span class="extype" name="scala.Long">Long</span></span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">A number giving an approximate ordering of the current <a href="Node.html" class="extype" name="rx.core.Node">Node</a> in the
+dataflow graph it is part of.</p><div class="fullcomment"><div class="comment cmt"><p>A number giving an approximate ordering of the current <a href="Node.html" class="extype" name="rx.core.Node">Node</a> in the
+dataflow graph it is part of.</p><p><a href="Var.html" class="extype" name="rx.core.Var">Var</a>s have it set to 0 and <a href="" class="extype" name="rx.core.Obs">Obs</a> have it set to Long.MaxValue because
+they're always the root and leaves of the graph. For other <a href="Rx.html" class="extype" name="rx.core.Rx">Rx</a>s it
+depends on their location within the dataflow graph, and can change over
+time if the shape of the graph is changing.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="rx.core.Obs">Obs</a> → <a href="Node.html" class="extype" name="rx.core.Node">Node</a></dd></dl></div>
+    </li><li name="rx.core.Obs#name" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="name:String"></a>
+      <a id="name:String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">name</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">The name of this object, generally passed in as a <code>String</code> when it is
+created.</p><div class="fullcomment"><div class="comment cmt"><p>The name of this object, generally passed in as a <code>String</code> when it is
+created.</p><p>This can be inspected later, and is handy for debugging and logging
+purposes.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="rx.core.Obs">Obs</a> → <a href="Node.html" class="extype" name="rx.core.Node">Node</a></dd></dl></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>
@@ -380,6 +408,35 @@ created. This can be inspected later.
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="rx.core.Obs#parents" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="parents:scala.collection.immutable.Set[rx.core.Emitter[Any]]"></a>
+      <a id="parents:Set[Emitter[Any]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">parents</span><span class="result">: <span class="extype" name="scala.collection.immutable.Set">Set</span>[<a href="Emitter.html" class="extype" name="rx.core.Emitter">Emitter</a>[<span class="extype" name="scala.Any">Any</span>]]</span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">The list of <a href="Emitter.html" class="extype" name="rx.core.Emitter">Emitter</a>s which this <a href="Reactor.html" class="extype" name="rx.core.Reactor">Reactor</a> is currently bound to.</p><div class="fullcomment"><div class="comment cmt"><p>The list of <a href="Emitter.html" class="extype" name="rx.core.Emitter">Emitter</a>s which this <a href="Reactor.html" class="extype" name="rx.core.Reactor">Reactor</a> is currently bound to.</p><p>Any of these <span class="extype" name="Emitters">Emitters</span> emitting a ping will cause this <a href="Reactor.html" class="extype" name="rx.core.Reactor">Reactor</a>
+to react.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="rx.core.Obs">Obs</a> → <a href="Reactor.html" class="extype" name="rx.core.Reactor">Reactor</a></dd></dl></div>
+    </li><li name="rx.core.Obs#ping" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ping[P](incoming:Set[rx.core.Emitter[_]])(implicitevidence$4:rx.core.Propagator[P]):scala.collection.immutable.Set[rx.core.Reactor[_]]"></a>
+      <a id="ping[P](Set[Emitter[_]])(Propagator[P]):Set[Reactor[_]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ping</span><span class="tparams">[<span name="P">P</span>]</span><span class="params">(<span name="incoming">incoming: <span class="extype" name="scala.Predef.Set">Set</span>[<a href="Emitter.html" class="extype" name="rx.core.Emitter">Emitter</a>[_]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="Propagator.html" class="extype" name="rx.core.Propagator">Propagator</a>[<span class="extype" name="rx.core.Obs.ping.P">P</span>]</span>)</span><span class="result">: <span class="extype" name="scala.collection.immutable.Set">Set</span>[<a href="Reactor.html" class="extype" name="rx.core.Reactor">Reactor</a>[_]]</span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Pings this <a href="Reactor.html" class="extype" name="rx.core.Reactor">Reactor</a> with some <a href="Emitter.html" class="extype" name="rx.core.Emitter">Emitter</a>s, causing it to react.</p><div class="fullcomment"><div class="comment cmt"><p>Pings this <a href="Reactor.html" class="extype" name="rx.core.Reactor">Reactor</a> with some <a href="Emitter.html" class="extype" name="rx.core.Emitter">Emitter</a>s, causing it to react.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="rx.core.Obs">Obs</a> → <a href="Reactor.html" class="extype" name="rx.core.Reactor">Reactor</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -406,6 +463,19 @@ created. This can be inspected later.
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="rx.core.Obs#trigger" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="trigger():scala.collection.immutable.Set[rx.core.Reactor[_]]"></a>
+      <a id="trigger():Set[Reactor[_]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">trigger</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.collection.immutable.Set">Set</span>[<a href="Reactor.html" class="extype" name="rx.core.Reactor">Reactor</a>[_]]</span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Manually trigger this observer, causing its callback to run.</p>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>
@@ -419,7 +489,10 @@ created. This can be inspected later.
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
-                <span class="name">@throws</span><span class="args">()</span>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
               
         </dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -435,7 +508,10 @@ created. This can be inspected later.
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
-                <span class="name">@throws</span><span class="args">()</span>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
               
         </dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -451,7 +527,10 @@ created. This can be inspected later.
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
-                <span class="name">@throws</span><span class="args">()</span>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
               
         </dd></dl></div>
     </li></ol>
@@ -463,8 +542,10 @@ created. This can be inspected later.
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="rx.Node">
-              <h3>Inherited from <span class="extype" name="rx.Node">Node</span></h3>
+        <div class="parent" name="rx.core.Reactor">
+              <h3>Inherited from <a href="Reactor.html" class="extype" name="rx.core.Reactor">Reactor</a>[<span class="extype" name="scala.Any">Any</span>]</h3>
+            </div><div class="parent" name="rx.core.Node">
+              <h3>Inherited from <a href="Node.html" class="extype" name="rx.core.Node">Node</a></h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">
@@ -485,7 +566,6 @@ created. This can be inspected later.
       <div id="tooltip"></div>
 
       <div id="footer">  </div>
-
-
+      <script defer="defer" type="text/javascript" id="jquery-js" src="../../lib/jquery.js"></script><script defer="defer" type="text/javascript" id="jquery-ui-js" src="../../lib/jquery-ui.js"></script><script defer="defer" type="text/javascript" id="tools-tooltip-js" src="../../lib/tools.tooltip.js"></script><script defer="defer" type="text/javascript" id="template-js" src="../../lib/template.js"></script>
     </body>
       </html>

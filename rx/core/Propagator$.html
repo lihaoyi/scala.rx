@@ -2,22 +2,17 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html>
         <head>
-          <title>Propagator - rx.Propagator</title>
-          <meta name="description" content="Propagator - rx.Propagator" />
-          <meta name="keywords" content="Propagator rx.Propagator" />
+          <title>Propagator - rx.core.Propagator</title>
+          <meta name="description" content="Propagator - rx.core.Propagator" />
+          <meta name="keywords" content="Propagator rx.core.Propagator" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
-      <link href="../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
-      <link href="../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
-      <script type="text/javascript" src="../lib/jquery.js" id="jquery-js"></script>
-      <script type="text/javascript" src="../lib/jquery-ui.js"></script>
-      <script type="text/javascript" src="../lib/template.js"></script>
-      <script type="text/javascript" src="../lib/tools.tooltip.js"></script>
-      
+      <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
       <script type="text/javascript">
          if(top === self) {
-            var url = '../index.html';
-            var hash = 'rx.Propagator$';
+            var url = '../../index.html';
+            var hash = 'rx.core.Propagator$';
             var anchor = window.location.hash;
             var anchor_opt = '';
             if (anchor.length >= 1)
@@ -29,8 +24,8 @@
         </head>
         <body class="value">
       <div id="definition">
-        <a href="Propagator.html" title="Go to companion"><img src="../lib/object_to_trait_big.png" /></a>
-        <p id="owner"><a href="package.html" class="extype" name="rx">rx</a></p>
+        <a href="Propagator.html" title="Go to companion"><img src="../../lib/object_to_trait_big.png" /></a>
+        <p id="owner"><a href="../package.html" class="extype" name="rx">rx</a>.<a href="package.html" class="extype" name="rx.core">core</a></p>
         <h1><a href="Propagator.html" title="Go to companion">Propagator</a></h1>
       </div>
 
@@ -64,7 +59,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="rx.Propagator"><span>Propagator</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="rx.core.Propagator"><span>Propagator</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -86,16 +81,16 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="rx.Propagator.Parallelizing" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ParallelizingextendsPropagator[scala.concurrent.Future[Unit]]"></a>
-      <a id="Parallelizing:Parallelizing"></a>
+              <ol><li name="rx.core.Propagator.ExecContext" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ExecContextextendsPropagator[scala.concurrent.Future[Unit]]"></a>
+      <a id="ExecContext:ExecContext"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="Propagator$$Parallelizing.html"><span class="name">Parallelizing</span></a><span class="result"> extends <a href="Propagator.html" class="extype" name="rx.Propagator">Propagator</a>[<span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Unit">Unit</span>]]</span>
+        <a href="Propagator$$ExecContext.html"><span class="name">ExecContext</span></a><span class="result"> extends <a href="Propagator.html" class="extype" name="rx.core.Propagator">Propagator</a>[<span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Unit">Unit</span>]]</span>
       </span>
       </h4>
       <p class="comment cmt">A propagator which runs propagation waves on the given <code>ExecutionContext</code>.</p>
@@ -171,7 +166,7 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="rx.Propagator.Immediate" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="rx.core.Propagator.Immediate" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Immediate"></a>
       <a id="Immediate:Immediate"></a>
       <h4 class="signature">
@@ -180,13 +175,13 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="Propagator$$Immediate$.html"><span class="name">Immediate</span></a><span class="result"> extends <a href="Propagator.html" class="extype" name="rx.Propagator">Propagator</a>[<span class="extype" name="scala.Unit">Unit</span>]</span>
+        <a href="Propagator$$Immediate$.html"><span class="name">Immediate</span></a><span class="result"> extends <a href="Propagator.html" class="extype" name="rx.core.Propagator">Propagator</a>[<span class="extype" name="scala.Unit">Unit</span>]</span>
       </span>
       </h4>
       <p class="comment cmt">A propagator which runs propagation waves on the thread which triggered
 it.</p>
-    </li><li name="rx.Propagator#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[P]()(implicitevidence$1:rx.Propagator[P]):rx.Propagator[P]"></a>
+    </li><li name="rx.core.Propagator#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="apply[P]()(implicitevidence$1:rx.core.Propagator[P]):rx.core.Propagator[P]"></a>
       <a id="apply[P]()(Propagator[P]):Propagator[P]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -194,10 +189,10 @@ it.</p>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="P">P</span>]</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="Propagator.html" class="extype" name="rx.Propagator">Propagator</a>[<span class="extype" name="rx.Propagator.apply.P">P</span>]</span>)</span><span class="result">: <a href="Propagator.html" class="extype" name="rx.Propagator">Propagator</a>[<span class="extype" name="rx.Propagator.apply.P">P</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="P">P</span>]</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="Propagator.html" class="extype" name="rx.core.Propagator">Propagator</a>[<span class="extype" name="rx.core.Propagator.apply.P">P</span>]</span>)</span><span class="result">: <a href="Propagator.html" class="extype" name="rx.core.Propagator">Propagator</a>[<span class="extype" name="rx.core.Propagator.apply.P">P</span>]</span>
       </span>
       </h4>
-      <p class="shortcomment cmt">Convenience method to retrieve the implicit <a href="Propagator.html" class="extype" name="rx.Propagator">Propagator</a> from the
+      <p class="shortcomment cmt">Convenience method to retrieve the implicit <a href="Propagator.html" class="extype" name="rx.core.Propagator">Propagator</a> from the
 enclosing scope.</p>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
@@ -224,8 +219,11 @@ enclosing scope.</p>
         <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
-                <span class="name">@throws</span><span class="args">()</span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
+    </span>)</span>
               
         </dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -266,8 +264,11 @@ enclosing scope.</p>
         <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
-                <span class="name">@throws</span><span class="args">()</span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="symbol">classOf[java.lang.Throwable]</span>
+    </span>)</span>
               
         </dd></dl></div>
     </li><li name="scala.AnyRef#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -387,7 +388,10 @@ enclosing scope.</p>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
-                <span class="name">@throws</span><span class="args">()</span>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
               
         </dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -403,7 +407,10 @@ enclosing scope.</p>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
-                <span class="name">@throws</span><span class="args">()</span>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
               
         </dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -419,7 +426,10 @@ enclosing scope.</p>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
-                <span class="name">@throws</span><span class="args">()</span>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
               
         </dd></dl></div>
     </li></ol>
@@ -451,7 +461,6 @@ enclosing scope.</p>
       <div id="tooltip"></div>
 
       <div id="footer">  </div>
-
-
+      <script defer="defer" type="text/javascript" id="jquery-js" src="../../lib/jquery.js"></script><script defer="defer" type="text/javascript" id="jquery-ui-js" src="../../lib/jquery-ui.js"></script><script defer="defer" type="text/javascript" id="tools-tooltip-js" src="../../lib/tools.tooltip.js"></script><script defer="defer" type="text/javascript" id="template-js" src="../../lib/template.js"></script>
     </body>
       </html>

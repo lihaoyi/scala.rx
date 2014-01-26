@@ -2,22 +2,17 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html>
         <head>
-          <title>Propagator - rx.Propagator</title>
-          <meta name="description" content="Propagator - rx.Propagator" />
-          <meta name="keywords" content="Propagator rx.Propagator" />
+          <title>Scheduler - rx.ops.Scheduler</title>
+          <meta name="description" content="Scheduler - rx.ops.Scheduler" />
+          <meta name="keywords" content="Scheduler rx.ops.Scheduler" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
-      <link href="../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
-      <link href="../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
-      <script type="text/javascript" src="../lib/jquery.js" id="jquery-js"></script>
-      <script type="text/javascript" src="../lib/jquery-ui.js"></script>
-      <script type="text/javascript" src="../lib/template.js"></script>
-      <script type="text/javascript" src="../lib/tools.tooltip.js"></script>
-      
+      <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
       <script type="text/javascript">
          if(top === self) {
-            var url = '../index.html';
-            var hash = 'rx.Propagator';
+            var url = '../../index.html';
+            var hash = 'rx.ops.Scheduler';
             var anchor = window.location.hash;
             var anchor_opt = '';
             if (anchor.length >= 1)
@@ -29,9 +24,9 @@
         </head>
         <body class="type">
       <div id="definition">
-        <a href="Propagator$.html" title="Go to companion"><img src="../lib/trait_to_object_big.png" /></a>
-        <p id="owner"><a href="package.html" class="extype" name="rx">rx</a></p>
-        <h1><a href="Propagator$.html" title="Go to companion">Propagator</a></h1>
+        <img src="../../lib/trait_big.png" />
+        <p id="owner"><a href="../package.html" class="extype" name="rx">rx</a>.<a href="package.html" class="extype" name="rx.ops">ops</a></p>
+        <h1>Scheduler</h1>
       </div>
 
       <h4 id="signature" class="signature">
@@ -40,27 +35,18 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">Propagator</span><span class="tparams">[<span name="P">P</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <span class="name">Scheduler</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A Propagator is an object which performs a propagation wave over the
-Scala.Rx dataflow graph. It is parametrized on the type P which it returns
-after performing a propagation wave. The two existing Propagators are:</p><p>- Immediate (<code>Propagator[Unit]</code>), which runs the propagation wave immediately
-  and returns Unit when it is complete.
-- Parallelizing (<code>Propagator[Future[Unit]]</code>), which runs the propagation wave
-  on the given <code>ExecutionContext</code> and returns a <code>Future[Unit]</code> representing
-  the completion of the propagation wave.</p><p>It is conceivable that custom propagators could use the return type <code>P</code> to
-return other things, e.g. the number of updates performed, or the number
-of re-tries in that propagation wave. That is up to the implementer to
-decide.
-</p></div><dl class="paramcmts block"><dt class="tparam">P</dt><dd class="cmt"><p>the type that the <code>propagate()</code> function returns
-</p></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A generic interface which can be used to schedule tasks.</p><p>On the JVM this is an Akka <code>ActorSystem</code>, while in Javascript it is the
+<code>setTimeout</code> function.
+</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">
           <span class="toggle">Known Subclasses</span>
-          <div class="subClasses hiddenContent"><a href="Propagator$$Immediate$.html" class="extype" name="rx.Propagator.Immediate">Immediate</a>, <a href="Propagator$$Parallelizing.html" class="extype" name="rx.Propagator.Parallelizing">Parallelizing</a></div>
+          <div class="subClasses hiddenContent"><a href="AkkaScheduler.html" class="extype" name="rx.ops.AkkaScheduler">AkkaScheduler</a></div>
         </div></div>
         
 
@@ -78,7 +64,7 @@ decide.
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="rx.Propagator"><span>Propagator</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="rx.ops.Scheduler"><span>Scheduler</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -102,22 +88,19 @@ decide.
 
         <div id="values" class="values members">
               <h3>Abstract Value Members</h3>
-              <ol><li name="rx.Propagator#propagate" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="propagate(pings:Seq[(rx.Emitter[Any],rx.Reactor[Nothing])]):P"></a>
-      <a id="propagate(Seq[(Emitter[Any],Reactor[Nothing])]):P"></a>
+              <ol><li name="rx.ops.Scheduler#scheduleOnce" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="scheduleOnce[T](interval:scala.concurrent.duration.FiniteDuration)(thunk:=&gt;T)(implicitexecutor:scala.concurrent.ExecutionContext):Unit"></a>
+      <a id="scheduleOnce[T](FiniteDuration)(⇒T)(ExecutionContext):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">abstract </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">propagate</span><span class="params">(<span name="pings">pings: <span class="extype" name="scala.Seq">Seq</span>[(<a href="Emitter.html" class="extype" name="rx.Emitter">Emitter</a>[<span class="extype" name="scala.Any">Any</span>], <a href="Reactor.html" class="extype" name="rx.Reactor">Reactor</a>[<span class="extype" name="scala.Nothing">Nothing</span>])]</span>)</span><span class="result">: <span class="extype" name="rx.Propagator.P">P</span></span>
+        <span class="name">scheduleOnce</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="interval">interval: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span></span>)</span><span class="params">(<span name="thunk">thunk: ⇒ <span class="extype" name="rx.ops.Scheduler.scheduleOnce.T">T</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="executor">executor: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4>
-      <p class="shortcomment cmt">Begins a propagation wave, with a set of</p><div class="fullcomment"><div class="comment cmt"><p>Begins a propagation wave, with a set of</p><p>    Emitter -&gt; Reactor</p><p>pings. See the implementation of <a href="Propagator$$Immediate$.html" class="extype" name="rx.Propagator.Immediate">Propagator.Immediate</a> or
-<a href="Propagator$$Parallelizing.html" class="extype" name="rx.Propagator.Parallelizing">Propagator.Parallelizing</a> to see how this is generally done
-</p></div><dl class="paramcmts block"><dt class="param">pings</dt><dd class="cmt"><p>The set of pings which begin this propagation wave</p></dd><dt>returns</dt><dd class="cmt"><p>Some value of type P, dependent on the implementation
-</p></dd></dl></div>
+      
     </li></ol>
             </div>
 
@@ -213,8 +196,11 @@ decide.
         <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
-                <span class="name">@throws</span><span class="args">()</span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
+    </span>)</span>
               
         </dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -255,8 +241,11 @@ decide.
         <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
-                <span class="name">@throws</span><span class="args">()</span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="symbol">classOf[java.lang.Throwable]</span>
+    </span>)</span>
               
         </dd></dl></div>
     </li><li name="scala.AnyRef#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -376,7 +365,10 @@ decide.
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
-                <span class="name">@throws</span><span class="args">()</span>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
               
         </dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -392,7 +384,10 @@ decide.
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
-                <span class="name">@throws</span><span class="args">()</span>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
               
         </dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -408,7 +403,10 @@ decide.
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
-                <span class="name">@throws</span><span class="args">()</span>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
               
         </dd></dl></div>
     </li></ol>
@@ -440,7 +438,6 @@ decide.
       <div id="tooltip"></div>
 
       <div id="footer">  </div>
-
-
+      <script defer="defer" type="text/javascript" id="jquery-js" src="../../lib/jquery.js"></script><script defer="defer" type="text/javascript" id="jquery-ui-js" src="../../lib/jquery-ui.js"></script><script defer="defer" type="text/javascript" id="tools-tooltip-js" src="../../lib/tools.tooltip.js"></script><script defer="defer" type="text/javascript" id="template-js" src="../../lib/template.js"></script>
     </body>
       </html>

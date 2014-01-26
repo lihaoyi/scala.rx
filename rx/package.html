@@ -9,11 +9,6 @@
           
       <link href="../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
       <link href="../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
-      <script type="text/javascript" src="../lib/jquery.js" id="jquery-js"></script>
-      <script type="text/javascript" src="../lib/jquery-ui.js"></script>
-      <script type="text/javascript" src="../lib/template.js"></script>
-      <script type="text/javascript" src="../lib/tools.tooltip.js"></script>
-      
       <script type="text/javascript">
          if(top === self) {
             var url = '../index.html';
@@ -45,7 +40,7 @@
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p><b>Scala.Rx</b> is an experimental change propagation library for <a href="http://www.scala-lang.org/" target="_blank">Scala</a>.
-Scala.Rx gives you Reactive variables (<a href="Rx.html" class="extype" name="rx.Rx">Rx</a>s), which are smart variables who auto-update themselves
+Scala.Rx gives you Reactive variables (<a href="#Rx[+T]=rx.core.Rx[T]" class="extmbr" name="rx.Rx">Rx</a>s), which are smart variables who auto-update themselves
 when the values they depend on change. The underlying implementation is push-based
 <a href="http://en.wikipedia.org/wiki/Functional_reactive_programming" target="_blank">FRP</a> based on the
 ideas in
@@ -98,100 +93,45 @@ instructions on how to use this package, or browse the classes on the left.
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="rx.AsyncRx" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="AsyncRx[T]extendsAnyRef"></a>
-      <a id="AsyncRx[T]:AsyncRx[T]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="package$$AsyncRx.html"><span class="name">AsyncRx</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
-      </span>
-      </h4>
-      <p class="comment cmt">Provides extension methods on <a href="Rx.html" class="extype" name="rx.Rx">Rx</a>[Future]s.</p>
-    </li><li name="rx.Emitter" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="Emitter[+T]extendsNode"></a>
-      <a id="Emitter[+T]:Emitter[T]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="Emitter.html"><span class="name">Emitter</span></a><span class="tparams">[<span name="T">+T</span>]</span><span class="result"> extends <span class="extype" name="rx.Node">Node</span></span>
-      </span>
-      </h4>
-      <p class="comment cmt">Something that emits pings.</p>
-    </li><li name="rx.Obs" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ObsextendsReactor[Any]"></a>
+              <ol><li name="rx.Obs" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Obs=rx.core.Obs"></a>
       <a id="Obs:Obs"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">class</span>
+        <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <a href="Obs.html"><span class="name">Obs</span></a><span class="result"> extends <a href="Reactor.html" class="extype" name="rx.Reactor">Reactor</a>[<span class="extype" name="scala.Any">Any</span>]</span>
+        <span class="name">Obs</span><span class="result"> = <a href="core/Obs.html" class="extype" name="rx.core.Obs">rx.core.Obs</a></span>
       </span>
       </h4>
-      <p class="comment cmt">An <a href="Obs.html" class="extype" name="rx.Obs">Obs</a> is something that produces side-effects when the source <a href="Rx.html" class="extype" name="rx.Rx">Rx</a>
-changes.</p>
-    </li><li name="rx.Propagator" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="Propagator[P]extendsAnyRef"></a>
-      <a id="Propagator[P]:Propagator[P]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="Propagator.html"><span class="name">Propagator</span></a><span class="tparams">[<span name="P">P</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
-      </span>
-      </h4>
-      <p class="comment cmt">A Propagator is an object which performs a propagation wave over the
-Scala.</p>
-    </li><li name="rx.Reactor" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="Reactor[-T]extendsNode"></a>
-      <a id="Reactor[-T]:Reactor[T]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="Reactor.html"><span class="name">Reactor</span></a><span class="tparams">[<span name="T">-T</span>]</span><span class="result"> extends <span class="extype" name="rx.Node">Node</span></span>
-      </span>
-      </h4>
-      <p class="comment cmt">Something that can receive pings and react to them in some way.</p>
-    </li><li name="rx.Rx" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="Rx[+T]extendsEmitter[T]withRxMethods[T]"></a>
+      
+    </li><li name="rx.Rx" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Rx[+T]=rx.core.Rx[T]"></a>
       <a id="Rx[+T]:Rx[T]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">trait</span>
+        <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <a href="Rx.html"><span class="name">Rx</span></a><span class="tparams">[<span name="T">+T</span>]</span><span class="result"> extends <a href="Emitter.html" class="extype" name="rx.Emitter">Emitter</a>[<span class="extype" name="rx.Rx.T">T</span>] with <span class="extype" name="rx.RxMethods">RxMethods</span>[<span class="extype" name="rx.Rx.T">T</span>]</span>
+        <span class="name">Rx</span><span class="tparams">[<span name="T">+T</span>]</span><span class="result"> = <a href="core/Rx.html" class="extype" name="rx.core.Rx">rx.core.Rx</a>[<span class="extype" name="rx.Rx.T">T</span>]</span>
       </span>
       </h4>
-      <p class="comment cmt">An <a href="Rx.html" class="extype" name="rx.Rx">Rx</a> is a value that can change over time, emitting pings whenever it
-changes to notify any dependent <a href="Rx.html" class="extype" name="rx.Rx">Rx</a>s that they need to update.</p>
+      
     </li><li name="rx.Var" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="Var[T]extendsRx[T]"></a>
+      <a id="Var[T]=rx.core.Var[T]"></a>
       <a id="Var[T]:Var[T]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">class</span>
+        <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <a href="Var.html"><span class="name">Var</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <a href="Rx.html" class="extype" name="rx.Rx">Rx</a>[<span class="extype" name="rx.Var.T">T</span>]</span>
+        <span class="name">Var</span><span class="tparams">[<span name="T">T</span>]</span><span class="result"> = <a href="core/Var.html" class="extype" name="rx.core.Var">rx.core.Var</a>[<span class="extype" name="rx.Var.T">T</span>]</span>
       </span>
       </h4>
-      <p class="comment cmt">A <a href="Var.html" class="extype" name="rx.Var">Var</a> is an <a href="Rx.html" class="extype" name="rx.Rx">Rx</a> which can be changed manually via assignment.</p>
+      
     </li></ol>
             </div>
 
@@ -199,55 +139,68 @@ changes to notify any dependent <a href="Rx.html" class="extype" name="rx.Rx">Rx
 
         <div id="values" class="values members">
               <h3>Value Members</h3>
-              <ol><li name="rx.Obs" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="Obs"></a>
-      <a id="Obs:Obs"></a>
+              <ol><li name="rx.package#Obs" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Obs:rx.core.Obs.type"></a>
+      <a id="Obs:rx.core.Obs.type"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">object</span>
+        <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <a href="Obs$.html"><span class="name">Obs</span></a>
+        <span class="name">Obs</span><span class="result">: <a href="core/Obs$.html" class="extype" name="rx.core.Obs">rx.core.Obs</a>.type</span>
       </span>
       </h4>
       
-    </li><li name="rx.Propagator" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="Propagator"></a>
-      <a id="Propagator:Propagator"></a>
+    </li><li name="rx.package#Rx" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Rx:rx.core.Rx.type"></a>
+      <a id="Rx:rx.core.Rx.type"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">object</span>
+        <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <a href="Propagator$.html"><span class="name">Propagator</span></a>
+        <span class="name">Rx</span><span class="result">: <a href="core/Rx$.html" class="extype" name="rx.core.Rx">rx.core.Rx</a>.type</span>
       </span>
       </h4>
       
-    </li><li name="rx.Rx" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="Rx"></a>
-      <a id="Rx:Rx"></a>
+    </li><li name="rx.package#Var" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Var:rx.core.Var.type"></a>
+      <a id="Var:rx.core.Var.type"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">object</span>
+        <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <a href="Rx$.html"><span class="name">Rx</span></a>
+        <span class="name">Var</span><span class="result">: <a href="core/Var$.html" class="extype" name="rx.core.Var">rx.core.Var</a>.type</span>
       </span>
       </h4>
       
-    </li><li name="rx.Var" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="Var"></a>
-      <a id="Var:Var"></a>
+    </li><li name="rx.core" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="core"></a>
+      <a id="core:core"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">object</span>
+        <span class="kind">package</span>
       </span>
       <span class="symbol">
-        <a href="Var$.html"><span class="name">Var</span></a>
+        <a href="core/package.html"><span class="name">core</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="rx.ops" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ops"></a>
+      <a id="ops:ops"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="ops/package.html"><span class="name">ops</span></a>
       </span>
       </h4>
       
@@ -280,7 +233,6 @@ changes to notify any dependent <a href="Rx.html" class="extype" name="rx.Rx">Rx
       <div id="tooltip"></div>
 
       <div id="footer">  </div>
-
-
+      <script defer="defer" type="text/javascript" id="jquery-js" src="../lib/jquery.js"></script><script defer="defer" type="text/javascript" id="jquery-ui-js" src="../lib/jquery-ui.js"></script><script defer="defer" type="text/javascript" id="tools-tooltip-js" src="../lib/tools.tooltip.js"></script><script defer="defer" type="text/javascript" id="template-js" src="../lib/template.js"></script>
     </body>
       </html>
