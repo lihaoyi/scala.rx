@@ -332,9 +332,9 @@ println(page().html()) // "About Me, time: 456"
 
 In this case, we define a web page which has a `html` value (a `Rx[String]`). However, depending on the `url`, it could be either a `HomePage` or an `AboutPage`, and so our `page` object is a `Rx[WebPage]`.
 
-Having a `Rx[WebPage]`, where the `WebPage` has an `Rx[String]` inside, seems natural and obvious, and Scala.Rx lets you do it simply and naturally. This kind of objects-within-objects situation arises very naturally when modelling a problem in an object-oriented way. The ability of Scala.Rx to gracefully handle the corresponding [Rx][1]s within [Rx][1]s allows it to gracefully fit into this paradigm, something I found lacking in most of the [[Related-Work]] I surveyed.
+Having a `Rx[WebPage]`, where the `WebPage` has an `Rx[String]` inside, seems natural and obvious, and Scala.Rx lets you do it simply and naturally. This kind of objects-within-objects situation arises very naturally when modelling a problem in an object-oriented way. The ability of Scala.Rx to gracefully handle the corresponding [Rx][1]s within [Rx][1]s allows it to gracefully fit into this paradigm, something I found lacking in most of the [Related Work](#related-work) I surveyed.
 
-Most of the examples here are taken from the [unit tests](src/test/scala/rx/BasicTests.scala), which provide more examples on guidance on how to use this library.
+Most of the examples here are taken from the [unit tests](shared/test/scala/rx/BasicTests.scala), which provide more examples on guidance on how to use this library.
 
 
 Additional Operations
@@ -471,7 +471,7 @@ println(count) // 8
 println(count) // 13
 ```
 
-A [Timer][8] is a [Rx][1] that generates events on a regular basis. The events are based on the [AkkaScheduler][4] which wraps an `ActorSystem` when running on the JVM, or a [DomScheduler][5] which wraps `setTimeout` when running on ScalaJS. In the example above, the for-loop checks that the value of the timer `t()` increases over time from 0 to 5, and then checks that `count` has been incremented at least that many times.
+A [Timer][8] is a [Rx][1] that generates events on a regular basis. The events are based on the [AkkaScheduler][4] which wraps an `ActorSystem` when running on the JVM, or a `DomScheduler` which wraps `setTimeout` when running on ScalaJS. In the example above, the for-loop checks that the value of the timer `t()` increases over time from 0 to 5, and then checks that `count` has been incremented at least that many times.
 
 The scheduled task is cancelled automatically when the [Timer][8] object becomes unreachable, so it can be garbage collected. This means you do not have to worry about managing the life-cycle of the [Timer][8]. On the other hand, this means the programmer should ensure that the reference to the [Timer][8] is held by the same object as that holding any [Rx][1] listening to it. This will ensure that the exact moment at which the [Timer][8] is garbage collected will not matter, since by then the object holding it (and any [Rx][1] it could possibly affect) are both unreachable.
 
@@ -656,7 +656,7 @@ Note that asynchronous [Rx][1]s like those from [.async](#async), [.delay](#dela
 
 Concurrency and Parallelism
 --------------------------
-By default, everything happens on a single-threaded execution context and there is no parallelism. By using a custom [Propagator.ExecContext](), it is possible to have the updates in each propagation run happen in parallel (though not on [ScalaJS](#parallelism-and-scalajs). For more information on ExecutionContexts, see the [Akka Documentation](http://doc.akka.io/docs/akka/2.1.2/scala/futures.html#futures-scala). The [unit tests](../tree/master/src/test/scala/rx/ParallelTests.scala) also contain an example of a dependency graph whose evaluation is spread over multiple threads in this way to provide a performance increase.
+By default, everything happens on a single-threaded execution context and there is no parallelism. By using a custom [Propagator.ExecContext](), it is possible to have the updates in each propagation run happen in parallel (though not on [ScalaJS](#parallelism-and-scalajs). For more information on ExecutionContexts, see the [Akka Documentation](http://doc.akka.io/docs/akka/2.1.2/scala/futures.html#futures-scala). The [unit tests](src/test/scala/rx/ParallelTests.scala) also contain an example of a dependency graph whose evaluation is spread over multiple threads in this way to provide a performance increase.
 
 Even without using an explicitly parallelizing ExecutionContext, parallelism could creep into your code in subtle ways: a delayed [Rx][1], for example may happen to fire and continue its propagation just as you update a [Var][3] somewhere on the same dependency graph, resulting in two propagations proceeding in parallel.
 
@@ -916,7 +916,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 [2]: https://lihaoyi.github.io/scala.rx/#rx.core.Obs
 [3]: https://lihaoyi.github.io/scala.rx/#rx.core.Rx
 [4]: https://lihaoyi.github.io/scala.rx/#rx.ops.AkkaScheduler
-[5]: ??? https://lihaoyi.github.io/scala.rx/#rx.ops.DomScheduler
 [6]: https://lihaoyi.github.io/scala.rx/#rx.core.Propagator.ExecContext
 [7]: https://lihaoyi.github.io/scala.rx/#rx.core.Propagator.Immediate
 [8]: https://lihaoyi.github.io/scala.rx/#rx.ops.Timer
