@@ -1,7 +1,7 @@
 Scala.Rx 0.2.0
 ==============
 
-Scala.Rx is an experimental change propagation library for [Scala](http://www.scala-lang.org/). Scala.Rx gives you Reactive variables (Rx[1]s), which are smart variables who auto-update themselves when the values they depend on change. The underlying implementation is push-based [FRP](http://en.wikipedia.org/wiki/Functional_reactive_programming) based on the ideas in [Deprecating the Observer Pattern](http://infoscience.epfl.ch/record/176887/files/DeprecatingObservers2012.pdf).
+Scala.Rx is an experimental change propagation library for [Scala](http://www.scala-lang.org/). Scala.Rx gives you Reactive variables ([Rx][1]s), which are smart variables who auto-update themselves when the values they depend on change. The underlying implementation is push-based [FRP](http://en.wikipedia.org/wiki/Functional_reactive_programming) based on the ideas in [Deprecating the Observer Pattern](http://infoscience.epfl.ch/record/176887/files/DeprecatingObservers2012.pdf).
 
 A simple example which demonstrates the behavior is:
 
@@ -81,11 +81,11 @@ println(c()) // 6
 
 The above example is an executable program. In general, `import rx._` is enough to get you started with Scala.Rx, and it will be assumed in all further examples. These examples are all taken from the [unit tests]().
 
-The basic entities you have to care about are Var[3], Rx[1] and Obs[2]:
+The basic entities you have to care about are [Var][3], [Rx][1] and [Obs][2]:
 
-- Var[3]: a smart variable which you can get using `a()` and set using `a() = ...`. Whenever its value changes, it pings any downstream entity which needs to be recalculated.
-- Rx[1]: a reactive definition which automatically captures any Var[3]s or other Rx[1]s which get called in its body, flagging them as dependencies and re-calculating whenever one of them changes. Like a Var[3], you can use the `a()` syntax to retrieve its value, and it also pings downstream entities when the value changes.
-- Obs[2]: an observer on one or more Var[3] s or Rx[1] s, performing some side-effect when the observed node changes value and sends it a ping.
+- [Var][3]: a smart variable which you can get using `a()` and set using `a() = ...`. Whenever its value changes, it pings any downstream entity which needs to be recalculated.
+- [Rx][1]: a reactive definition which automatically captures any [Var][3]s or other [Rx][1]s which get called in its body, flagging them as dependencies and re-calculating whenever one of them changes. Like a [Var][3], you can use the `a()` syntax to retrieve its value, and it also pings downstream entities when the value changes.
+- [Obs][2]: an observer on one or more [Var][3] s or [Rx][1] s, performing some side-effect when the observed node changes value and sends it a ping.
 
 Using these components, you can easily construct a *dataflow graph*, and have the various values within the dataflow graph be kept up to date when the inputs to the graph change:
 
@@ -108,19 +108,19 @@ The dataflow graph for this program looks like this:
 
 ![Dataflow Graph](media/Intro.png?raw=true)
 
-Where the Var[3]s are represented by squares, the Rx[1]s by circles and the dependencies by arrows. Each Rx[1] is labelled with its name, its body and its value.
+Where the [Var][3]s are represented by squares, the [Rx][1]s by circles and the dependencies by arrows. Each [Rx][1] is labelled with its name, its body and its value.
 
 Modifying the value of `a` causes the changes the propagate through the dataflow graph
 
 ![Dataflow Graph](media/IntroProp.png?raw=true)
 
-As can be seen above, changing the value of `a` causes the change to propagate all the way through `c` `d` `e` to `f`. You can use a Var[3] and Rx[1] anywhere you an use a normal variable.
+As can be seen above, changing the value of `a` causes the change to propagate all the way through `c` `d` `e` to `f`. You can use a [Var][3] and [Rx][1] anywhere you an use a normal variable.
 
-The changes propagate through the dataflow graph in *waves*. Each update to a Var[3] touches off a propagation, which pushes the changes from that Var[3] to any Rx[1] which is (directly or indirectly) dependent on its value. In the process, it is possible for a Rx[1] to be re-calculated more than once.
+The changes propagate through the dataflow graph in *waves*. Each update to a [Var][3] touches off a propagation, which pushes the changes from that [Var][3] to any [Rx][1] which is (directly or indirectly) dependent on its value. In the process, it is possible for a [Rx][1] to be re-calculated more than once.
 
 ###Observers
 
-As mentioned, Obs[2] s can be used to observe Rx[1] s and Var[3] s and perform side effects when they change:
+As mentioned, [Obs][2] s can be used to observe [Rx][1] s and [Var][3] s and perform side effects when they change:
 
 ```scala
 val a = Var(1)
@@ -141,9 +141,9 @@ When `a` is modified, the observer `o` will perform the side effect:
 
 ![Dataflow Graph](media/Observer2.png?raw=true)
 
-The body of Rx[1]s should be side effect free, as they may be run more than once per propagation. You should use Obs[2]s to perform your side effects, as they are guaranteed to run only once per propagation after the values for all Rx[1]s have stabilized.
+The body of [Rx][1]s should be side effect free, as they may be run more than once per propagation. You should use [Obs][2]s to perform your side effects, as they are guaranteed to run only once per propagation after the values for all [Rx][1]s have stabilized.
 
-Scala.Rx provides a convenient `.foreach()` combinator, which provides an alternate way of creating an Obs[2] from an Rx[1]:
+Scala.Rx provides a convenient `.foreach()` combinator, which provides an alternate way of creating an [Obs][2] from an [Rx][1]:
 
 ```scala
 val a = Var(1)
@@ -158,7 +158,7 @@ println(count) // 5
 
 This example does the same thing as the code above.
 
-Note that the body of the Obs[2] is run once initially when it is declared. This matches the way each Rx[1] is calculated once when it is initially declared. but it is conceivable that you want an Obs[2] which first for the first time only when the Rx[1] it is listening to *changes*. You can do this by passing the `skipInitial` flag when creating it:
+Note that the body of the [Obs][2] is run once initially when it is declared. This matches the way each [Rx][1] is calculated once when it is initially declared. but it is conceivable that you want an [Obs][2] which first for the first time only when the [Rx][1] it is listening to *changes*. You can do this by passing the `skipInitial` flag when creating it:
 
 ```scala
 val a = Var(1)
@@ -171,7 +171,7 @@ a() = 2
 println(count) // 1
 ```
 
-An Obs[2] acts to encapsulate the callback that it runs. They can be passed around, stored in variables, etc.. When the Obs[2] gets garbage collected, the callback will stop triggering. Thus, an Obs[2] should be stored in the object it affects: if the callback only affects that object, it doesn't matter when the Obs[2] itself gets garbage collected, as it will only happen after that object holding it becomes unreachable, in which case its effects cannot be observed anyway. An Obs[2] can also be actively shut off, if a stronger guarantee is needed:
+An [Obs][2] acts to encapsulate the callback that it runs. They can be passed around, stored in variables, etc.. When the [Obs][2] gets garbage collected, the callback will stop triggering. Thus, an [Obs][2] should be stored in the object it affects: if the callback only affects that object, it doesn't matter when the [Obs][2] itself gets garbage collected, as it will only happen after that object holding it becomes unreachable, in which case its effects cannot be observed anyway. An [Obs][2] can also be actively shut off, if a stronger guarantee is needed:
 
 ```scala
 val a = Var(1)
@@ -188,17 +188,17 @@ a() = 3
 println(target) // 4
 ```
 
-After manually setting `active = false`, the Obs[2] no longer triggers. Apart from `.kill()`ing Obs[2]s, you can also kill Rx[1]s, which prevents further updates. Rx[1]s also have a `.killAll()` method, which kills the Rx[1] together with *all its descendents*, useful if you decide a whole section of the graph ought to be shut off.
+After manually setting `active = false`, the [Obs][2] no longer triggers. Apart from `.kill()`ing [Obs][2]s, you can also kill [Rx][1]s, which prevents further updates. [Rx][1]s also have a `.killAll()` method, which kills the [Rx][1] together with *all its descendents*, useful if you decide a whole section of the graph ought to be shut off.
 
 In general, Scala.Rx revolves around constructing dataflow graphs which automatically keep things in sync, which you can easily interact with from external, imperative code. This involves using:
 
-- Var[3]s as inputs to the dataflow graph from the imperative world
-- Rx[1]s as the intermediate nodes in the dataflow graphs
-- Obs[2]s as the output from the dataflow graph to the imperative world
+- [Var][3]s as inputs to the dataflow graph from the imperative world
+- [Rx][1]s as the intermediate nodes in the dataflow graphs
+- [Obs][2]s as the output from the dataflow graph to the imperative world
 
 ###Complex Reactives
 
-Rx[1]s are not limited to `Int`s. `String`s, `Seq[Int]`s, `Seq[String]`s, anything can go inside an Rx[1]:
+[Rx][1]s are not limited to `Int`s. `String`s, `Seq[Int]`s, `Seq[String]`s, anything can go inside an [Rx][1]:
 
 ```scala
 val a = Var(Seq(1, 2, 3))
@@ -219,7 +219,7 @@ As shown, you can use Scala.Rx's reactive variables to model problems of arbitra
 
 ###Error Handling
 
-Since the body of an Rx[1] can be any arbitrary Scala code, it can throw exceptions. Propagating the exception up the call stack would not make much sense, as the code evaluating the Rx[1] is probably not in control of the reason it failed. Instead, any exceptions are caught by the Rx[1] itself and stored internally as a `Try`.
+Since the body of an [Rx][1] can be any arbitrary Scala code, it can throw exceptions. Propagating the exception up the call stack would not make much sense, as the code evaluating the [Rx][1] is probably not in control of the reason it failed. Instead, any exceptions are caught by the [Rx][1] itself and stored internally as a `Try`.
 
 This can be seen in the following unit test:
 
@@ -239,7 +239,7 @@ Initially, the value of `a` is `1` and so the value of `b` also is `1`. You can 
 
 However, when the value of `a` becomes `0`, the body of `b` throws an `ArithmeticException`. This is caught by `b` and re-thrown if you try to extract the value from `b` using `b()`. You can extract the entire `Try` using `toTry` and pattern match on it to handle both the `Success` case as well as the `Failure` case.
 
-When you have many Rx[1]s chained together, exceptions propagate forward following the dependency graph, as you would expect. The following code:
+When you have many [Rx][1]s chained together, exceptions propagate forward following the dependency graph, as you would expect. The following code:
 
 ```scala
 val a = Var(1)
@@ -278,7 +278,7 @@ In this example, initially all the values for `a`, `b`, `c`, `d`, `e`, `f` and `
 
 ###Nesting
 
-Rx[1]s can contain other Rx[1]s, arbitrarily deeply. This example shows the Rx[1]s nested two levels deep:
+[Rx][1]s can contain other [Rx][1]s, arbitrarily deeply. This example shows the [Rx][1]s nested two levels deep:
 
 ```scala
 val a = Var(1)
@@ -290,7 +290,7 @@ a() = 2
 println(b()._2()) // r
 ```
 
-In this example, we can see that although we modified `a`, this only affects the left-inner Rx[1], neither the right-inner Rx[1] (which takes on a different, random value each time it gets re-calculated) or the outer Rx[1] (which would cause the whole thing to re-calculate) are affected. A slightly less contrived example may be:
+In this example, we can see that although we modified `a`, this only affects the left-inner [Rx][1], neither the right-inner [Rx][1] (which takes on a different, random value each time it gets re-calculated) or the outer [Rx][1] (which would cause the whole thing to re-calculate) are affected. A slightly less contrived example may be:
 
 ```scala
 var fakeTime = 123
@@ -332,7 +332,7 @@ println(page().html()) // "About Me, time: 456"
 
 In this case, we define a web page which has a `html` value (a `Rx[String]`). However, depending on the `url`, it could be either a `HomePage` or an `AboutPage`, and so our `page` object is a `Rx[WebPage]`.
 
-Having a `Rx[WebPage]`, where the `WebPage` has an `Rx[String]` inside, seems natural and obvious, and Scala.Rx lets you do it simply and naturally. This kind of objects-within-objects situation arises very naturally when modelling a problem in an object-oriented way. The ability of Scala.Rx to gracefully handle the corresponding Rx[1]s within Rx[1]s allows it to gracefully fit into this paradigm, something I found lacking in most of the [[Related-Work]] I surveyed.
+Having a `Rx[WebPage]`, where the `WebPage` has an `Rx[String]` inside, seems natural and obvious, and Scala.Rx lets you do it simply and naturally. This kind of objects-within-objects situation arises very naturally when modelling a problem in an object-oriented way. The ability of Scala.Rx to gracefully handle the corresponding [Rx][1]s within [Rx][1]s allows it to gracefully fit into this paradigm, something I found lacking in most of the [[Related-Work]] I surveyed.
 
 Most of the examples here are taken from the [unit tests](src/test/scala/rx/BasicTests.scala), which provide more examples on guidance on how to use this library.
 
@@ -340,7 +340,7 @@ Most of the examples here are taken from the [unit tests](src/test/scala/rx/Basi
 Additional Operations
 ---------------------
 
-Apart from the basic building blocks of Var[3]/Rx[1]/Obs[2], Scala.Rx also provides a set of combinators which allow your to easily transform your Rx[1]s; this allows the programmer to avoid constantly re-writing logic for the common ways of constructing the dataflow graph. The three basic combinators: `map()`, `filter()` and `reduce()` are modelled after the scala collections library, and provide an easy way of transforming the values coming out of a Rx[1].
+Apart from the basic building blocks of [Var][3]/[Rx][1]/[Obs][2], Scala.Rx also provides a set of combinators which allow your to easily transform your [Rx][1]s; this allows the programmer to avoid constantly re-writing logic for the common ways of constructing the dataflow graph. The three basic combinators: `map()`, `filter()` and `reduce()` are modelled after the scala collections library, and provide an easy way of transforming the values coming out of a [Rx][1].
 
 ###Map
 ```scala
@@ -355,7 +355,7 @@ println(c()) // 2
 println(d()) // 6
 ```
 
-`map` does what you would expect, creating a new Rx[1] with the value of the old Rx[1] transformed by some function. For example, `a.map(_*2)` is essentially equivalent to `Rx{ a() * 2 }`, but somewhat more convenient to write.
+`map` does what you would expect, creating a new [Rx][1] with the value of the old [Rx][1] transformed by some function. For example, `a.map(_*2)` is essentially equivalent to `Rx{ a() * 2 }`, but somewhat more convenient to write.
 
 ###Filter
 ```scala
@@ -371,9 +371,9 @@ a() = 19
 println(b()) // 19
 ```
 
-`filter` ignores changes to the value of the Rx[1] that fail the predicate.
+`filter` ignores changes to the value of the [Rx][1] that fail the predicate.
 
-Note that none of the `filter` methods is able to filter out the first, initial value of a Rx[1], as there is no "older" value to fall back to. Hence this:
+Note that none of the `filter` methods is able to filter out the first, initial value of a [Rx][1], as there is no "older" value to fall back to. Hence this:
 
 ```scala
 val a = Var(2)
@@ -395,7 +395,7 @@ a() = 4
 println(b()) // 24
 ```
 
-The `reduce` operator combines subsequent values of an Rx[1] together, starting from the initial value. Every change to the original Rx[1] is combined with the previously-stored value and becomes the new value of the reduced Rx[1].
+The `reduce` operator combines subsequent values of an [Rx][1] together, starting from the initial value. Every change to the original [Rx][1] is combined with the previously-stored value and becomes the new value of the reduced [Rx][1].
 
 Each of these three combinators has a counterpart in `mapAll()`, `filterAll()` and `reduceAll()` which operates on `Try[T]`s rather than `T`s, in the case where you need the added flexibility to handle `Failure`s in some special way.
 
@@ -403,7 +403,7 @@ Asynchronous Combinators
 ------------------------
 These are combinators which do more than simply transforming a value from one to another. These have asynchronous effects, and can spontaneously modify the dataflow graph and begin propagation cycles without any external trigger. Although this may sound somewhat unsettling, the functionality provided by these combinators is often necessary, and manually writing the logic around something like [Debouncing](#debounce), for example, is far more error prone than simply using the combinators provided.
 
-Note that none of these combinators are doing anything that cannot be done via a combination of Obs[2]s and Var[3]s; they simply encapsulate the common patterns, saving you manually writing them over and over, and reducing the potential for bugs.
+Note that none of these combinators are doing anything that cannot be done via a combination of [Obs][2]s and [Var][3]s; they simply encapsulate the common patterns, saving you manually writing them over and over, and reducing the potential for bugs.
 
 ###Async
 
@@ -421,7 +421,7 @@ p.success(5)
 println(a()) // 5
 ```
 
-The `async` combinator only applies to `Rx[Future[_]]`s. It takes an initial value, which will be the value of the Rx[1] until the `Future` completes, at which point the the value will become the value of the `Future`.
+The `async` combinator only applies to `Rx[Future[_]]`s. It takes an initial value, which will be the value of the [Rx][1] until the `Future` completes, at which point the the value will become the value of the `Future`.
 
 `async` can create `Future`s as many times as necessary. This example shows it creating two distinct `Future`s:
 
@@ -450,7 +450,7 @@ println(b()) // 9
 
 The value of `b()` updates as you would expect as the series of `Future`s complete (in this case, manually using `Promise`s).
 
-This is handy if your dependency graph contains some asynchronous elements. For example, you could have a Rx[1] which depends on another Rx[1], but requires an asynchronous web request to calculate its final value. With `async`, the results from the asynchronous web request will be pushed back into the dataflow graph automatically when the `Future` completes, starting off another propagation run and conveniently updating the rest of the graph which depends on the new result.
+This is handy if your dependency graph contains some asynchronous elements. For example, you could have a [Rx][1] which depends on another [Rx][1], but requires an asynchronous web request to calculate its final value. With `async`, the results from the asynchronous web request will be pushed back into the dataflow graph automatically when the `Future` completes, starting off another propagation run and conveniently updating the rest of the graph which depends on the new result.
 
 `async` optionally takes a second argument which causes out-of-order `Future`s to be dropped. This is useful if you always want to have the result of the most recently-created `Future` which completed, rather than the most-recently-completed `Future`.
 
@@ -471,9 +471,9 @@ println(count) // 8
 println(count) // 13
 ```
 
-A Timer[8] is a Rx[1] that generates events on a regular basis. The events are based on the AkkaScheduler[4] which wraps an `ActorSystem` when running on the JVM, or a DomScheduler[5] which wraps `setTimeout` when running on ScalaJS. In the example above, the for-loop checks that the value of the timer `t()` increases over time from 0 to 5, and then checks that `count` has been incremented at least that many times.
+A [Timer][8] is a [Rx][1] that generates events on a regular basis. The events are based on the [AkkaScheduler][4] which wraps an `ActorSystem` when running on the JVM, or a [DomScheduler][5] which wraps `setTimeout` when running on ScalaJS. In the example above, the for-loop checks that the value of the timer `t()` increases over time from 0 to 5, and then checks that `count` has been incremented at least that many times.
 
-The scheduled task is cancelled automatically when the Timer[8] object becomes unreachable, so it can be garbage collected. This means you do not have to worry about managing the life-cycle of the Timer[8]. On the other hand, this means the programmer should ensure that the reference to the Timer[8] is held by the same object as that holding any Rx[1] listening to it. This will ensure that the exact moment at which the Timer[8] is garbage collected will not matter, since by then the object holding it (and any Rx[1] it could possibly affect) are both unreachable.
+The scheduled task is cancelled automatically when the [Timer][8] object becomes unreachable, so it can be garbage collected. This means you do not have to worry about managing the life-cycle of the [Timer][8]. On the other hand, this means the programmer should ensure that the reference to the [Timer][8] is held by the same object as that holding any [Rx][1] listening to it. This will ensure that the exact moment at which the [Timer][8] is garbage collected will not matter, since by then the object holding it (and any [Rx][1] it could possibly affect) are both unreachable.
 
 ###Delay
 ```scala
@@ -496,9 +496,9 @@ eventually{
 }
 ```
 
-The `delay(t)` combinator creates a delayed version of an Rx[1] whose value lags the original by a duration `t`. When the Rx[1] changes, the delayed version will not change until the delay `t` has passed.
+The `delay(t)` combinator creates a delayed version of an [Rx][1] whose value lags the original by a duration `t`. When the [Rx][1] changes, the delayed version will not change until the delay `t` has passed.
 
-This example shows the delay being applied to a Var[3], but it could easily be applied to an Rx[1] as well.
+This example shows the delay being applied to a [Var][3], but it could easily be applied to an [Rx][1] as well.
 
 ###Debounce
 ```scala
@@ -525,13 +525,13 @@ eventually{
 }
 ```
 
-The `debounce(t)` combinator creates a version of an Rx[1] which will not update more than once every time period `t`.
+The `debounce(t)` combinator creates a version of an [Rx][1] which will not update more than once every time period `t`.
 
 If multiple updates happen with a short span of time (less than `t` apart), the first update will take place immediately, and a second update will take place only after the time `t` has passed. For example, this may be used to limit the rate at which an expensive result is re-calculated: you may be willing to let the calculated value be a few seconds stale if it lets you save on performing the expensive calculation more than once every few seconds.
 
 Graph Inspection
 ----------------
-The fact that you can introspect the Scala.Rx dataflow graph means you can find out not just what the current value of any Rx[1] is, but also *why* its that value. For example, if you take the following graph:
+The fact that you can introspect the Scala.Rx dataflow graph means you can find out not just what the current value of any [Rx][1] is, but also *why* its that value. For example, if you take the following graph:
 
 ```scala
 val a = Var(1)
@@ -600,9 +600,9 @@ Scala.Rx is a library, and apart from a single `DynamicVariable`, maintains no g
 
 Dependency Tracking
 -------------------
-Scala.Rx tracks the dependency graph between different Var[3]s and Rx[1]s without any explicit annotation by the programmer. This means that in (almost) all cases, you can just write your code as if it wasn't being tracked, and Scala.Rx would build up the dependency graph automatically.
+Scala.Rx tracks the dependency graph between different [Var][3]s and [Rx][1]s without any explicit annotation by the programmer. This means that in (almost) all cases, you can just write your code as if it wasn't being tracked, and Scala.Rx would build up the dependency graph automatically.
 
-Every time the body of an `Rx{...}` is evaluated (or re-evaluated), it is put into a `DynamicVariable`. Any calls to the `.apply()` methods of other Rx[1]s then inspect this `DynamicVariable` to determine who (if any) is the Rx[1] being evaluated. This is linked up with the Rx[1] whose `.apply()` is being called, creating a dependency between them. Thus a dependency graph is implicitly created without any action on the part of the programmer.
+Every time the body of an `Rx{...}` is evaluated (or re-evaluated), it is put into a `DynamicVariable`. Any calls to the `.apply()` methods of other [Rx][1]s then inspect this `DynamicVariable` to determine who (if any) is the [Rx][1] being evaluated. This is linked up with the [Rx][1] whose `.apply()` is being called, creating a dependency between them. Thus a dependency graph is implicitly created without any action on the part of the programmer.
 
 The dependency-tracking strategy of Scala.Rx is based of a subset of the ideas in [Deprecating the Observer Pattern](http://infoscience.epfl.ch/record/176887/files/DeprecatingObservers2012.pdf), in particular their definition of "Opaque Signals". The implementation follows it reasonably closely.
 
@@ -610,12 +610,12 @@ Propagation
 -----------
 
 ###Weak Forward References
-Once we have evaluated our Var[3]s and Rx[1]s once and have a dependency graph, how do we keep track of our children (the Rx[1]s who depend on us) and tell them to update? Simply keeping a `List()` of all children will cause memory leaks, as the `List()` will prevent any child from being garbage collected even if all other references to the child have been lost and the child is otherwise unaccessible.
+Once we have evaluated our [Var][3]s and [Rx][1]s once and have a dependency graph, how do we keep track of our children (the [Rx][1]s who depend on us) and tell them to update? Simply keeping a `List()` of all children will cause memory leaks, as the `List()` will prevent any child from being garbage collected even if all other references to the child have been lost and the child is otherwise unaccessible.
 
-Instead, Scala.Rx using a list of [WeakReferences](http://en.wikipedia.org/wiki/Weak_reference). These allow the Rx[1] to keep track of its children while still letting them get garbage collected when all other references to them are lost. When a child becomes unreachable and gets garbage collected, the WeakReference becomes `null`, and these null references get cleared from the list every time it is updated.
+Instead, Scala.Rx using a list of [WeakReferences](http://en.wikipedia.org/wiki/Weak_reference). These allow the [Rx][1] to keep track of its children while still letting them get garbage collected when all other references to them are lost. When a child becomes unreachable and gets garbage collected, the WeakReference becomes `null`, and these null references get cleared from the list every time it is updated.
 
 ###Propagation Strategies
-The default propagation of changes is done in a breadth-first, topologically-sorted order, similar to that described in the paper. Each propagation run occurs when a Var[3] is set, e.g. in
+The default propagation of changes is done in a breadth-first, topologically-sorted order, similar to that described in the paper. Each propagation run occurs when a [Var][3] is set, e.g. in
 
 ```scala
 val x = Var(0)
@@ -628,19 +628,19 @@ println(y) // 4
 
 The propagation begins when `x` is modified via `x() = 2`, in this case ending at `y` which updates to the new value `4`.
 
-Nodes earlier in the dependency graph are evaluated before those down the line. However, due to the fact that the dependencies of a Rx[1] are not known until it is evaluated, it is impossible to strictly maintain this invariant at all times, since the underlying graph could change unpredictably.
+Nodes earlier in the dependency graph are evaluated before those down the line. However, due to the fact that the dependencies of a [Rx][1] are not known until it is evaluated, it is impossible to strictly maintain this invariant at all times, since the underlying graph could change unpredictably.
 
 In general, Scala.Rx keeps track of the topological order dynamically, such that after initialization, if the dependency graph does not change too radically, most nodes *should* be evaluated only once per propagation, but this is not a hard guarantee.
 
-Hence, it is possible that an Rx[1] will get evaluated more than once, even if only a single Var[3] is updated. You should ensure that the body of any Rx[1]s can tolerate being run more than once without harm. If you need to perform side effects, use an Obs[2], which only executes its side effects once per propagation run after the values for all Rx[1]s have stabilized.
+Hence, it is possible that an [Rx][1] will get evaluated more than once, even if only a single [Var][3] is updated. You should ensure that the body of any [Rx][1]s can tolerate being run more than once without harm. If you need to perform side effects, use an [Obs][2], which only executes its side effects once per propagation run after the values for all [Rx][1]s have stabilized.
 
-The default propagator (Propagator.Immediate[7]) does this all synchronously: it performs each update one at a time, in the roughly-topological-order described above, and the `update` function
+The default propagator ([Propagator.Immediate][7]) does this all synchronously: it performs each update one at a time, in the roughly-topological-order described above, and the `update` function
 
 ```scala
 x() = 2
 ```
 
-only returns after all updates have completed. This can be changed by creating a new Propagator.ExecContext[6] with a custom `ExecutionContext`. e.g.:
+only returns after all updates have completed. This can be changed by creating a new [Propagator.ExecContext][6] with a custom `ExecutionContext`. e.g.:
 
 ```scala
 implicit val propagator = new BreadthFirstPropagator(ExecutionContext.global)
@@ -648,36 +648,36 @@ implicit val propagator = new BreadthFirstPropagator(ExecutionContext.global)
 x() = 2
 ```
 
-In this case, the updating of nodes is farmed out to the given `ExecutionContext`. Nodes which do not depend on each other may be updated in parallel, if the given `ExecutionContext` provides parallelism. When using a Propagator.ExecContext[6], the update method does not block but instead returns a `Future[Unit]` which can be waited upon for the operation to complete asynchronously.
+In this case, the updating of nodes is farmed out to the given `ExecutionContext`. Nodes which do not depend on each other may be updated in parallel, if the given `ExecutionContext` provides parallelism. When using a [Propagator.ExecContext][6], the update method does not block but instead returns a `Future[Unit]` which can be waited upon for the operation to complete asynchronously.
 
 Even with a custom `ExecutionContext`, all updates still occur in (roughly) topologically sorted order. If for some reason you do not want this, it is possible to customize this by creating a completely custom `Propagator` who is responsible for performing these updates. Custom `Propagator`s can also allow you to customize what the update method (e.g. in `x() = 2`) returns, e.g. if you want to collect additional data related to that propagation.
 
-Note that asynchronous Rx[1]s like those from [.async](#async), [.delay](#delay) or [.debounce](#debounce) swallow incoming pings and begin a fresh propagation cycle when their asynchronous action triggers.
+Note that asynchronous [Rx][1]s like those from [.async](#async), [.delay](#delay) or [.debounce](#debounce) swallow incoming pings and begin a fresh propagation cycle when their asynchronous action triggers.
 
 Concurrency and Parallelism
 --------------------------
 By default, everything happens on a single-threaded execution context and there is no parallelism. By using a custom [Propagator.ExecContext](), it is possible to have the updates in each propagation run happen in parallel (though not on [ScalaJS](#parallelism-and-scalajs). For more information on ExecutionContexts, see the [Akka Documentation](http://doc.akka.io/docs/akka/2.1.2/scala/futures.html#futures-scala). The [unit tests](../tree/master/src/test/scala/rx/ParallelTests.scala) also contain an example of a dependency graph whose evaluation is spread over multiple threads in this way to provide a performance increase.
 
-Even without using an explicitly parallelizing ExecutionContext, parallelism could creep into your code in subtle ways: a delayed Rx[1], for example may happen to fire and continue its propagation just as you update a Var[3] somewhere on the same dependency graph, resulting in two propagations proceeding in parallel.
+Even without using an explicitly parallelizing ExecutionContext, parallelism could creep into your code in subtle ways: a delayed [Rx][1], for example may happen to fire and continue its propagation just as you update a [Var][3] somewhere on the same dependency graph, resulting in two propagations proceeding in parallel.
 
 In general, the rules for parallel execution of an individual node in the dependency graph is as follows:
 
-- A Rx[1] can up updated by an arbitrarily high number of parallel threads: *make sure your code can handle this!*. I will refer to each of these as a *parallel update*.
-- A parallel update **U** gets committed (i.e. its result becomes the value of the Rx[1] after completion) *if and only if* the time at which **U**'s computation began (its *start time*) is greater than the start time of the last-committed parallel update. If another parallel update **U'** was started in the interim, the result of **U** is discarded
-- The state of the dataflow graph may be temporarily inconsistent as a propagation is happening. This is even more true when multiple propagations are happening simultaneously. However, after all propagations complete and the system stabilizes (*quiescience*), it is guaranteed that the value of every Rx[1] will be correct, with regard to the most up-to-date values of its dependencies.
-- When a single propagation happens, Scala.Rx guarantees that although the dataflow graph may be transiently inconsistent, the Obs[2] which produce side effects will only fire once everything has stabilized.
-- In the presence of multiple propagations happening in parallel, Scala.Rx guarantees that each Obs[2] will fire *at most* once per propagation that occurs. Furthermore, by the time the propagations have completed and the system has stabilized, each Obs[2] will have fired *at least once* after the Rx[1] it is observing has reached its final value.
+- A [Rx][1] can up updated by an arbitrarily high number of parallel threads: *make sure your code can handle this!*. I will refer to each of these as a *parallel update*.
+- A parallel update **U** gets committed (i.e. its result becomes the value of the [Rx][1] after completion) *if and only if* the time at which **U**'s computation began (its *start time*) is greater than the start time of the last-committed parallel update. If another parallel update **U'** was started in the interim, the result of **U** is discarded
+- The state of the dataflow graph may be temporarily inconsistent as a propagation is happening. This is even more true when multiple propagations are happening simultaneously. However, after all propagations complete and the system stabilizes (*quiescience*), it is guaranteed that the value of every [Rx][1] will be correct, with regard to the most up-to-date values of its dependencies.
+- When a single propagation happens, Scala.Rx guarantees that although the dataflow graph may be transiently inconsistent, the [Obs][2] which produce side effects will only fire once everything has stabilized.
+- In the presence of multiple propagations happening in parallel, Scala.Rx guarantees that each [Obs][2] will fire *at most* once per propagation that occurs. Furthermore, by the time the propagations have completed and the system has stabilized, each [Obs][2] will have fired *at least once* after the [Rx][1] it is observing has reached its final value.
 
 This policy is implemented using the __java.util.concurrent.AtomicXXX__ classes. The final compare-start-times-and-replace-if-timestamp-is-greater action is implemented as a STM-style retry-loop on an __AtomicReference__. This approach is [lock free](http://en.wikipedia.org/wiki/Non-blocking_algorithm#Lock-freedom), and since the time required to compute the result is probably far greater than the time spent trying to commit it, the number of retries should in practice be minimal.
 
 Apart from the main update loop, peripheral methods like `children`, `parents`, `ancestors` and `descendents` are also affected by parallelism. In these cases, if the system is quiescent you're guaranteed to get the correct value. If there are parallel updates and modifications going on, you're guaranteed to get a set of nodes which were part of the list some time during the duration it takes for the method to run, and any node which was part of the list for the entire duration.
 
 ###Weak Forward References
-The weak-forward-references to an Rx[1] from its dependencies is unusual in that unlike the rest of the state regarding the Rx[1], it is not kept within the Rx[1] itself! Rather, it is kept within its parents. Hence updates to these weak references cannot conveniently be serialized by encapsulating the state within that Rx[1]'s state.
+The weak-forward-references to an [Rx][1] from its dependencies is unusual in that unlike the rest of the state regarding the [Rx][1], it is not kept within the [Rx][1] itself! Rather, it is kept within its parents. Hence updates to these weak references cannot conveniently be serialized by encapsulating the state within that [Rx][1]'s state.
 
 ###Parallelism and ScalaJS
 
-Since ScalaJS runs on single threaded Javascript VMs, all these guarantees around parallel update semantics is moot since only one Rx[1] will be updating at a time.
+Since ScalaJS runs on single threaded Javascript VMs, all these guarantees around parallel update semantics is moot since only one [Rx][1] will be updating at a time.
 
 Memory Model
 ------------
@@ -692,11 +692,11 @@ for (i <- 0 until 10){
 }
 ```
 
-After `b` falls out of scope, it is eventually automatically cleaned up by the garbage collector. The exact timing of this is non-deterministic (since it depends on the GC) so in general, you should write code that is not affected by this non-determinism. For example, if the only data structures that `b` can affect (by triggering Obs[2]s, or via side-effects in the body of its Rx[1]) become unreachable together with `b` (e.g. they're kept on the same object) then it doesn't matter exactly *when* `b` stops triggering, since the effect of its triggering will not be visible by that point anyway.
+After `b` falls out of scope, it is eventually automatically cleaned up by the garbage collector. The exact timing of this is non-deterministic (since it depends on the GC) so in general, you should write code that is not affected by this non-determinism. For example, if the only data structures that `b` can affect (by triggering [Obs][2]s, or via side-effects in the body of its [Rx][1]) become unreachable together with `b` (e.g. they're kept on the same object) then it doesn't matter exactly *when* `b` stops triggering, since the effect of its triggering will not be visible by that point anyway.
 
 ### Memory and ScalaJS
 
-In ScalaJS, `WeakReference`s are not weak, since Javascript does not have weak references. This means that the Rx[1]s generated in the loop will not get cleaned up, since `a` must hold a strong reference to them in order to notify them of updates. However, in cases such as this, it may be necessary to manually `.kill()` the individual Rx[1]s once you're done with them:
+In ScalaJS, `WeakReference`s are not weak, since Javascript does not have weak references. This means that the [Rx][1]s generated in the loop will not get cleaned up, since `a` must hold a strong reference to them in order to notify them of updates. However, in cases such as this, it may be necessary to manually `.kill()` the individual [Rx][1]s once you're done with them:
 
 ```scala
 val a = Var(0)
@@ -733,7 +733,7 @@ Simple to Use
 -------------
 This meant that the syntax to write programs in a dependency-tracking way had to be as light weight as possible, that programs written using FRP had to *look* like their normal, old-fashioned, imperative counterparts. This meant using `DynamicVariable` instead of implicits to automatically pass arguments, sacrificing proper lexical scoping for nice syntax.
 
-I ruled out using a purely monadic style (like [reactive-web](https://github.com/nafg/reactive)), as although it would be far easier to implement the library in that way, it would be a far greater pain to actually use it. I also didn't want to have to manually declare dependencies, as this violates [DRY](http://en.wikipedia.org/wiki/Don't_repeat_yourself) when you are declaring your dependencies twice: once in the header of the Rx[1], and once more when you use it in the body.
+I ruled out using a purely monadic style (like [reactive-web](https://github.com/nafg/reactive)), as although it would be far easier to implement the library in that way, it would be a far greater pain to actually use it. I also didn't want to have to manually declare dependencies, as this violates [DRY](http://en.wikipedia.org/wiki/Don't_repeat_yourself) when you are declaring your dependencies twice: once in the header of the [Rx][1], and once more when you use it in the body.
 
 The goal was to be able to write code, sprinkle a few `Rx{}`s around and have the dependency tracking and change propagation *just work*. Overall, I believe it has been quite successful at that!
 
@@ -756,8 +756,8 @@ With Scala.Rx, I resolved to do things differently. Hence, Scala.Rx:
 
 - Is written in Scala: an uncommon, but probably less-obscure language than [Haskell](http://www.haskell.org/haskellwiki/Haskell) or [Scheme](http://racket-lang.org/)
 - Is a library: it is plain-old-scala. There is no source-to-source transformation, no special runtime necessary to use Scala.Rx. You download the source code into your Scala project, and start using it
-- Allows you to use any programming language construct or library functionality within your Rx[1]s: Scala.Rx will figure out the dependencies without the programmer having to worry about it, without limiting yourself to some inconvenient subset of the language
-- Allows you to use Scala.Rx within a larger project without much pain. You can easily embed dataflow graphs within a larger object-oriented universe and interact with them via setting Var[3]s and listening to Obs[2]s
+- Allows you to use any programming language construct or library functionality within your [Rx][1]s: Scala.Rx will figure out the dependencies without the programmer having to worry about it, without limiting yourself to some inconvenient subset of the language
+- Allows you to use Scala.Rx within a larger project without much pain. You can easily embed dataflow graphs within a larger object-oriented universe and interact with them via setting [Var][3]s and listening to [Obs][2]s
 
 Many of the papers reviewed show a beautiful new FRP universe that we could be programming in, if only you ported all your code to FRP-Haskell and limited yourself to the small set of combinators used to create dataflow graphs. On the other hand, by letting you embed FRP snippets anywhere within existing code, using FRP ideas in existing projects without full commitment, and allowing you easy interop between your FRP and non-FRP code, Scala.Rx aims to bring the benefits FRP into the dirty, messy universe which we are programming in today.
 
@@ -822,11 +822,11 @@ The second case is a problem for languages which do not easily allow computation
 
 The last problem is that both these models only make sense in the case of single threaded, sequential code. As mentioned on the section on Concurrency and Parallelism, Scala.Rx allows you to use multiple threads to parallelize the propagation, and allows propagations to be started by multiple threads simultaneously. That means that a strict prohibition of glitches is impossible.
 
-Scala.Rx maintains somewhat looser model: the body of each Rx[1] may be evaluated more than once per propagation, and Scala.Rx only promises to make a "best-effort" attempt to reduce the number of redundant updates. Assuming the body of each Rx[1] is pure, this means that the redundant updates should only affect the time taken and computation required for the propagation to complete, but not affect the value of each node once the propagation has finished.
+Scala.Rx maintains somewhat looser model: the body of each [Rx][1] may be evaluated more than once per propagation, and Scala.Rx only promises to make a "best-effort" attempt to reduce the number of redundant updates. Assuming the body of each [Rx][1] is pure, this means that the redundant updates should only affect the time taken and computation required for the propagation to complete, but not affect the value of each node once the propagation has finished.
 
-In addition, Scala.Rx provides the Obs[2]s, which are special terminal-nodes guaranteed to update only once per propagation, intended to produce some side effect. This means that although a propagation may cause the values of the Rx[1]s within the dataflow graph to be transiently out of sync, the final side-effects of the propagation will only happen once the entire propagation is complete and the Obs[2]s all fire their side effects.
+In addition, Scala.Rx provides the [Obs][2]s, which are special terminal-nodes guaranteed to update only once per propagation, intended to produce some side effect. This means that although a propagation may cause the values of the [Rx][1]s within the dataflow graph to be transiently out of sync, the final side-effects of the propagation will only happen once the entire propagation is complete and the [Obs][2]s all fire their side effects.
 
-If multiple propagations are happening in parallel, Scala.Rx guarantees that each Obs[2] will fire *at most* once per propagation, and *at least* once overall. Furthermore, each Obs[2] will fire at least once after the entire dataflow graph has stabilized and the propagations are complete. This means that if you are relying on Obs[2] to, for example, send updates over the network to a remote client, you can be sure that you don't have any unnecessary chatter being transmitted over the network, and when the system is quiescent the remote client will have the updates representing the most up-to-date version of the dataflow graph.
+If multiple propagations are happening in parallel, Scala.Rx guarantees that each [Obs][2] will fire *at most* once per propagation, and *at least* once overall. Furthermore, each [Obs][2] will fire at least once after the entire dataflow graph has stabilized and the propagations are complete. This means that if you are relying on [Obs][2] to, for example, send updates over the network to a remote client, you can be sure that you don't have any unnecessary chatter being transmitted over the network, and when the system is quiescent the remote client will have the updates representing the most up-to-date version of the dataflow graph.
 
 Related Work
 ============
@@ -846,7 +846,7 @@ reactive-web
 
 Nevertheless, reactive-web comes with its own time-varying values (called Signals), which are manipulated using combinators similar to those in Scala.Rx (`map`, `filter`, `flatMap`, etc.). However, reactive-web does not provide an easy way to compose these Signals: the programmer has to rely entirely on `map` and `flatMap`, possibly using Scala's for-comprehensions.
 
-I did not like the fact that you had to program in a monadic style (i.e. living in `.map()` and `.flatMap()` and `for{}` comprehensions all the time) in order to take advantage of the change propagation. This is particularly cumbersome in the case of [nested Rx[1]s](Basic-Usage#nesting), where Scala.Rx's
+I did not like the fact that you had to program in a monadic style (i.e. living in `.map()` and `.flatMap()` and `for{}` comprehensions all the time) in order to take advantage of the change propagation. This is particularly cumbersome in the case of [nested [Rx][1]s](Basic-Usage#nesting), where Scala.Rx's
 
 ```scala
 // a b and c are Rxs
@@ -885,9 +885,9 @@ val lastName = Var("Smith")
 fullName = Rx{ firstName() + " " + lastName() }
 ```
 
-a `ko.observable` maps directly onto a Var[3], and a `kocomputed` maps directly onto an Rx[1]. Apart from the longer variable names and the added verbosity of Javascript, the semantics are almost identical.
+a `ko.observable` maps directly onto a [Var][3], and a `kocomputed` maps directly onto an [Rx][1]. Apart from the longer variable names and the added verbosity of Javascript, the semantics are almost identical.
 
-Apart from providing an equivalent of Var[3] and Rx[1], Knockout.js focuses its efforts in a different direction. It lacks the majority of the useful combinators that Scala.Rx provides, but provides a great deal of other functionality, for example integration with the browser's DOM, that Scala.Rx lacks.
+Apart from providing an equivalent of [Var][3] and [Rx][1], Knockout.js focuses its efforts in a different direction. It lacks the majority of the useful combinators that Scala.Rx provides, but provides a great deal of other functionality, for example integration with the browser's DOM, that Scala.Rx lacks.
 
 Others
 ------
