@@ -1,17 +1,14 @@
 package rx
-import org.scalatest._
 import util.{Failure, Success}
-import Inside._
-import Assertions._
 
 import rx.core.Propagator
-
-class BasicTests extends FreeSpec{
+import utest._
+object BasicTests extends TestSuite{
 
   implicit val prop = Propagator.Immediate
-  "BasicTests" - {
-    "config tests" - {
-      "name" in {
+  def tests = {
+    "configTests" - {
+      "name" - {
         val v1 = Var(0)
         val v2 = Var(0, name = "v2")
 
@@ -33,9 +30,9 @@ class BasicTests extends FreeSpec{
       }
     }
 
-    "sig tests" - {
+    "sigTests" - {
       "basic" - {
-        "Rx Hello World" in {
+        "rxHelloWorld" - {
           val a = Var(1); val b = Var(2)
           val c = Rx{ a() + b() }
           assert(c() == 3)
@@ -43,7 +40,7 @@ class BasicTests extends FreeSpec{
           assert(c() == 6)
 
         }
-        "long chain" in {
+        "longChain" - {
           val (a, b, c, d, e, f) = Util.initGraph
 
           assert(f() == 26)
@@ -73,7 +70,7 @@ class BasicTests extends FreeSpec{
           assert(c.ancestors.size == 2)
         }
 
-        "complex values inside Var[]s and Rx[]s" in {
+        "complexValuesInsideVarsAndRxs" - {
           val a = Var(Seq(1, 2, 3))
           val b = Var(3)
           val c = Rx{ b() +: a() }
@@ -91,8 +88,8 @@ class BasicTests extends FreeSpec{
           assert(c.ancestors.toSet == Set(a, b))
         }
       }
-      "language features" - {
-        "pattern matching" in {
+      "languageFeatures" - {
+        "patternMatching" - {
           val a = Var(1); val b = Var(2)
           val c = Rx{
             a() match{
@@ -104,7 +101,7 @@ class BasicTests extends FreeSpec{
           a() = 0
           assert(c() == 2)
         }
-        "implicit conversions" in {
+        "implicitConversions" - {
           val a = Var(1); val b = Var(2)
           val c = Rx{
             val t1 = a() + " and " + b()
@@ -115,7 +112,7 @@ class BasicTests extends FreeSpec{
           a() = 0
           assert(c() == "0 and 2: Range(0, 1, 2)")
         }
-        "use in by name parameters" in {
+        "useInByNameParameters" - {
           val a = Var(1)
 
           val b = Rx{ Some(1).getOrElse(a()) }
@@ -124,8 +121,8 @@ class BasicTests extends FreeSpec{
       }
     }
 
-    "obs tests" - {
-      "obs Hello World" in {
+    "obsTests" - {
+      "helloWorld" - {
         val a = Var(1)
         var count = 0
         val o = Obs(a){
@@ -135,7 +132,7 @@ class BasicTests extends FreeSpec{
         a() = 4
         assert(count == 5)
       }
-      "obs skipInitial" in {
+      "skipInitial" - {
         val a = Var(1)
         var count = 0
         val o = Obs(a, skipInitial=true){
@@ -146,7 +143,7 @@ class BasicTests extends FreeSpec{
         assert(count == 1)
       }
 
-      "obs simple example" in {
+      "simpleExample" - {
         val a = Var(1)
         val b = Rx{ a() * 2 }
         val c = Rx{ a() + 1 }
@@ -167,8 +164,8 @@ class BasicTests extends FreeSpec{
       }
     }
 
-    "error handling" - {
-      "simple catch" in {
+    "errorHandling" - {
+      "simpleCatch" - {
         val a = Var(1L)
         val b = Rx{ 1 / a() }
         assert(b() == 1)
@@ -177,9 +174,9 @@ class BasicTests extends FreeSpec{
         intercept[Exception]{
           b()
         }
-        inside(b.toTry){ case Failure(_) => () }
+        assertMatch(b.toTry){case Failure(_) =>}
       }
-      "long chain" in {
+      "longChain" - {
         val a = Var(1L)
         val b = Var(2L)
 
@@ -189,19 +186,19 @@ class BasicTests extends FreeSpec{
         val f = Rx{ a() + b() + 2 }
         val g = Rx{ f() + c() }
 
-        inside(c.toTry){case Success(0) => () }
-        inside(d.toTry){case Success(5) => () }
-        inside(e.toTry){case Success(2) => () }
-        inside(f.toTry){case Success(5) => () }
-        inside(g.toTry){case Success(5) => () }
+        assertMatch(c.toTry){case Success(0)=>}
+        assertMatch(d.toTry){case Success(5)=>}
+        assertMatch(e.toTry){case Success(2)=>}
+        assertMatch(f.toTry){case Success(5)=>}
+        assertMatch(g.toTry){case Success(5)=>}
 
         b() = 0
 
-        inside(c.toTry){case Failure(_) => () }
-        inside(d.toTry){case Success(5) => () }
-        inside(e.toTry){case Failure(_) => () }
-        inside(f.toTry){case Success(3) => () }
-        inside(g.toTry){case Failure(_) => () }
+        assertMatch(c.toTry){case Failure(_)=>}
+        assertMatch(d.toTry){case Success(5)=>}
+        assertMatch(e.toTry){case Failure(_)=>}
+        assertMatch(f.toTry){case Success(3)=>}
+        assertMatch(g.toTry){case Failure(_)=>}
       }
     }
 

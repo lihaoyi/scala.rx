@@ -1,46 +1,42 @@
 package rx
 
-import org.scalatest.FreeSpec
 import concurrent.duration._
 import scala.concurrent.ExecutionContext
-import org.scalatest.concurrent.Eventually._
 
 import rx.core.Propagator
 import rx.ops._
 
-
+import utest._
 /**
  * Tests cases where the Rxs are able to give off events and begin propagations
  * entirely on their own. Timers, Delays, Debounces, etc.
  */
-class EventedTests extends FreeSpec {
-  implicit val patience = PatienceConfig(1 second)
+object EventedTests extends TestSuite{
   implicit val prop = Propagator.Immediate
   implicit val executionContext = new ExecutionContext {
     def reportFailure(t: Throwable) { t.printStackTrace() }
     def execute(runnable: Runnable) {runnable.run()}
   }
   implicit val scheduler = new TestScheduler()
-  "EventedTests"- {
-    "a Timer" - {
-      "should work properly and give off events on its own" in {
-        val t = Timer(100 millis)
-        var count = 0
-        val o = Obs(t){
-          count = count + 1
-        }
+  def tests = TestSuite{
 
-        for(i <- 3 to 5){
-          eventually{ assert(t() == i) }(patience)
-        }
-
-        assert(count >= 5)
+    "timerShouldEmitEvents" - {
+      val t = Timer(100 millis)
+      var count = 0
+      val o = Obs(t){
+        count = count + 1
       }
+
+      for(i <- 3 to 5){
+        eventually(t() == i)
+      }
+
+      assert(count >= 5)
     }
 
 
     "debounce" - {
-      "simple" in {
+      "simple" - {
         val a = Var(10)
         val b = a.debounce(100 millis)
         a() = 5
@@ -50,47 +46,55 @@ class EventedTests extends FreeSpec {
         assert(b() == 5)
 
         eventually{
-          assert(b() == 2)
-        }(patience)
+          b() == 2
+        }
 
         a() = 1
         assert(b() == 2)
 
         eventually{
-          assert(b() == 1)
-        }(patience)
+          b() == 1
+        }
       }
-      "longer" in {
+      "longer" - {
         val a = Var(10)
         val b = a.debounce(200 millis)
         val c = Rx( a() * 2 ).debounce(200 millis)
         var count = 0
         val o = Obs(b){ count += 1 }
         a() = 5
-        assert(b() == 5)
-        assert(c() == 10)
+        assert(
+          b() == 5,
+          c() == 10
+        )
 
         a() = 2
-        assert(b() == 5)
-        assert(c() == 10)
+        assert(
+          b() == 5,
+          c() == 10
+        )
 
         a() = 7
-        assert(b() == 5)
-        assert(c() == 10)
+        assert(
+          b() == 5,
+          c() == 10
+        )
 
-        eventually{
-          assert(b() == 7)
-          assert(c() == 14)
-        }(patience)
+        eventually(
+          b() == 7,
+          c() == 14
+        )
 
         a() = 1
-        assert(b() == 7)
-        assert(c() == 14)
+        assert(
+          b() == 7,
+          c() == 14
+        )
 
-        eventually{
-          assert(b() == 1)
-          assert(c() == 2)
-        }(patience)
+        eventually(
+          b() == 1,
+          c() == 2
+        )
 
         assert(count == 4)
       }
@@ -98,51 +102,57 @@ class EventedTests extends FreeSpec {
 
     }
     "delayed" - {
-      "simple" in {
+      "simple" - {
         val a = Var(10)
         val b = a.delay(100 millis)
 
         a() = 5
         assert(b() == 10)
-        eventually{
-          assert(b() == 5)
-        }(patience)
+        eventually(
+          b() == 5
+        )
 
         a() = 4
         assert(b() == 5)
-        eventually{
-          assert(b() == 4)
-        }(patience)
+        eventually(
+          b() == 4
+        )
       }
-      "longer" in {
+      "longer" - {
         val a = Var(10)
         val b = a.delay(100 millis)
         val c = Rx( a() * 2 ).delay(100 millis)
         var count = 0
 
         a() = 5
-        assert(b() == 10)
-        assert(c() == 20)
-        eventually{
-          assert(b() == 5)
-          assert(c() == 10)
-        }(patience)
+        assert(
+          b() == 10,
+          c() == 20
+        )
+        eventually(
+          b() == 5,
+          c() == 10
+        )
 
         a() = 4
-        assert(b() == 5)
-        assert(c() == 10)
-        eventually{
-          assert(b() == 4)
-          assert(c() == 8)
-        }(patience)
+        assert(
+          b() == 5,
+          c() == 10
+        )
+        eventually(
+          b() == 4,
+          c() == 8
+        )
 
         a() = 7
-        assert(b() == 4)
-        assert(c() == 8)
-        eventually{
-          assert(b() == 7)
-          assert(c() == 14)
-        }(patience)
+        assert(
+          b() == 4,
+          c() == 8
+        )
+        eventually(
+          b() == 7,
+          c() == 14
+        )
       }
     }
   }

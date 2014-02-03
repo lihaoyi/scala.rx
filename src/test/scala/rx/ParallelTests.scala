@@ -1,33 +1,26 @@
 package rx
 
-import org.scalatest._
-import concurrent.Eventually
 import scala.concurrent._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import akka.actor.ActorSystem
-
-import time.{Millis, Span}
-
-import Eventually._
 import java.util.concurrent.CountDownLatch
 
 import rx.core.Propagator
-
+import utest._
 /**
  * Tests that force Rxs to run in parallel (whether the same Rx or different Rxs)
  * to verify their behavior in such situations.
  */
-class ParallelTests extends FreeSpec {
-  implicit val patience = PatienceConfig(Span(500, Millis))
+object ParallelTests extends TestSuite{
   implicit val system = ActorSystem()
   implicit class awaitable[T](f: Future[T]){
     def await(x: Duration = 10 seconds) = Await.result(f, x)
   }
   implicit val prop = Propagator.Immediate
-  "ParallelTests" - {
-    "Correctness under parallel execution" - {
-      "parallel execution of a single Rx" - {
+  def tests = TestSuite{
+    "parallelExecutionIsCorrect" - {
+      "singleRx" - {
         def setup = {
           val ps = Seq.fill(3)(new CountDownLatch(1))
           val wall = Seq.fill(3)(new CountDownLatch(1))
@@ -57,7 +50,7 @@ class ParallelTests extends FreeSpec {
          * promises is used as semaphores to force the two executions to overlap
          * exactly as shown above
          */
-        "Dynamic with full parallel overlap" in {
+        "fullParallelOverlap" - {
           val (ps, a, b, wall) = setup
 
           val set1 = Future{a() = 1}
@@ -84,7 +77,7 @@ class ParallelTests extends FreeSpec {
          * Res: -----------?--------------->|-----A---->|------B------->
          * Both the results for A and B will be available
          */
-        "Dynamic with partial parallel overlap" in {
+        "partialParallelOverlap" - {
           val (ps, a, b, wall) = setup
 
           val set1 = Future{a() = 1}
@@ -103,7 +96,7 @@ class ParallelTests extends FreeSpec {
         }
       }
     }
-    "swapping in a parallelizing Propagator should speed things up significantly" in {
+    "parallelShouldBeFaster" - {
 
       def time[P](implicit prop: Propagator[P], post: P => Unit = (x: P) => ()) = {
         def spinner(a: Rx[Int]) = Rx{
@@ -126,7 +119,7 @@ class ParallelTests extends FreeSpec {
 
       val serialResult = time[Unit](Propagator.Immediate)
       val parallelResult = time[Future[Unit]](
-        new Propagator.ExecContext()(ExecutionContext.global),
+        new Propagator.ExecContext()(concurrent.ExecutionContext.global),
         Await.result(_, 10 seconds)
       )
 

@@ -1,4 +1,4 @@
-lazy val root = project.in(file(".")).aggregate(js)
+lazy val root = project.in(file("."))
 
 lazy val js = project.in(file("js"))
 
@@ -9,7 +9,8 @@ unmanagedSourceDirectories in Compile <+= baseDirectory(_ / "shared" / "main" / 
 unmanagedSourceDirectories in Test <+= baseDirectory(_ / "shared" / "test" / "scala")
 
 libraryDependencies ++= Seq(
-    "org.scalatest" % "scalatest_2.10" % "2.0" % "test",
+  "com.lihaoyi" % "utest_2.10" % "0.1.0" % "test",
     "com.typesafe.akka" %% "akka-actor" % "2.2.3"
 )
 
+testFrameworks += new TestFramework("utest.runner.Framework")

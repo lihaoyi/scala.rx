@@ -1,15 +1,15 @@
 package rx
 
-import org.scalatest._
 import util.{Success, Failure}
 import rx.core.Propagator
 
 import ops._
-class AdvancedTests extends FreeSpec{
+import utest._
+object AdvancedTests extends TestSuite{
   implicit val prop = Propagator.Immediate
-  "AdvancedTests" - {
+  def tests = TestSuite{
     "nesting" - {
-      "nested Rxs" in {
+      "nestedRxs" - {
         val a = Var(1)
         val b = Rx{
           Rx{ a() } -> Rx{ math.random }
@@ -18,7 +18,7 @@ class AdvancedTests extends FreeSpec{
         a() = 2
         assert(b()._2() == r)
       }
-      "WebPage" in {
+      "webPage" - {
         var fakeTime = 123
         trait WebPage{
           def fTime = fakeTime
@@ -59,7 +59,7 @@ class AdvancedTests extends FreeSpec{
     }
 
     "combinators" - {
-      "foreach" in {
+      "foreach" - {
         val a = Var(1)
         var count = 0
         val o = a.foreach{ x =>
@@ -69,7 +69,7 @@ class AdvancedTests extends FreeSpec{
         a() = 4
         assert(count == 5)
       }
-      "skipFailure" in {
+      "skipFailure" - {
         val x = Var(10L)
         val y = Rx{ 100 / x() }.skipFailures
         val z = Rx{ y() + 20 }
@@ -83,7 +83,7 @@ class AdvancedTests extends FreeSpec{
         assert(z() == 40)
       }
 
-      "map" in {
+      "map" - {
         val a = Var(10)
         val b = Rx{ a() + 2 }
         val c = a.map(_*2)
@@ -95,7 +95,7 @@ class AdvancedTests extends FreeSpec{
         assert(d() == 6)
       }
 
-      "mapAll" in {
+      "mapAll" - {
         val a = Var(10L)
         val b = Rx{ 100 / a() }
         val c = b.mapAll{
@@ -113,7 +113,7 @@ class AdvancedTests extends FreeSpec{
         assert(d.toTry == Success("java.lang.ArithmeticException: / by zero"))
       }
 
-      "filter" in {
+      "filter" - {
         val a = Var(10)
         val b = a.filter(_ > 5)
         a() = 1
@@ -126,7 +126,7 @@ class AdvancedTests extends FreeSpec{
         assert(b() == 19)
       }
 
-      "filterAll" in {
+      "filterAll" - {
         val a = Var(10L)
         val b = Rx{ 100 / a() }
         val c = b.filterAll{_.isSuccess}
@@ -139,7 +139,7 @@ class AdvancedTests extends FreeSpec{
         assert(c() == 100)
       }
 
-      "reduce" in {
+      "reduce" - {
         val a = Var(1)
         val b = a.reduce(_ * _)
         a() = 2
@@ -150,7 +150,7 @@ class AdvancedTests extends FreeSpec{
         assert(b() == 24)
       }
 
-      "reduceAll" in {
+      "reduceAll" - {
         val a = Var(1L)
         val b = Rx{ 100 / a() }
         val c = b.reduceAll[Long]{
@@ -173,7 +173,7 @@ class AdvancedTests extends FreeSpec{
       }
     }
     "kill" - {
-      "kill Obs" in {
+      "killObs" - {
         val a = Var(1)
         val b = Rx{ 2 * a() }
         var target = 0
@@ -196,7 +196,7 @@ class AdvancedTests extends FreeSpec{
         assert(target == 4)
       }
 
-      "kill Rx" in {
+      "killRx" - {
         val (a, b, c, d, e, f) = Util.initGraph
 
         assert(c() == 3)
@@ -233,7 +233,7 @@ class AdvancedTests extends FreeSpec{
         assert(e() == 9)
         assert(f() == 36)
       }
-      "killAll Rx" in {
+      "killAllRx" - {
         val (a, b, c, d, e, f) = Util.initGraph
 
         // killAll-ing d makes f die too
@@ -248,11 +248,11 @@ class AdvancedTests extends FreeSpec{
   }
   /*
   "recursion" - {
-    "calculating fixed point" in {
+    "calculating fixed point" - {
       lazy val s: Rx[Double] = Rx{ Math.cos(s()) }
       println(s())
     }
-    "calculating sqrt" in {
+    "calculating sqrt" - {
       lazy val s: Rx[Double] = Rx(default = 10.0){ s() - (s() * s() - 10) / (2 * s()) }
       println(s())
     }

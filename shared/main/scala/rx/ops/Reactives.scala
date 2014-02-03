@@ -12,7 +12,7 @@ import rx.core.{Reactor, Emitter, Propagator, SpinSet}
 
 
 /**
- * Signals whose state contains an auto-incrementing "timestamp" in order to
+ * Signals whose state contains an auto-incrementing "timestamp" - order to
  * reject out of order completions
  */
 private[rx] trait Incrementing[+T] extends Rx[T]{

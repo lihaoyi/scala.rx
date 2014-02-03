@@ -1,26 +1,26 @@
 package rx
 
-import org.scalatest._
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import rx.core.Propagator
 import ops._
 
+import utest._
 /**
  * Tests combinators with asynchronous behavior. All tests are run using a
  * run-immediately-on-this-thread execution context, to remove any
  * multi-threadedness and keep the tests deterministic
  */
-class AsyncTests extends FreeSpec{
+object AsyncTests extends TestSuite{
 
   implicit val prop = Propagator.Immediate
   implicit val executionContext = new ExecutionContext {
     def reportFailure(t: Throwable) { t.printStackTrace() }
     def execute(runnable: Runnable) {runnable.run()}
   }
-  "AsyncTests" - {
+  def tests = TestSuite{
 
     "async" - {
-      "basic example" in {
+      "basicExample" - {
         val p = Promise[Int]()
         val a = Rx{
           p.future
@@ -30,7 +30,7 @@ class AsyncTests extends FreeSpec{
         p.success(5)
         assert(a() == 5)
       }
-      "repeatedly sending out Futures" in {
+      "repeatedlySendingOutFutures" - {
         var p = Promise[Int]()
         val a = Var(1)
         val b = Rx{
@@ -49,7 +49,7 @@ class AsyncTests extends FreeSpec{
         p.success(7)
         assert(b() == 9)
       }
-      "the propagation should continue after the AsyncRx" in {
+      "propagationShouldContinueAfterAsyncRx" - {
         var p = Promise[Int]()
         val a = Var(1)
         val b = Rx{
@@ -70,7 +70,7 @@ class AsyncTests extends FreeSpec{
         assert(c() == 10)
 
       }
-      "ensuring that sent futures that get completed out of order are received out of order" in {
+      "futuresThatGetCompletedOutOfOrderAreReceivedOutOfOrder" - {
         val p = Seq.fill(3)(Promise[Int]())
         val a = Var(0)
         val b = Rx{ p(a()).future }.async(10, discardLate=false)
@@ -90,7 +90,7 @@ class AsyncTests extends FreeSpec{
         p(0).success(0)
         assert(b() == 0)
       }
-      "dropping the result of Futures which return out of order" in {
+      "droppingTheResultOfFuturesWhichReturnOutOfOrder" - {
         val p = Seq.fill(3)(Promise[Int]())
         val a = Var(0)
         val b = Rx{ p(a()).future }.async(10)
@@ -110,7 +110,7 @@ class AsyncTests extends FreeSpec{
         assert(b() == 2)
       }
 
-      "ensuring that events emerge from the .async Dynamic" in {
+      "eventsEmergeFromAsyncDynamic" - {
         val a = Var(0)
         val b = Rx{ Future.successful(10 + a()) }.async(10)
         var count = 0

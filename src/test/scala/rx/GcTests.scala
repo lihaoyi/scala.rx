@@ -1,22 +1,17 @@
 package rx
 
-import org.scalatest.{Assertions, FreeSpec}
-import org.scalatest.concurrent.Eventually
-import Eventually._
 import concurrent.duration._
-import org.scalatest.exceptions.TestFailedDueToTimeoutException
-import Assertions._
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import ops.Timer
-
+import utest._
 /**
  * Checking that weak references are doing their job on the JVM by forcing GCs.
  */
-class GcTests extends FreeSpec {
-  implicit val patience = PatienceConfig(1 second)
+object GcTests extends TestSuite{
   implicit val scheduler = new TestScheduler
-  "GcTests" - {
-    "obs getting GCed" in {
+  def tests = TestSuite {
+    "obsGetGCed" - {
       val a = Var(1)
       var count = 0
       Obs(a){
@@ -27,25 +22,25 @@ class GcTests extends FreeSpec {
         val oldCount = count
         a() = a() + 1
         System.gc()
-        assert(oldCount == count)
-      }(patience)
+        oldCount == count
+      }
     }
-    "should be GCed when its reference is lost" in {
+    "timersGetGced" - {
       var count = 0
       Timer(100 millis).foreach{ x =>
         count = count + 1
       }
 
       eventually{
-        assert(count == 3)
-      }(patience)
+        count == 3
+      }
 
       System.gc()
 
-      intercept[TestFailedDueToTimeoutException]{
+      intercept[AssertionError]{
         eventually{
-          assert(count == 4)
-        }(patience)
+          count == 4
+        }
       }
     }
   }
