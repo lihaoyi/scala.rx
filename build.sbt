@@ -10,7 +10,9 @@ unmanagedSourceDirectories in Test <+= baseDirectory(_ / "shared" / "test" / "sc
 
 libraryDependencies ++= Seq(
   "com.lihaoyi" % "utest_2.10" % "0.1.0" % "test",
-    "com.typesafe.akka" %% "akka-actor" % "2.2.3"
+  "com.typesafe.akka" %% "akka-actor" % "2.2.3",
+  "com.lihaoyi" % "utest_2.10" % "0.1.0" % "test",
+  "com.lihaoyi" % "utest-runner_2.10" % "0.1.0" % "test"
 )
 
-testFrameworks += new TestFramework("utest.runner.Framework")
+testFrameworks += new TestFramework("utest.runner.JvmFramework")

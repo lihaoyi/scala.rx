@@ -6,27 +6,27 @@ import utest._
 object BasicTests extends TestSuite{
 
   implicit val prop = Propagator.Immediate
-  def tests = {
+  def tests = TestSuite{
     "configTests" - {
       "name" - {
-        val v1 = Var(0)
-        val v2 = Var(0, name = "v2")
-
-        val s1 = Rx{v1() + 1}
-
-        val s2 = Rx(name="s2")(v2() + 1)
-
-        val o1 = Obs(s1){ }
-        val o2 = Obs(s2, name = "o2"){ }
-
-        assert(v1.name == "")
-        assert(v2.name == "v2")
-
-        assert(s1.name == "")
-        assert(s2.name == "s2")
-
-        assert(o1.name == "")
-        assert(o2.name == "o2")
+//        val v1 = Var(0)
+//        val v2 = Var(0, name = "v2")
+//
+//        val s1 = Rx{v1() + 1}
+//
+//        val s2 = Rx(name="s2")(v2() + 1)
+//
+//        val o1 = Obs(s1){ }
+//        val o2 = Obs(s2, name = "o2"){ }
+//
+//        assert(v1.name == "")
+//        assert(v2.name == "v2")
+//
+//        assert(s1.name == "")
+//        assert(s2.name == "s2")
+//
+//        assert(o1.name == "")
+//        assert(o2.name == "o2")
       }
     }
 

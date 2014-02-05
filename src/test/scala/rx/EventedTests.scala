@@ -2,11 +2,10 @@ package rx
 
 import concurrent.duration._
 import scala.concurrent.ExecutionContext
-
+import utest._
 import rx.core.Propagator
 import rx.ops._
 
-import utest._
 /**
  * Tests cases where the Rxs are able to give off events and begin propagations
  * entirely on their own. Timers, Delays, Debounces, etc.
