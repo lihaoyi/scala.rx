@@ -52,7 +52,13 @@ After that, opening up the `sbt console` and pasting the above example into the 
 ScalaJS
 =======
 
-In addition to running on the JVM, Scala.Rx also compiles to [Scala-Js]()! This artifact can be found on Maven Central at:
+In addition to running on the JVM, Scala.Rx also compiles to [Scala-Js]()! This artifact is currently not found on Maven Central, as it's only compatible with the current ScalaJS nightly build. Thus you'll have to download this repo and run
+
+```
+sbt js/publishLocal
+```
+
+Which will publish the Javascript version of Scala.Rx locally, making it available at:
 
 ```scala
 libraryDependencies += "com.scalarx" % "scalarx_2.10" % "0.2.1-JS"
