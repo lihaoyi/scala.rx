@@ -44,7 +44,7 @@ Getting Started
 Scala.Rx is available on [Maven Central](http://search.maven.org/#artifactdetails%7Ccom.scalarx%7Cscalarx_2.10%7C0.1%7Cjar). In order to get started, simply add the following to your `build.sbt`:
 
 ```scala
-libraryDependencies += "com.scalarx" % "scalarx_2.10" % "0.2.0"
+libraryDependencies += "com.scalarx" % "scalarx_2.10" % "0.2.1"
 ```
 
 After that, opening up the `sbt console` and pasting the above example into the console should work! You can proceed through the examples in the [Basic Usage](#basic-usage) page to get a feel for what Scala.Rx can do.
@@ -55,10 +55,12 @@ ScalaJS
 In addition to running on the JVM, Scala.Rx also compiles to [Scala-Js]()! This artifact can be found on Maven Central at:
 
 ```scala
-libraryDependencies += "com.scalarx" % "scalarx_2.10" % "0.2.0-JS"
+libraryDependencies += "com.scalarx" % "scalarx_2.10" % "0.2.1-JS"
 ```
 
 There are some minor differences between running Scala.Rx on the JVM and in Javascript particularly around [asynchronous operations](#timer), the [parallelism model](#parralelism-and-scalajs) and [memory model](#memory-and-scalajs). In general, though, all the examples given in the documentation below will work perfectly when cross-compiled to javascript and run in the browser!
+
+This version of Scala.rx is only compatible with ScalaJS 0.3.
 
 Using Scala.Rx
 ==============
