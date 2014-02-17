@@ -1,5 +1,4 @@
 package rx.core
-
 import ref.WeakReference
 
 

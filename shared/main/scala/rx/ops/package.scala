@@ -1,5 +1,5 @@
 package rx
-
+import acyclic.file
 import scala.concurrent.{ExecutionContext, Future}
 import rx.core.Propagator
 import scala.util.{Try, Failure, Success}

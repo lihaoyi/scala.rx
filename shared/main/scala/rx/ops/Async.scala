@@ -1,6 +1,6 @@
 package rx
 package ops
-
+import acyclic.file
 import scala.concurrent.{ExecutionContext, Future}
 
 import scala.util.Try

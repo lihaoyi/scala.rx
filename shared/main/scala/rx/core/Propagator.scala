@@ -2,10 +2,7 @@ package rx.core
 
 import concurrent.{Future, ExecutionContext}
 
-
 object Propagator{
-
-
   /**
    * A propagator which runs propagation waves on the given `ExecutionContext`.
    * Exactly how it is done (e.g. serially or in parallel) depends on the

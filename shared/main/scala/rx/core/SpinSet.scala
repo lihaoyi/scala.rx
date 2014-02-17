@@ -1,5 +1,5 @@
 package rx.core
-
+import acyclic.file
 import java.util.concurrent.atomic.AtomicReference
 import scala.annotation.tailrec
 

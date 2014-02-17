@@ -3,7 +3,7 @@
  */
 package rx
 package ops
-
+import acyclic.file
 import java.util.concurrent.atomic.AtomicLong
 import scala.util.Try
 
