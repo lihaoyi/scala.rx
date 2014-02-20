@@ -40,6 +40,20 @@ object BasicTests extends TestSuite{
           assert(c() == 6)
 
         }
+        "options"-{
+          val a = Var[Option[Int]](None)
+          val b = Var[Option[Int]](None)
+          val c = Rx {
+            a().flatMap{ x =>
+              b().map{ y =>
+                x + y
+              }
+            }
+          }
+          a() = Some(1)
+          b() = Some(2)
+          assert (c() == Some(3))
+        }
         "longChain" - {
           val (a, b, c, d, e, f) = Util.initGraph
 

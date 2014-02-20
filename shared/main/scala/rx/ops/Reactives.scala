@@ -34,14 +34,15 @@ private[rx] trait Spinlock[+T] extends Incrementing[T]{
   def ping[P: Propagator](incoming: Set[Emitter[_]]): Set[Reactor[_]] = {
 
     val newState = makeState
-    val set = state.spinSetOpt{ oldState =>
-      if (newState.value != oldState.value && newState.timestamp >= oldState.timestamp){
+    val oldValue = state().value
+    state.spinSetOpt{ oldState =>
+      if (newState.timestamp >= oldState.timestamp){
         Some(newState)
       }else{
         None
       }
     }
-    if(set) this.children
+    if(state().value != oldValue) this.children
     else Set()
   }
 }

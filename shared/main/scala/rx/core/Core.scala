@@ -59,7 +59,6 @@ trait Rx[+T] extends Emitter[T] with Reactor[Any]{
    * @return The current value of this [[Rx]]
    */
   def apply(): T = {
-
     Dynamic.enclosing.value = Dynamic.enclosing.value match{
       case Some((enclosing, dependees)) =>
         this.linkChild(enclosing)
