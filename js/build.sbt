@@ -7,7 +7,7 @@ scalaJSSettings
 
 Build.sharedSettings
 
-version := "0.2.1-JS"
+version := "0.2.2-JS"
 
 unmanagedSourceDirectories in Compile <+= baseDirectory(_ / ".." / "shared" / "main")
 

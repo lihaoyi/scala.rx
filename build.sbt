@@ -4,7 +4,7 @@ lazy val js = project.in(file("js"))
 
 Build.sharedSettings
 
-version := "0.2.1"
+version := "0.2.2"
 
 unmanagedSourceDirectories in Compile <+= baseDirectory(_ / "shared" / "main" / "scala")
 
