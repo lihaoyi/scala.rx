@@ -8,10 +8,13 @@ import java.util.concurrent.atomic.{AtomicLong, AtomicReference}
 import java.lang.ref.WeakReference
 import concurrent.duration._
 import rx._
-import rx.core.SpinSet
+import rx.core._
 import scala.Some
 import scala.util.Success
-import rx.core.{Reactor, Emitter, Propagator, Rx}
+import scala.Some
+import rx.core.SpinSet
+import rx.Rx
+import scala.util.Success
 
 
 /**

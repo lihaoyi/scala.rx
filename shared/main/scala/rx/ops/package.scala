@@ -6,7 +6,7 @@ import scala.util.{Try, Failure, Success}
 import scala.concurrent.duration.FiniteDuration
 
 package object ops {
-
+  import acyclic.pkg
   /**
    * Extends an `Rx[Future[T]]` to allow you to flatten it into an `Rx[T]` via
    * the `.async()` method

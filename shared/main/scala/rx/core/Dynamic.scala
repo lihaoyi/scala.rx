@@ -2,13 +2,6 @@ package rx.core
 
 import util.{DynamicVariable, Try}
 
-
-
-import concurrent.duration._
-
-
-import rx.ops.Spinlock
-
 import scala.Some
 
 

@@ -5,6 +5,7 @@ import rx.core.Propagator
 import ops._
 
 import utest._
+import acyclic.file
 /**
  * Tests combinators with asynchronous behavior. All tests are run using a
  * run-immediately-on-this-thread execution context, to remove any

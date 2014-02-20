@@ -8,44 +8,9 @@ import java.util.concurrent.atomic.AtomicLong
 import scala.util.Try
 
 import scala.Some
-import rx.core.{Reactor, Emitter, Propagator, SpinSet}
+import rx.core._
+import rx.core.SpinSet
 
-
-/**
- * Signals whose state contains an auto-incrementing "timestamp" - order to
- * reject out of order completions
- */
-private[rx] trait Incrementing[+T] extends Rx[T]{
-  private val updateCount = new AtomicLong(0)
-  def getStamp = updateCount.getAndIncrement
-
-  class SpinState(val timestamp: Long, val value: Try[T])
-  protected[this] type StateType <: SpinState
-
-  protected[this] val state: SpinSet[StateType]
-  def toTry = state().value
-
-}
-
-private[rx] trait Spinlock[+T] extends Incrementing[T]{
-
-  protected[this] def makeState: StateType
-
-  def ping[P: Propagator](incoming: Set[Emitter[_]]): Set[Reactor[_]] = {
-
-    val newState = makeState
-    val oldValue = state().value
-    state.spinSetOpt{ oldState =>
-      if (newState.timestamp >= oldState.timestamp){
-        Some(newState)
-      }else{
-        None
-      }
-    }
-    if(state().value != oldValue) this.children
-    else Set()
-  }
-}
 
 private[rx] abstract class Wrapper[T, +A](source: Rx[T], prefix: String)
                                           extends Rx[A]

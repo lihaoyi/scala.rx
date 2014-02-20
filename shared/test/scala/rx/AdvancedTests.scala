@@ -2,7 +2,7 @@ package rx
 
 import util.{Success, Failure}
 import rx.core.Propagator
-
+import acyclic.file
 import ops._
 import utest._
 object AdvancedTests extends TestSuite{

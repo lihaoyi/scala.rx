@@ -3,6 +3,7 @@ import util.{Failure, Success}
 
 import rx.core.Propagator
 import utest._
+import acyclic.file
 object BasicTests extends TestSuite{
 
   implicit val prop = Propagator.Immediate
