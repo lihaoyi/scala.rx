@@ -39,7 +39,6 @@ object BasicTests extends TestSuite{
           assert(c() == 3)
           a() = 4
           assert(c() == 6)
-
         }
         "options"-{
           val a = Var[Option[Int]](None)

@@ -24,7 +24,7 @@ Contents
 - [Getting Started](#getting-started)
 - [ScalaJS](#scalajs)
 - [Using Scala.Rx](#using-scalarx)
-  - [Basic Usage](#basic-operations)
+  - [Basic Usage](#basic-usage)
   - [Additional Operations](#additional-operations)
   - [Asynchronous Combinators](#asynchronous-combinators)
   - [Graph Inspection](#graph-inspection)
@@ -52,16 +52,10 @@ After that, opening up the `sbt console` and pasting the above example into the 
 ScalaJS
 =======
 
-In addition to running on the JVM, Scala.Rx also compiles to [Scala-Js]()! This artifact is currently not found on Maven Central, as it's only compatible with the current ScalaJS nightly build. Thus you'll have to download this repo and run
-
-```
-sbt js/publishLocal
-```
-
-Which will publish the Javascript version of Scala.Rx locally, making it available at:
+In addition to running on the JVM, Scala.Rx also compiles to [Scala-Js](http://www.scala-js.org/)! This artifact is currently on [Maven Central](http://search.maven.org/#artifactdetails%7Ccom.scalarx%7Cscalarx_2.10%7C0.2.2-JS%7Cjar) and an be used via the following SBT snippet:
 
 ```scala
-libraryDependencies += "com.scalarx" % "scalarx_2.10" % "0.2.1-JS"
+libraryDependencies += "com.scalarx" % "scalarx_2.10" % "0.2.2-JS"
 ```
 
 There are some minor differences between running Scala.Rx on the JVM and in Javascript particularly around [asynchronous operations](#timer), the [parallelism model](#parralelism-and-scalajs) and [memory model](#memory-and-scalajs). In general, though, all the examples given in the documentation below will work perfectly when cross-compiled to javascript and run in the browser!

@@ -14,10 +14,10 @@ unmanagedSourceDirectories in Compile <+= baseDirectory(_ / ".." / "shared" / "m
 unmanagedSourceDirectories in Test <+= baseDirectory(_ / ".." / "shared" / "test")
 
 libraryDependencies ++= Seq(
-  "org.scala-lang.modules.scalajs" %% "scalajs-dom" % "0.1",
-  "org.webjars" % "envjs" % "1.2",
+  "org.scala-lang.modules.scalajs" %% "scalajs-dom" % "0.2",
+  "org.webjars" % "envjs" % "1.2" % "test",
   "com.lihaoyi.utest" % "utest_2.10" % "0.1.1-JS" % "test",
-  "com.lihaoyi.acyclic" %% "acyclic" % "0.1.0" % "provided"
+  "com.lihaoyi.acyclic" %% "acyclic" % "0.1.1" % "provided"
 )
 
 (loadedTestFrameworks in Test) := {
@@ -27,6 +27,6 @@ libraryDependencies ++= Seq(
   )
 }
 
-addCompilerPlugin("com.lihaoyi.acyclic" %% "acyclic" % "0.1.0")
+addCompilerPlugin("com.lihaoyi.acyclic" %% "acyclic" % "0.1.1")
 
 autoCompilerPlugins := true
