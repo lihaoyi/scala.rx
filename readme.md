@@ -786,7 +786,7 @@ var c = Rx{
 Where `a` and `b` are initially empty, I have basically two options:
 
 - Block the current thread which is computing `c`, waiting for `a` and then `b` to become available.
-- Throw an exception when `a()` and `b() are requested, aborting the computation of `c` but registering it to be restarted when `a()` or `b()` become available.
+- Throw an exception when `a()` and `b()` are requested, aborting the computation of `c` but registering it to be restarted when `a()` or `b()` become available.
 - Re-write this in a monadic style using for-comprehensions.
 - Use the delimited continuations plugin to transform the above code to monadic code automatically.
 
@@ -796,7 +796,7 @@ The second option is a performance problem in a different way: with `n` differen
 
 The third option is a no-go from a user experience perspective: it would require far reaching changes in the code base and coding style in order to benefit from the change propagation, which I'm not willing to require.
 
-The last option is problematic due to the bugginess of the delimited continuations plugin. Although in theory it should be able to solve everything, a large number of small bugs (messing up type inferencing, interfering with implicit resolution) combined with a few fundamental problems meant that even on a small scale project (less than 1000 lines of reactive code) it was getting painful to use.\
+The last option is problematic due to the bugginess of the delimited continuations plugin. Although in theory it should be able to solve everything, a large number of small bugs (messing up type inferencing, interfering with implicit resolution) combined with a few fundamental problems meant that even on a small scale project (less than 1000 lines of reactive code) it was getting painful to use.
 
 ###No Automatic Parallelization at the Start
 
