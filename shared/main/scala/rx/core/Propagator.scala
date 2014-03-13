@@ -77,7 +77,7 @@ object Propagator{
  */
 trait Propagator[P]{
   /**
-   * Begins a propagation wave, with a set of
+   * B  egins a propagation wave, with a set of
    *
    *     Emitter -> Reactor
    *

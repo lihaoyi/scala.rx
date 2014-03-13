@@ -18,6 +18,50 @@ object AdvancedTests extends TestSuite{
         a() = 2
         assert(b()._2() == r)
       }
+      "recalc" - {
+        var source = 0
+        val a = Rx{
+          source
+        }
+        var i = 0
+        val o = Obs(a){
+          i += 1
+        }
+        assert(i == 1)
+        assert(a() == 0)
+        source = 1
+        assert(a() == 0)
+        a.recalc()
+        assert(a() == 1)
+        assert(i == 2)
+      }
+      "multiset" - {
+        val a = Var(1)
+        val b = Var(1)
+        val c = Var(1)
+        val d = Rx{
+          a() + b() + c()
+        }
+        var i = 0
+        val o = Obs(d){
+          i += 1
+        }
+        assert(i == 1)
+        a() = 2
+        assert(i == 2)
+        b() = 2
+        assert(i == 3)
+        c() = 2
+        assert(i == 4)
+
+        Var.set(
+          a -> 3,
+          b -> 3,
+          c -> 3
+        )
+
+        assert(i == 5)
+      }
       "webPage" - {
         var fakeTime = 123
         trait WebPage{

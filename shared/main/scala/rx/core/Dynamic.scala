@@ -49,7 +49,7 @@ class Dynamic[+T](calc: () => T,
   def parents = state().parents.toSet
 
   override def ping[P: Propagator](incoming: Set[Emitter[_]]): Set[Reactor[_]] = {
-    if (!parents.intersect(incoming).isEmpty){
+    if (!parents.intersect(incoming).isEmpty || incoming.contains(this)){
       super.ping(incoming)
     } else Set.empty
   }

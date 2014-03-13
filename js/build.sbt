@@ -7,16 +7,16 @@ scalaJSSettings
 
 Build.sharedSettings
 
-version := "0.2.2-JS"
+version := "0.2.3-JS"
 
 unmanagedSourceDirectories in Compile <+= baseDirectory(_ / ".." / "shared" / "main")
 
 unmanagedSourceDirectories in Test <+= baseDirectory(_ / ".." / "shared" / "test")
 
 libraryDependencies ++= Seq(
-  "org.scala-lang.modules.scalajs" %% "scalajs-dom" % "0.2",
+  "org.scala-lang.modules.scalajs" %% "scalajs-dom" % "0.3" % "provided",
   "org.webjars" % "envjs" % "1.2" % "test",
-  "com.lihaoyi.utest" % "utest_2.10" % "0.1.1-JS" % "test",
+  "com.lihaoyi.utest" % "utest_2.10" % "0.1.2-JS" % "test",
   "com.lihaoyi.acyclic" %% "acyclic" % "0.1.1" % "provided"
 )
 

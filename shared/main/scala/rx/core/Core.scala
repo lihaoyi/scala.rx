@@ -87,8 +87,22 @@ trait Rx[+T] extends Emitter[T] with Reactor[Any]{
     this.kill()
     descendants.foreach(_.kill())
   }
+
+  /**
+   * Forces this [[Rx]] to recalculate its value. This typically does
+   * nothing unless the [[Rx]] is a [[Dynamic]], since only [[Dynamic]]s
+   * can have their calculated value change without their ancestors
+   * pinging them.
+   */
+    def recalc[P: Propagator](): P = Propagator().propagate(Set(this -> this))
 }
 
+class Staged[T](val v: Var[T], t: T){
+  def commit() = v.updateSilent(t)
+}
+object Staged{
+  implicit def tupled[T](v: (Var[T], T)) = new Staged(v._1, v._2)
+}
 
 object Var {
   /**
@@ -96,6 +110,16 @@ object Var {
    */
   def apply[T](value: => T, name: String = "") = {
     new Var(value, name)
+  }
+  def set[P: Propagator](thingies: Staged[_]*) = {
+    thingies.foreach(_.commit())
+
+    Propagator().propagate(
+      thingies.flatMap{ v =>
+        v.v.children
+           .map(v.v.asInstanceOf[Emitter[_]] -> _)
+      }.toSet
+    )
   }
 }
 
