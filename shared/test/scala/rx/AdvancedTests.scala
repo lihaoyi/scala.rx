@@ -61,6 +61,16 @@ object AdvancedTests extends TestSuite{
         )
 
         assert(i == 5)
+
+        Var.set(
+          Seq(
+            a -> 4,
+            b -> 5,
+            c -> 6
+          ):_*
+        )
+
+        assert(i == 6)
       }
       "webPage" - {
         var fakeTime = 123

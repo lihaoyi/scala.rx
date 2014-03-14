@@ -1,4 +1,4 @@
-Scala.Rx 0.2.2
+Scala.Rx 0.2.3
 ==============
 
 Scala.Rx is an experimental change propagation library for [Scala](http://www.scala-lang.org/). Scala.Rx gives you Reactive variables ([Rx][1]s), which are smart variables who auto-update themselves when the values they depend on change. The underlying implementation is push-based [FRP](http://en.wikipedia.org/wiki/Functional_reactive_programming) based on the ideas in [Deprecating the Observer Pattern](http://infoscience.epfl.ch/record/176887/files/DeprecatingObservers2012.pdf).
@@ -44,7 +44,7 @@ Getting Started
 Scala.Rx is available on [Maven Central](http://search.maven.org/#artifactdetails%7Ccom.scalarx%7Cscalarx_2.10%7C0.1%7Cjar). In order to get started, simply add the following to your `build.sbt`:
 
 ```scala
-libraryDependencies += "com.scalarx" % "scalarx_2.10" % "0.2.2"
+libraryDependencies += "com.scalarx" % "scalarx_2.10" % "0.2.3"
 ```
 
 After that, opening up the `sbt console` and pasting the above example into the console should work! You can proceed through the examples in the [Basic Usage](#basic-usage) page to get a feel for what Scala.Rx can do.
@@ -55,12 +55,12 @@ ScalaJS
 In addition to running on the JVM, Scala.Rx also compiles to [Scala-Js](http://www.scala-js.org/)! This artifact is currently on [Maven Central](http://search.maven.org/#artifactdetails%7Ccom.scalarx%7Cscalarx_2.10%7C0.2.2-JS%7Cjar) and an be used via the following SBT snippet:
 
 ```scala
-libraryDependencies += "com.scalarx" % "scalarx_2.10" % "0.2.2-JS"
+libraryDependencies += "com.scalarx" % "scalarx_2.10" % "0.2.3-JS"
 ```
 
 There are some minor differences between running Scala.Rx on the JVM and in Javascript particularly around [asynchronous operations](#timer), the [parallelism model](#parralelism-and-scalajs) and [memory model](#memory-and-scalajs). In general, though, all the examples given in the documentation below will work perfectly when cross-compiled to javascript and run in the browser!
 
-This version of Scala.rx is only compatible with ScalaJS 0.3.
+This version of Scala.rx is only compatible with ScalaJS 0.4.x.
 
 Using Scala.Rx
 ==============

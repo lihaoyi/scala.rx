@@ -100,9 +100,6 @@ trait Rx[+T] extends Emitter[T] with Reactor[Any]{
 class Staged[T](val v: Var[T], t: T){
   def commit() = v.updateSilent(t)
 }
-object Staged{
-  implicit def tupled[T](v: (Var[T], T)) = new Staged(v._1, v._2)
-}
 
 object Var {
   /**

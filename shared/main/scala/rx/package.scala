@@ -30,5 +30,8 @@ package object rx {
 
   val Var = core.Var
   type Var[T] = core.Var[T]
+
+  implicit def StagedTuple[T](v: (Var[T], T)) = new core.Staged(v._1, v._2)
+  implicit def StagedTupleSeq[T](v: Seq[(Var[T], T)]) = v.map(StagedTuple)
 }
 

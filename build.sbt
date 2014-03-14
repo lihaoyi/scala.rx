@@ -12,12 +12,12 @@ unmanagedSourceDirectories in Test <+= baseDirectory(_ / "shared" / "test" / "sc
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % "2.3.0" % "provided",
-  "com.lihaoyi.utest" % "utest_2.10" % "0.1.2" % "test",
-  "com.lihaoyi.acyclic" %% "acyclic" % "0.1.1" % "provided"
+  "com.lihaoyi" % "utest_2.10" % "0.1.2" % "test",
+  "com.lihaoyi" %% "acyclic" % "0.1.1" % "provided"
 )
 
 testFrameworks += new TestFramework("utest.runner.JvmFramework")
 
-addCompilerPlugin("com.lihaoyi.acyclic" %% "acyclic" % "0.1.1")
+addCompilerPlugin("com.lihaoyi" %% "acyclic" % "0.1.1")
 
 autoCompilerPlugins := true
