@@ -4,7 +4,7 @@
 package rx
 package ops
 import acyclic.file
-import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.{AtomicReference, AtomicLong}
 import scala.util.Try
 
 import scala.Some
@@ -38,6 +38,40 @@ private class Reducer[T](source: Rx[T])
     transformer(state().value, source.toTry)
   )
 }
+
+/**
+ * Zipper class that
+ * @param source source reactive
+ * @param transformer transforming function
+ * @tparam T incoming type
+ * @tparam A outgoing type
+ */
+private class Zipper[T,+A](source: Rx[T])
+                        (transformer: (Try[T], Try[T]) => Try[A])
+  extends Wrapper[T, A](source, "Zip")
+  with Spinlock[A]{
+
+  protected[this] type StateType = SpinState
+
+  /**
+   * Previous value
+   */
+  private lazy val prev= new AtomicReference[Try[T]](source.toTry)
+
+  override def ping[P: Propagator](incoming: Set[Emitter[_]]): Set[Reactor[_]] =
+    if(prev.get()==source.toTry) Set() else  super.ping[P](incoming)
+
+
+  protected[this] val state = SpinSet(makeState)
+
+  def makeState = {
+    val pre = prev.get()
+    prev.set(source.toTry)
+    new SpinState( getStamp, transformer(pre, source.toTry)  )  }
+
+}
+
+
 
 /**
  * A Rx[A] which is a direct transformation of another Rx[T] via a
