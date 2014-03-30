@@ -226,6 +226,23 @@ object AdvancedTests extends TestSuite{
         assert(c() == 1347)
       }
     }
+
+    "zipper" - {
+      val a = Var(1)
+      val b = a.zip
+      val c = a.zip{case (a,b)=>s"$a => $b"}
+      a() = 2
+      assert(b() == (1,2))
+      assert(c() == "1 => 2")
+      a() = 3
+      assert(b() == (2,3))
+      assert(c() == "2 => 3")
+      a() = 4
+      assert(b() == (3,4))
+      assert(c() == "3 => 4")
+    }
+
+
     "kill" - {
       "killObs" - {
         val a = Var(1)

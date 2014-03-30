@@ -88,6 +88,28 @@ package object ops {
       )
     }
 
+
+
+    /**
+     * Creates a new [[Rx]] which zips the values of the source [[Rx]] according
+     * to the given `combiner` function. Failures are passed through directly,
+     * and transitioning from a Failure to a Success(s) re-starts the combining
+     * using the result `s` of the Success.
+     */
+    def zip[R](combiner: (T, T) => R): Rx[R] = {
+      new Zipper[T,R](source)(
+        (x, y) => (x, y) match{
+          case (Success(a), Success(b)) => Success(combiner(a, b))
+          case (Failure(a), Success(b)) => Failure(a)
+          case (Success(_), Failure(b)) => Failure(b)
+          case (Failure(_), Failure(b)) => Failure(b)
+        }
+      )
+    }
+    /**
+     * Just simple zip, without mapping
+     */
+    def zip(): Rx[(T, T)] = this.zip[(T,T)]((a,b)=>(a,b))
     /**
      * Identical to map(), except the entire `Try[T]` is available to your
      * transformer rather than just the `T`.
@@ -105,6 +127,12 @@ package object ops {
      * rather than just the `T`s.
      */
     def reduceAll[A >: T](combiner: (Try[A], Try[A]) => Try[A]): Rx[A] = new Reducer[A](source)(combiner)
+
+    /**
+     * Identical to `zip()`, except both `Try[T]`s are available to your combiner,
+     * rather than just the `T`s.
+     */
+    def zipAll[A >: T,TR](combiner: (Try[A], Try[A]) => Try[TR]): Rx[TR] = new Zipper[A,TR](source)(combiner)
 
     /**
      * Creates a new [[Rx]] which debounces the original old Rx; updates coming
