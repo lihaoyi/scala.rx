@@ -7,7 +7,7 @@ object Build extends sbt.Build{
     organization := "com.scalarx",
     name := "scalarx",
     scalaVersion := "2.10.4",
-    version := "0.2.4",
+    version := "0.2.5-RC1",
 
     addCompilerPlugin("com.lihaoyi" %% "acyclic" % "0.1.2"),
     autoCompilerPlugins := true,
