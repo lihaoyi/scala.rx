@@ -2,12 +2,13 @@ import sbt._
 import Keys._
 import scala.scalajs.sbtplugin.ScalaJSPlugin.ScalaJSKeys._
 import scala.scalajs.sbtplugin.ScalaJSPlugin._
+import scala.scalajs.sbtplugin.env.phantomjs.PhantomJSEnv
 object Build extends sbt.Build{
   val cross = new utest.jsrunner.JsCrossBuild(
     organization := "com.scalarx",
     name := "scalarx",
     scalaVersion := "2.10.4",
-    version := "0.2.5-RC1",
+    version := "0.2.5",
 
     addCompilerPlugin("com.lihaoyi" %% "acyclic" % "0.1.2"),
     autoCompilerPlugins := true,
@@ -42,9 +43,10 @@ object Build extends sbt.Build{
 
   lazy val js = cross.js.settings(
     libraryDependencies ++= Seq(
-      "org.scala-lang.modules.scalajs" %% "scalajs-dom" % "0.4" % "provided",
+      "org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.6" % "provided",
       "com.lihaoyi" %% "acyclic" % "0.1.2" % "provided"
-    )
+    ),
+    (jsEnv in Test) := new PhantomJSEnv
   )
 
   lazy val jvm = cross.jvm.settings(
