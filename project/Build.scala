@@ -1,5 +1,6 @@
 import sbt._
 import Keys._
+import scala.scalajs.sbtplugin.env.nodejs.NodeJSEnv
 import scala.scalajs.sbtplugin.ScalaJSPlugin.ScalaJSKeys._
 import scala.scalajs.sbtplugin.ScalaJSPlugin._
 import scala.scalajs.sbtplugin.env.phantomjs.PhantomJSEnv
@@ -45,8 +46,7 @@ object Build extends sbt.Build{
     libraryDependencies ++= Seq(
       "org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.6" % "provided",
       "com.lihaoyi" %% "acyclic" % "0.1.2" % "provided"
-    ),
-    (jsEnv in Test) := new PhantomJSEnv
+    )//,
   )
 
   lazy val jvm = cross.jvm.settings(

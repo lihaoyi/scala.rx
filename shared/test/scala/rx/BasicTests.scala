@@ -54,6 +54,7 @@ object BasicTests extends TestSuite{
           b() = Some(2)
           assert (c() == Some(3))
         }
+
         "longChain" - {
           val (a, b, c, d, e, f) = Util.initGraph
 
