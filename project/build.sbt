@@ -4,5 +4,5 @@ resolvers += Resolver.sonatypeRepo("releases")
 
 resolvers += Resolver.sonatypeRepo("snapshots")
 
-addSbtPlugin("com.lihaoyi" % "utest-js-plugin" % "0.1.7")
+addSbtPlugin("com.lihaoyi" % "utest-js-plugin" % "0.1.8")
 
