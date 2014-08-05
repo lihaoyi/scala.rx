@@ -9,15 +9,13 @@ object Build extends sbt.Build{
     organization := "com.scalarx",
     name := "scalarx",
     scalaVersion := "2.10.4",
-    version := "0.2.5",
+    version := "0.2.6",
 
     addCompilerPlugin("com.lihaoyi" %% "acyclic" % "0.1.2"),
     autoCompilerPlugins := true,
     // Sonatype
 
-    publishTo <<= version { (v: String) =>
-      Some("releases"  at "https://oss.sonatype.org/service/local/staging/deploy/maven2")
-    },
+    publishTo := Some("releases"  at "https://oss.sonatype.org/service/local/staging/deploy/maven2"),
 
     pomExtra :=
       <url>https://github.com/lihaoyi/scalatags</url>
@@ -46,7 +44,8 @@ object Build extends sbt.Build{
     libraryDependencies ++= Seq(
       "org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.6" % "provided",
       "com.lihaoyi" %% "acyclic" % "0.1.2" % "provided"
-    )//,
+    ),
+    test in Test := (test in (Test, fastOptStage)).value
   )
 
   lazy val jvm = cross.jvm.settings(
