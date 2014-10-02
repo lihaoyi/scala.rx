@@ -249,6 +249,17 @@ object AdvancedTests extends TestSuite{
         a() = 10
         assert(c() == 1347)
       }
+
+      "diff" - {
+        val a = Var(1)
+        val b = a.diff(_ - _, _ => 0)
+        a() = 2
+        assert(b() == -1)
+        a() = 4
+        assert(b() == -2)
+        a() = 0
+        assert(b() == +4)
+      }
     }
     "kill" - {
       "killObs" - {
