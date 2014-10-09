@@ -99,6 +99,17 @@ package object ops {
       )
     }
 
+    def fold[A](zero: A)(folder: (A, T) => A): Rx[A] = {
+      new Folder[T, A](source, zero)(
+        (a, t) => (a, t) match {
+          case (Success(aa), Success(tt)) => Success(folder(aa, tt))
+          case (Failure(_), Success(tt)) => Success(folder(zero, tt))
+          case (Success(_), Failure(b)) => Failure(b)
+          case (Failure(_), Failure(b)) => Failure(b)
+        }
+      )
+    }
+
     /**
      * Identical to map(), except the entire `Try[T]` is available to your
      * transformer rather than just the `T`.

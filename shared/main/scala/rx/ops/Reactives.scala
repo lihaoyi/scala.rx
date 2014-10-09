@@ -5,7 +5,7 @@ package rx
 package ops
 import acyclic.file
 import java.util.concurrent.atomic.AtomicLong
-import scala.util.{Failure, Try}
+import scala.util.{Success, Failure, Try}
 
 import scala.Some
 import rx.core._
@@ -80,6 +80,25 @@ private[rx] class Differ[T, +A](source: Rx[T])
     new SpinState(
       getStamp,
       transformer(p, source.toTry)
+    )
+  }
+}
+
+private[rx] class Folder[T, +A](source: Rx[T], zero: A)
+                               (transformer: (Try[A], Try[T]) => Try[A])
+                               extends Wrapper[T, A](source, "Diff")
+                               with Spinlock[A]
+{
+  protected[this] type StateType = SpinState
+  protected[this] val state = SpinSet(new SpinState(
+    getStamp,
+    transformer(Success(zero), source.toTry)
+  ))
+
+  def makeState = {
+    new SpinState(
+      getStamp,
+      transformer(state().value, source.toTry)
     )
   }
 }

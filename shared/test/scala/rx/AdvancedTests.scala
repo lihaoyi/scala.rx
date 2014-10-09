@@ -260,6 +260,14 @@ object AdvancedTests extends TestSuite{
         a() = 0
         assert(b() == +4)
       }
+
+      "fold" - {
+        val a = Var("hi")
+        val b = a.fold(0)(_ + _.length)
+        assert(b() == 2)
+        a() = "mum"
+        assert(b() == 5)
+      }
     }
     "kill" - {
       "killObs" - {
