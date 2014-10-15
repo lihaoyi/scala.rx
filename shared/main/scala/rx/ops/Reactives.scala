@@ -76,7 +76,6 @@ private[rx] class Differ[T, +A](source: Rx[T])
   def makeState = {
     val p = previous
     previous = source.toTry
-    println(s"f($p, ${source.toTry}) = ${transformer(p, source.toTry)}")
     new SpinState(
       getStamp,
       transformer(p, source.toTry)
