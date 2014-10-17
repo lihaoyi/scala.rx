@@ -46,7 +46,7 @@ object Build extends sbt.Build{
       "com.lihaoyi" %% "acyclic" % "0.1.2" % "provided"
     ),
     test in Test := (test in (Test, fastOptStage)).value
-  )
+  ).configure(sourceMapsToGithub)
 
   lazy val jvm = cross.jvm.settings(
     libraryDependencies ++= Seq(
@@ -54,4 +54,13 @@ object Build extends sbt.Build{
       "com.lihaoyi" %% "acyclic" % "0.1.2" % "provided"
     )
   )
+
+  def sourceMapsToGithub: Project => Project =
+    p => p.settings(
+      scalacOptions ++= (if (isSnapshot.value) Seq.empty else Seq({
+        val a = p.base.toURI.toString.replaceFirst("[^/]+/?$", "")
+        val g = "https://raw.githubusercontent.com/lihaoyi/scala.rx"
+        s"-P:scalajs:mapSourceURI:$a->$g/${version.value}/"
+      }))
+    )
 }
