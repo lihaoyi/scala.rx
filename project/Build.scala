@@ -1,15 +1,16 @@
 import sbt._
 import Keys._
-import scala.scalajs.sbtplugin.env.nodejs.NodeJSEnv
-import scala.scalajs.sbtplugin.ScalaJSPlugin.ScalaJSKeys._
-import scala.scalajs.sbtplugin.ScalaJSPlugin._
-import scala.scalajs.sbtplugin.env.phantomjs.PhantomJSEnv
+
+import org.scalajs.sbtplugin.ScalaJSPlugin
+import org.scalajs.sbtplugin.ScalaJSPlugin._
+import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
+
 object Build extends sbt.Build{
   val cross = new utest.jsrunner.JsCrossBuild(
     organization := "com.scalarx",
     name := "scalarx",
     scalaVersion := "2.10.4",
-    version := "0.2.6",
+    version := "0.2.7-M1",
 
     addCompilerPlugin("com.lihaoyi" %% "acyclic" % "0.1.2"),
     autoCompilerPlugins := true,
@@ -42,10 +43,10 @@ object Build extends sbt.Build{
 
   lazy val js = cross.js.settings(
     libraryDependencies ++= Seq(
-      "org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.6" % "provided",
+      "org.scala-js" %%%! "scalajs-dom" % "0.7.0" % "provided",
       "com.lihaoyi" %% "acyclic" % "0.1.2" % "provided"
     ),
-    test in Test := (test in (Test, fastOptStage)).value
+    scalaJSStage in Test := FastOptStage
   )
 
   lazy val jvm = cross.jvm.settings(

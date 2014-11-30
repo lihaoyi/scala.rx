@@ -11,7 +11,7 @@ class DomScheduler extends rx.ops.Scheduler {
   def scheduleOnce[T](interval: FiniteDuration)
                      (thunk: => T)
                      (implicit executor: ExecutionContext): Unit = {
-    org.scalajs.dom.setTimeout(() => thunk, interval.toMillis)
+    org.scalajs.dom.setTimeout(() => thunk, interval.toMillis.toInt)
   }
 }
 
