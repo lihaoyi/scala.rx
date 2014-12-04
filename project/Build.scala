@@ -8,7 +8,7 @@ object Build extends sbt.Build{
   val cross = new utest.jsrunner.JsCrossBuild(
     organization := "com.scalarx",
     name := "scalarx",
-    scalaVersion := "2.10.4",
+    scalaVersion := "2.11.4",
     version := "0.2.6.drdozer",
 
     addCompilerPlugin("com.lihaoyi" %% "acyclic" % "0.1.2"),
