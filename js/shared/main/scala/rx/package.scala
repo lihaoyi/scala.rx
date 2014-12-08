@@ -1,37 +1,92 @@
+import java.util.concurrent.atomic.AtomicInteger
 
-/**
- * '''Scala.Rx''' is an experimental change propagation library for [[http://www.scala-lang.org/ Scala]].
- * Scala.Rx gives you Reactive variables ([[Rx]]s), which are smart variables who auto-update themselves
- * when the values they depend on change. The underlying implementation is push-based
- * [[http://en.wikipedia.org/wiki/Functional_reactive_programming FRP]] based on the
- * ideas in
- * [[http://infoscience.epfl.ch/record/176887/files/DeprecatingObservers2012.pdf Deprecating the Observer Pattern]].
- *
- * A simple example which demonstrates its usage is:
- *
- * {{{
- * import rx._
- * val a = Var(1); val b = Var(2)
- * val c = Rx{ a() + b() }
- * println(c()) // 3
- * a() = 4
- * println(c()) // 6
- * }}}
- *
- * See [[https://github.com/lihaoyi/scala.rx the github page]] for more
- * instructions on how to use this package, or browse the classes on the left.
- */
+import collection.mutable
+import scala.util.Try
+
 package object rx {
-  val Rx = core.Rx
-  type Rx[+T] = core.Rx[T]
+  val contextStack = new ThreadLocal[mutable.Buffer[Rx[_]]]{
+    override def initialValue = mutable.Buffer.empty[Rx[_]]
+  }
+  val idCounter = new AtomicInteger
+  trait Node[T]{
+    def value: T
+    val downStream = mutable.Set.empty[Rx[_]]
+    def apply() = {
+      contextStack.get()
+                  .headOption
+                  .foreach(downStream.add)
+      value
+    }
+    def depth: Int
+    def recalc() = doRecalc(this.downStream.toSet)
+    def calcSet: Seq[Rx[_]]
+  }
+  case class Var[T](var value: T) extends Node[T]{
 
-  val Obs = core.Obs
-  type Obs = core.Obs
+    def depth = 0
+    def update(newValue: T): Unit = {
+      val toPing = downStream.toSet
+      downStream.clear()
+      value = newValue
+      doRecalc(toPing)
 
-  val Var = core.Var
-  type Var[T] = core.Var[T]
+      value = newValue
+    }
+    def calcSet(): Seq[Rx[_]] = downStream.toSeq
+  }
+  
+  object Rx{
+    def apply[T](func: => T) = new Rx(() => func)
+  }
 
-  implicit def StagedTuple[T](v: (Var[T], T)) = new core.Staged(v._1, v._2)
-  implicit def StagedTupleSeq[T](v: Seq[(Var[T], T)]) = v.map(StagedTuple)
+  case class Rx[T](func: () => T, id: Int = idCounter.getAndIncrement) extends Node[T] {
+    var depth = 0
+    val upStream = mutable.Set.empty[Node[_]]
+    val owned = mutable.Set.empty[Node[_]]
+    def calc(): (Try[T], Seq[Rx[_]]) = {
+      val toPing = downStream.toArray
+      downStream.clear()
+      owned.clear()
+      contextStack.get()
+                  .headOption
+                  .foreach(_.downStream.add(this))
+      contextStack.get().append(this)
+      val r = Try(func())
+      contextStack.get().trimEnd(1)
+      (r, toPing)
+    }
+    def value = cached.get
+
+    var cached: Try[T] = {
+      contextStack.get()
+                  .headOption
+                  .foreach(_.owned.add(this))
+      calc()._1
+    }
+
+    def kill() = {
+      upStream.foreach(_.downStream.remove(this))
+      upStream.clear()
+    }
+
+    def calcSet(): Seq[Rx[_]] = {
+      val (r, next) = calc()
+      cached = r
+      next
+    }
+  }
+
+  def doRecalc(rxs: Set[Rx[_]]): Unit = {
+    val front = mutable.Buffer[Rx[_]](rxs.toSeq:_*)
+    while(front.length > 0){
+      val (shallowest, rest) =
+        front.partition(_.depth == front.minBy(_.depth).depth)
+      front.clear()
+      front.appendAll(rest)
+      for(rx <- shallowest){
+        front.appendAll(rx.calcSet())
+      }
+    }
+  }
 }
 
