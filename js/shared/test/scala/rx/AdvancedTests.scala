@@ -1,13 +1,13 @@
-//package rx
+package rx
 //
 //import util.{Success, Failure}
 //import rx.core.Propagator
-//import acyclic.file
+import acyclic.file
 //import ops._
-//import utest._
-//object AdvancedTests extends TestSuite{
+import utest._
+object AdvancedTests extends TestSuite{
 //  implicit val prop = Propagator.Immediate
-//  def tests = TestSuite{
+  def tests = TestSuite{
 //    'perf{
 //      'init{
 //        val start = System.currentTimeMillis()
@@ -32,109 +32,113 @@
 //
 //
 //    }
-//    "nesting" - {
-//      "nestedRxs" - {
-//        val a = Var(1)
-//        val b = Rx{
-//          Rx{ a() } -> Rx{ math.random }
-//        }
-//        val r = b()._2()
-//        a() = 2
-//        assert(b()._2() == r)
-//      }
-//      "recalc" - {
-//        var source = 0
-//        val a = Rx{
-//          source
-//        }
-//        var i = 0
-//        val o = Obs(a){
-//          i += 1
-//        }
-//        assert(i == 1)
-//        assert(a() == 0)
-//        source = 1
-//        assert(a() == 0)
-//        a.recalc()
-//        assert(a() == 1)
-//        assert(i == 2)
-//      }
-//      "multiset" - {
-//        val a = Var(1)
-//        val b = Var(1)
-//        val c = Var(1)
-//        val d = Rx{
-//          a() + b() + c()
-//        }
-//        var i = 0
-//        val o = Obs(d){
-//          i += 1
-//        }
-//        assert(i == 1)
-//        a() = 2
-//        assert(i == 2)
-//        b() = 2
-//        assert(i == 3)
-//        c() = 2
-//        assert(i == 4)
-//
-//        Var.set(
-//          a -> 3,
-//          b -> 3,
-//          c -> 3
-//        )
-//
-//        assert(i == 5)
-//
-//        Var.set(
-//          Seq(
-//            a -> 4,
-//            b -> 5,
-//            c -> 6
-//          ):_*
-//        )
-//
-//        assert(i == 6)
-//      }
-//      "webPage" - {
-//        var fakeTime = 123
-//        trait WebPage{
-//          def fTime = fakeTime
-//          val time = Var(fTime)
-//          def update(): Unit  = time() = fTime
-//          val html: Rx[String]
-//        }
-//        class HomePage extends WebPage {
-//          val html = Rx{"Home Page! time: " + time()}
-//        }
-//        class AboutPage extends WebPage {
-//          val html = Rx{"About Me, time: " + time()}
-//        }
-//
-//        val url = Var("www.mysite.com/home")
-//        val page = Rx{
-//          url() match{
-//            case "www.mysite.com/home" => new HomePage()
-//            case "www.mysite.com/about" => new AboutPage()
-//          }
-//        }
-//
-//        assert(page().html() == "Home Page! time: 123")
-//
-//        fakeTime = 234
-//        page().update()
-//        assert(page().html() == "Home Page! time: 234")
-//
-//        fakeTime = 345
-//        url() = "www.mysite.com/about"
-//        assert(page().html() == "About Me, time: 345")
-//
-//        fakeTime = 456
-//        page().update()
-//        assert(page().html() == "About Me, time: 456")
-//      }
-//
-//    }
+    "nesting" - {
+      "nestedRxs" - {
+        val a = Var(1)
+        val b = Rx{
+          Rx{ a() } -> Rx{ math.random }
+        }
+        println("A\t" + a.downStream)
+        println("A\t" + a.downStream.head.downStream)
+        println("B1\t" + b()._1())
+        println("B2\t" + b()._2())
+        val r = b()._2()
+        a() = 2
+        assert(b()._2() == r)
+      }
+      "recalc" - {
+        var source = 0
+        val a = Rx{
+          source
+        }
+        var i = 0
+        val o = a.trigger{
+          i += 1
+        }
+        assert(i == 1)
+        assert(a() == 0)
+        source = 1
+        assert(a() == 0)
+        a.recalc()
+        assert(a() == 1)
+        assert(i == 2)
+      }
+      "multiset" - {
+        val a = Var(1)
+        val b = Var(1)
+        val c = Var(1)
+        val d = Rx{
+          a() + b() + c()
+        }
+        var i = 0
+        val o = d.trigger{
+          i += 1
+        }
+        assert(i == 1)
+        a() = 2
+        assert(i == 2)
+        b() = 2
+        assert(i == 3)
+        c() = 2
+        assert(i == 4)
+
+        Var.set(
+          a -> 3,
+          b -> 3,
+          c -> 3
+        )
+
+        assert(i == 5)
+
+        Var.set(
+          Seq(
+            a -> 4,
+            b -> 5,
+            c -> 6
+          ):_*
+        )
+
+        assert(i == 6)
+      }
+      "webPage" - {
+        var fakeTime = 123
+        trait WebPage{
+          def fTime = fakeTime
+          val time = Var(fTime)
+          def update(): Unit  = time() = fTime
+          val html: Rx[String]
+        }
+        class HomePage extends WebPage {
+          val html = Rx{"Home Page! time: " + time()}
+        }
+        class AboutPage extends WebPage {
+          val html = Rx{"About Me, time: " + time()}
+        }
+
+        val url = Var("www.mysite.com/home")
+        val page = Rx{
+          url() match{
+            case "www.mysite.com/home" => new HomePage()
+            case "www.mysite.com/about" => new AboutPage()
+          }
+        }
+
+        assert(page().html() == "Home Page! time: 123")
+
+        fakeTime = 234
+        page().update()
+        assert(page().html() == "Home Page! time: 234")
+
+        fakeTime = 345
+        url() = "www.mysite.com/about"
+        assert(page().html() == "About Me, time: 345")
+
+        fakeTime = 456
+        page().update()
+        assert(page().html() == "About Me, time: 456")
+      }
+
+    }
 //
 //    "combinators" - {
 //      "foreach" - {
@@ -334,7 +338,7 @@
 //      lazy val s: Rx[Double] = Rx(default = 10.0){ s() - (s() * s() - 10) / (2 * s()) }
 //      println(s())
 //    }
-//  }
+  }
 //   */
 //
-//}
+}

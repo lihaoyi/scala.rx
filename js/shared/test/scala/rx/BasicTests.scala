@@ -1,14 +1,10 @@
 package rx
 import util.{Failure, Success}
 
-import rx.core.Propagator
 import utest._
 import acyclic.file
 object BasicTests extends TestSuite{
-
   def tests = TestSuite{
-
-
     "sigTests" - {
       "basic" - {
         "rxHelloWorld" - {
@@ -66,86 +62,84 @@ object BasicTests extends TestSuite{
       }
     }
 
-//    "obsTests" - {
-//      "helloWorld" - {
-//        val a = Var(1)
-//        var count = 0
-//        val o = Obs(a){
-//          count = a() + 1
-//        }
-//        assert(count == 2)
-//        a() = 4
-//        assert(count == 5)
-//      }
-//      "skipInitial" - {
-//        val a = Var(1)
-//        var count = 0
-//        val o = Obs(a, skipInitial=true){
-//          count = count + 1
-//        }
-//        assert(count == 0)
-//        a() = 2
-//        assert(count == 1)
-//      }
-//
-//      "simpleExample" - {
-//        val a = Var(1)
-//        val b = Rx{ a() * 2 }
-//        val c = Rx{ a() + 1 }
-//        val d = Rx{ b() + c() }
-//        var bS = 0;     val bO = Obs(b){ bS += 1 }
-//        var cS = 0;     val cO = Obs(c){ cS += 1 }
-//        var dS = 0;     val dO = Obs(d){ dS += 1 }
-//
-//        assert(bS == 1);   assert(cS == 1);   assert(dS == 1)
-//
-//        a() = 2
-//
-//        assert(bS == 2);   assert(cS == 2);   assert(dS == 2)
-//
-//        a() = 1
-//
-//        assert(bS == 3);   assert(cS == 3);   assert(dS == 3)
-//      }
-//    }
-//
-//    "errorHandling" - {
-//      "simpleCatch" - {
-//        val a = Var(1L)
-//        val b = Rx{ 1 / a() }
-//        assert(b() == 1)
-//        assert(b.toTry == Success(1L))
-//        a() = 0
-//        intercept[Exception]{
-//          b()
-//        }
-//        assertMatch(b.toTry){case Failure(_) =>}
-//      }
-//      "longChain" - {
-//        val a = Var(1L)
-//        val b = Var(2L)
-//
-//        val c = Rx{ a() / b() }
-//        val d = Rx{ a() * 5 }
-//        val e = Rx{ 5 / b() }
-//        val f = Rx{ a() + b() + 2 }
-//        val g = Rx{ f() + c() }
-//
-//        assertMatch(c.toTry){case Success(0)=>}
-//        assertMatch(d.toTry){case Success(5)=>}
-//        assertMatch(e.toTry){case Success(2)=>}
-//        assertMatch(f.toTry){case Success(5)=>}
-//        assertMatch(g.toTry){case Success(5)=>}
-//
-//        b() = 0
-//
-//        assertMatch(c.toTry){case Failure(_)=>}
-//        assertMatch(d.toTry){case Success(5)=>}
-//        assertMatch(e.toTry){case Failure(_)=>}
-//        assertMatch(f.toTry){case Success(3)=>}
-//        assertMatch(g.toTry){case Failure(_)=>}
-//      }
-//    }
+    "obsTests" - {
+      "helloWorld" - {
+        val a = Var(1)
+        var count = 0
+        val o = a.trigger{
+          count = a() + 1
+        }
+        assert(count == 2)
+        a() = 4
+        assert(count == 5)
+      }
+      "skipInitial" - {
+        val a = Var(1)
+        var count = 0
+        val o = a.triggerLater{
+          count = count + 1
+        }
+        assert(count == 0)
+        a() = 2
+        assert(count == 1)
+      }
+
+      "simpleExample" - {
+        val a = Var(1)
+        val b = Rx{ a() * 2 }
+        val c = Rx{ a() + 1 }
+        val d = Rx{ b() + c() }
+        var bS = 0;     val bO = b.trigger{ bS += 1 }
+        var cS = 0;     val cO = c.trigger{ cS += 1 }
+        var dS = 0;     val dO = d.trigger{ dS += 1 }
+
+        assert(bS == 1);   assert(cS == 1);   assert(dS == 1)
+
+        a() = 2
+        assert(bS == 2);   assert(cS == 2);   assert(dS == 2)
+
+        a() = 1
+        assert(bS == 3);   assert(cS == 3);   assert(dS == 3)
+      }
+    }
+
+    "errorHandling" - {
+      "simpleCatch" - {
+        val a = Var(1L)
+        val b = Rx{ 1 / a() }
+        assert(b() == 1)
+        assert(b.toTry == Success(1L))
+        a() = 0
+        intercept[Exception]{
+          b()
+        }
+        assertMatch(b.toTry){case Failure(_) =>}
+      }
+      "longChain" - {
+        val a = Var(1L)
+        val b = Var(2L)
+
+        val c = Rx{ a() / b() }
+        val d = Rx{ a() * 5 }
+        val e = Rx{ 5 / b() }
+        val f = Rx{ a() + b() + 2 }
+        val g = Rx{ f() + c() }
+
+        assertMatch(c.toTry){case Success(0)=>}
+        assertMatch(d.toTry){case Success(5)=>}
+        assertMatch(e.toTry){case Success(2)=>}
+        assertMatch(f.toTry){case Success(5)=>}
+        assertMatch(g.toTry){case Success(5)=>}
+
+        b() = 0
+
+        assertMatch(c.toTry){case Failure(_)=>}
+        assertMatch(d.toTry){case Success(5)=>}
+        assertMatch(e.toTry){case Failure(_)=>}
+        assertMatch(f.toTry){case Success(3)=>}
+        assertMatch(g.toTry){case Failure(_)=>}
+      }
+    }
 
   }
 }
