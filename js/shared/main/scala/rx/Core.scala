@@ -7,24 +7,28 @@ import scala.util.Try
 
 trait Node[T]{
   def value: T
-  val downStream = mutable.Set.empty[Rx[_]]
-  val observers = mutable.Set.empty[Obs]
+  trait Internal {
+    val downStream = mutable.Set.empty[Rx[_]]
+    val observers = mutable.Set.empty[Obs]
+    def depth: Int
+  }
+  def Internal: Internal
   def mark() = for(c <- Node.contextHead){
-    downStream.add(c)
-    c.depth = c.depth max (depth + 1)
+    Internal.downStream.add(c)
+    c.Internal.depth = c.Internal.depth max (Internal.depth + 1)
   }
   def apply() = {
     mark()
     value
   }
-  def depth: Int
+
 
   def trigger(thunk: => Unit) = {
     thunk
-    observers.add(new Obs(() => thunk))
+    Internal.observers.add(new Obs(() => thunk))
   }
   def triggerLater(thunk: => Unit) = {
-    observers.add(new Obs(() => thunk))
+    Internal.observers.add(new Obs(() => thunk))
   }
 }
 object Node{
@@ -33,15 +37,15 @@ object Node{
   }
   def contextHead = contextStack.get().lastOption
   def doRecalc(rxs: Iterable[Rx[_]], obs: Iterable[Obs]): Unit = {
-    implicit val ordering = Ordering.by[Rx[_], Int](-_.depth)
+    implicit val ordering = Ordering.by[Rx[_], Int](-_.Internal.depth)
     val queue = rxs.to[mutable.PriorityQueue]
     val seen = mutable.Set.empty[Int]
     val observers = obs.to[mutable.Set]
     while(queue.size > 0){
       val min = queue.dequeue()
       if (!seen(min.id)) {
-        queue ++= min.downStream
-        observers ++= min.observers
+        queue ++= min.Internal.downStream
+        observers ++= min.Internal.observers
         min.update()
         seen.add(min.id)
       }
@@ -64,21 +68,22 @@ object Var{
   def set(args: VarTuple[_]*) = {
     args.foreach(_.set())
     Node.doRecalc(
-      args.flatMap(_.v.downStream),
-      args.flatMap(_.v.observers)
+      args.flatMap(_.v.Internal.downStream),
+      args.flatMap(_.v.Internal.observers)
     )
   }
 }
 case class Var[T](var value: T) extends Node[T]{
-
-  def depth = 0
-  def update(newValue: T): Unit = {
-    val toPing = downStream.toSet
-    downStream.clear()
-    value = newValue
-    Node.doRecalc(toPing, observers)
+  object Internal extends Internal{
+    def depth = 0
   }
-  def calcSet(): Seq[Rx[_]] = downStream.toSeq
+
+  def update(newValue: T): Unit = {
+    val toPing = Internal.downStream.toSet
+    Internal.downStream.clear()
+    value = newValue
+    Node.doRecalc(toPing, Internal.observers)
+  }
 }
 
 object Rx{
@@ -86,14 +91,21 @@ object Rx{
   def apply[T](func: => T) = new Rx(() => func)
 }
 
-case class Rx[T](func: () => T, id: Int = Rx.idCounter.getAndIncrement) extends Node[T] {
-  var depth = 0
-  var dead = false
-  val upStream = mutable.Set.empty[Node[_]]
-  val owned = mutable.Set.empty[Node[_]]
+case class Rx[T](func: () => T, id: Int = Rx.idCounter.getAndIncrement) extends Node[T] { r =>
+  object Internal extends Internal{
+    var depth = 0
+    var dead = false
+    val upStream = mutable.Set.empty[Node[_]]
+    val owned = mutable.Set.empty[Node[_]]
+
+  }
+  var cached: Try[T] = {
+    Node.contextHead.foreach(_.Internal.owned.add(r))
+    calc()
+  }
   def calc(): Try[T] = {
-    downStream.clear()
-    owned.clear()
+    Internal.downStream.clear()
+    Internal.owned.clear()
     Node.contextStack.get().append(this)
     val r = Try(func())
     Node.contextStack.get().trimEnd(1)
@@ -101,26 +113,17 @@ case class Rx[T](func: () => T, id: Int = Rx.idCounter.getAndIncrement) extends 
   }
   def value = cached.get
   def toTry = cached
-  def toTryMark() = {
-    mark()
-    toTry
-  }
-  var cached: Try[T] = {
-    Node.contextHead.foreach(_.owned.add(this))
-    calc()
-  }
 
   def kill() = {
-    dead = true
-    downStream.clear()
+    Internal.dead = true
+    Internal.downStream.clear()
   }
 
-  def update(): Unit = if (!dead) cached = calc()
+  def update(): Unit = if (!Internal.dead) cached = calc()
 
-
-  def recalc() = if (!dead) {
+  def recalc() = if (!Internal.dead) {
     update()
-    Node.doRecalc(this.downStream, observers)
+    Node.doRecalc(Internal.downStream, Internal.observers)
   }
 }
 
