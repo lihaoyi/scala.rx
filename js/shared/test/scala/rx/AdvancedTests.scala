@@ -38,11 +38,9 @@ object AdvancedTests extends TestSuite{
         val b = Rx{
           Rx{ a() } -> Rx{ math.random }
         }
+        val r = b()._2()
         println("A\t" + a.downStream)
         println("A\t" + a.downStream.head.downStream)
-        println("B1\t" + b()._1())
-        println("B2\t" + b()._2())
-        val r = b()._2()
         a() = 2
         assert(b()._2() == r)
       }
@@ -341,4 +339,5 @@ object AdvancedTests extends TestSuite{
   }
 //   */
 //
+
 }

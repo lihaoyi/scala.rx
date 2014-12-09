@@ -7,7 +7,7 @@ package object rx {
   val contextStack = new ThreadLocal[mutable.Buffer[Rx[_]]]{
     override def initialValue = mutable.Buffer.empty[Rx[_]]
   }
-  def contextHead = contextStack.get().headOption
+  def contextHead = contextStack.get().lastOption
   val idCounter = new AtomicInteger
   trait Node[T]{
     def value: T
@@ -68,10 +68,8 @@ package object rx {
     val upStream = mutable.Set.empty[Node[_]]
     val owned = mutable.Set.empty[Node[_]]
     def calc(): Try[T] = {
-
       downStream.clear()
       owned.clear()
-      contextHead.foreach(_.downStream.add(this))
       contextStack.get().append(this)
       val r = Try(func())
       contextStack.get().trimEnd(1)
@@ -100,8 +98,8 @@ package object rx {
   }
 
   def doRecalc(rxs: Set[Rx[_]], obs: Set[Obs]): Unit = {
-    val front = mutable.Set[Rx[_]](rxs.toSeq:_*)
-    val observers = mutable.Set[Obs](obs.toSeq:_*)
+    val front = mutable.Set[Rx[_]](rxs.toSeq: _*)
+    val observers = mutable.Set[Obs](obs.toSeq: _*)
     while(front.size > 0){
       val (shallowest, rest) =
         front.partition(_.depth == front.minBy(_.depth).depth)
