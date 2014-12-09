@@ -14,7 +14,10 @@ package object rx {
     val downStream = mutable.Set.empty[Rx[_]]
     val observers = mutable.Set.empty[Obs]
     def apply() = {
-      contextHead.foreach(downStream.add)
+      for(c <- contextHead){
+        downStream.add(c)
+        c.depth = c.depth max (depth + 1)
+      }
       value
     }
     def depth: Int
@@ -42,8 +45,8 @@ package object rx {
     def set(args: VarTuple[_]*) = {
       args.foreach(_.set())
       doRecalc(
-        args.flatMap(_.v.downStream).toSet,
-        args.flatMap(_.v.observers).toSet
+        args.flatMap(_.v.downStream),
+        args.flatMap(_.v.observers)
       )
     }
   }
@@ -54,7 +57,7 @@ package object rx {
       val toPing = downStream.toSet
       downStream.clear()
       value = newValue
-      doRecalc(toPing, observers.toSet)
+      doRecalc(toPing, observers)
     }
     def calcSet(): Seq[Rx[_]] = downStream.toSeq
   }
@@ -93,22 +96,22 @@ package object rx {
 
     def recalc() = {
       update()
-      doRecalc(this.downStream.toSet, observers.toSet)
+      doRecalc(this.downStream, observers)
     }
   }
 
-  def doRecalc(rxs: Set[Rx[_]], obs: Set[Obs]): Unit = {
-    val front = mutable.Set[Rx[_]](rxs.toSeq: _*)
-    val observers = mutable.Set[Obs](obs.toSeq: _*)
-    while(front.size > 0){
-      val (shallowest, rest) =
-        front.partition(_.depth == front.minBy(_.depth).depth)
-      front.clear()
-      front ++= rest
-      for(rx <- shallowest){
-        front ++= rx.downStream
-        observers ++= rx.observers
-        rx.update()
+  def doRecalc(rxs: Iterable[Rx[_]], obs: Iterable[Obs]): Unit = {
+    implicit val ordering = Ordering.by[Rx[_], Int](-_.depth)
+    val queue = rxs.to[mutable.PriorityQueue]
+    val seen = mutable.Set.empty[Int]
+    val observers = obs.to[mutable.Set]
+    while(queue.size > 0){
+      val min = queue.dequeue()
+      if (!seen(min.id)) {
+        queue ++= min.downStream
+        observers ++= min.observers
+        min.update()
+        seen.add(min.id)
       }
     }
     observers.foreach(_.thunk())

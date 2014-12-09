@@ -14,6 +14,15 @@ object BasicTests extends TestSuite{
           a() = 4
           assert(c() == 6)
         }
+        "ordering" - {
+          var changes = ""
+          val a = Var(1)
+          val b = Rx{ changes += "b"; a() + 1 }
+          val c = Rx{ changes += "c"; a() + b() }
+          assert(changes == "bc")
+          a() = 4
+          assert(changes == "bcbc")
+        }
         "options"-{
           val a = Var[Option[Int]](None)
           val b = Var[Option[Int]](None)

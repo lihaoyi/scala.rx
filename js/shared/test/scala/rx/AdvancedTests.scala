@@ -8,30 +8,30 @@ import utest._
 object AdvancedTests extends TestSuite{
 //  implicit val prop = Propagator.Immediate
   def tests = TestSuite{
-//    'perf{
-//      'init{
-//        val start = System.currentTimeMillis()
-//        var n = 0
-//        while(System.currentTimeMillis() < start + 10000){
-//          val (a, b, c, d, e, f) = Util.initGraph
-//          n += 1
-//        }
-//        n
-//      }
-//      'propagations{
-//        val (a, b, c, d, e, f) = Util.initGraph
-//        val start = System.currentTimeMillis()
-//        var n = 0
-//
-//        while(System.currentTimeMillis() < start + 10000){
-//          a() = n
-//          n += 1
-//        }
-//        n
-//      }
-//
-//
-//    }
+    'perf{
+      'init{
+        val start = System.currentTimeMillis()
+        var n = 0
+        while(System.currentTimeMillis() < start + 10000){
+          val (a, b, c, d, e, f) = Util.initGraph
+          n += 1
+        }
+        n
+      }
+      'propagations{
+        val (a, b, c, d, e, f) = Util.initGraph
+        val start = System.currentTimeMillis()
+        var n = 0
+
+        while(System.currentTimeMillis() < start + 10000){
+          a() = n
+          n += 1
+        }
+        n
+      }
+
+
+    }
     "nesting" - {
       "nestedRxs" - {
         val a = Var(1)
