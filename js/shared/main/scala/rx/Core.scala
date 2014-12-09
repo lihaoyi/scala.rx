@@ -101,6 +101,10 @@ case class Rx[T](func: () => T, id: Int = Rx.idCounter.getAndIncrement) extends 
   }
   def value = cached.get
   def toTry = cached
+  def toTryMark() = {
+    mark()
+    toTry
+  }
   var cached: Try[T] = {
     Node.contextHead.foreach(_.owned.add(this))
     calc()
