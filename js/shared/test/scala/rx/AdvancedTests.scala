@@ -264,43 +264,37 @@ object AdvancedTests extends TestSuite{
 //        assert(target == 4)
 //      }
 //
-//      "killRx" - {
-//        val (a, b, c, d, e, f) = Util.initGraph
-//
-//        assert(c() == 3)
-//        assert(e() == 7)
-//        assert(f() == 26)
-//        a() = 3
-//        assert(c() == 5)
-//        assert(e() == 9)
-//        assert(f() == 38)
-//
-//        // Killing d stops it from updating, but the changes can still
-//        // propagate through e to reach f
-//        d.kill()
-//        a() = 1
-//        assert(f() == 36)
-//
-//        // After killing f, it stops updating but others continue to do so
-//        assert(e.children == Set(f))
-//        f.kill()
-//        assert(e.children == Set())
-//        a() = 3
-//        assert(c() == 5)
-//        assert(e() == 9)
-//        assert(f() == 36)
-//
-//        // After killing c, the everyone doesn't get updates anymore
-//        assert(a.children == Set(c))
-//        assert(b.children == Set(c))
-//        c.kill()
-//        assert(a.children == Set())
-//        assert(b.children == Set())
-//        a() = 1
-//        assert(c() == 5)
-//        assert(e() == 9)
-//        assert(f() == 36)
-//      }
+      "killRx" - {
+        val (a, b, c, d, e, f) = Util.initGraph
+
+        assert(c() == 3)
+        assert(e() == 7)
+        assert(f() == 26)
+        a() = 3
+        assert(c() == 5)
+        assert(e() == 9)
+        assert(f() == 38)
+
+        // Killing d stops it from updating, but the changes can still
+        // propagate through e to reach f
+        d.kill()
+        a() = 1
+        assert(f() == 36)
+
+        // After killing f, it stops updating but others continue to do so
+        f.kill()
+        a() = 3
+        assert(c() == 5)
+        assert(e() == 9)
+        assert(f() == 36)
+
+        // After killing c, the everyone doesn't get updates anymore
+        c.kill()
+        a() = 1
+        assert(c() == 5)
+        assert(e() == 9)
+        assert(f() == 36)
+      } 
 //      "killAllRx" - {
 //        val (a, b, c, d, e, f) = Util.initGraph
 //

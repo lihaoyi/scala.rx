@@ -88,6 +88,7 @@ object Rx{
 
 case class Rx[T](func: () => T, id: Int = Rx.idCounter.getAndIncrement) extends Node[T] {
   var depth = 0
+  var dead = false
   val upStream = mutable.Set.empty[Node[_]]
   val owned = mutable.Set.empty[Node[_]]
   def calc(): Try[T] = {
@@ -106,15 +107,14 @@ case class Rx[T](func: () => T, id: Int = Rx.idCounter.getAndIncrement) extends 
   }
 
   def kill() = {
-    upStream.foreach(_.downStream.remove(this))
-    upStream.clear()
+    dead = true
+    downStream.clear()
   }
 
-  def update(): Unit = {
-    cached = calc()
-  }
+  def update(): Unit = if (!dead) cached = calc()
 
-  def recalc() = {
+
+  def recalc() = if (!dead) {
     update()
     Node.doRecalc(this.downStream, observers)
   }
