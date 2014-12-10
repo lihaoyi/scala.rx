@@ -1,37 +1,38 @@
 package rx
-
-import util.{Success, Failure}
-import rx.core.Propagator
+//
+//import util.{Success, Failure}
+//import rx.core.Propagator
 import acyclic.file
-import ops._
+
+import scala.util.{Success, Failure}
+
+//import ops._
 import utest._
 object AdvancedTests extends TestSuite{
-  implicit val prop = Propagator.Immediate
+//  implicit val prop = Propagator.Immediate
   def tests = TestSuite{
-    'perf{
-      'init{
-        val start = System.currentTimeMillis()
-        var n = 0
-        while(System.currentTimeMillis() < start + 10000){
-          val (a, b, c, d, e, f) = Util.initGraph
-          n += 1
-        }
-        n
-      }
-      'propagations{
-        val (a, b, c, d, e, f) = Util.initGraph
-        val start = System.currentTimeMillis()
-        var n = 0
-
-        while(System.currentTimeMillis() < start + 10000){
-          a() = n
-          n += 1
-        }
-        n
-      }
-
-
-    }
+//    'perf{
+//      'init{
+//        val start = System.currentTimeMillis()
+//        var n = 0
+//        while(System.currentTimeMillis() < start + 10000){
+//          val (a, b, c, d, e, f) = Util.initGraph
+//          n += 1
+//        }
+//        n
+//      }
+//      'propagations{
+//        val (a, b, c, d, e, f) = Util.initGraph
+//        val start = System.currentTimeMillis()
+//        var n = 0
+//
+//        while(System.currentTimeMillis() < start + 10000){
+//          a() = n
+//          n += 1
+//        }
+//        n
+//      }
+//    }
     "nesting" - {
       "nestedRxs" - {
         val a = Var(1)
@@ -48,7 +49,7 @@ object AdvancedTests extends TestSuite{
           source
         }
         var i = 0
-        val o = Obs(a){
+        val o = a.trigger{
           i += 1
         }
         assert(i == 1)
@@ -67,7 +68,7 @@ object AdvancedTests extends TestSuite{
           a() + b() + c()
         }
         var i = 0
-        val o = Obs(d){
+        val o = d.trigger{
           i += 1
         }
         assert(i == 1)
@@ -137,6 +138,7 @@ object AdvancedTests extends TestSuite{
     }
 
     "combinators" - {
+      import rx.Ops._
       "foreach" - {
         val a = Var(1)
         var count = 0
@@ -147,20 +149,6 @@ object AdvancedTests extends TestSuite{
         a() = 4
         assert(count == 5)
       }
-      "skipFailure" - {
-        val x = Var(10L)
-        val y = Rx{ 100 / x() }.skipFailures
-        val z = Rx{ y() + 20 }
-        assert(y() == 10)
-        assert(z() == 30)
-        x() = 0
-        assert(y() == 10)
-        assert(z() == 30)
-        x() = 5
-        assert(y() == 20)
-        assert(z() == 40)
-      }
-
       "map" - {
         val a = Var(10)
         val b = Rx{ a() + 2 }
@@ -176,11 +164,11 @@ object AdvancedTests extends TestSuite{
       "mapAll" - {
         val a = Var(10L)
         val b = Rx{ 100 / a() }
-        val c = b.mapAll{
+        val c = b.all.map{
           case Success(x) => Success(x * 2)
           case Failure(_) => Success(1337)
         }
-        val d = b.mapAll{
+        val d = b.all.map{
           case Success(x) => Failure(new Exception("No Error?"))
           case Failure(x) => Success(x.toString)
         }
@@ -207,7 +195,8 @@ object AdvancedTests extends TestSuite{
       "filterAll" - {
         val a = Var(10L)
         val b = Rx{ 100 / a() }
-        val c = b.filterAll{_.isSuccess}
+        val c = b.all.filter(_.isSuccess)
+
         assert(c() == 10)
         a() = 9
         assert(c() == 11)
@@ -218,25 +207,26 @@ object AdvancedTests extends TestSuite{
       }
 
       "reduce" - {
-        val a = Var(1)
+        val a = Var(2)
         val b = a.reduce(_ * _)
         a() = 2
-        assert(b() == 2)
+        assert(b() == 4)
         a() = 3
-        assert(b() == 6)
+        assert(b() == 12)
         a() = 4
-        assert(b() == 24)
+        assert(b() == 48)
       }
 
       "reduceAll" - {
         val a = Var(1L)
         val b = Rx{ 100 / a() }
-        val c = b.reduceAll[Long]{
+        val c = b.all.reduce{
           case (Success(a), Success(b)) => Success(a + b)
           case (Failure(a), Failure(b)) => Success(1337)
           case (Failure(a), Success(b)) => Failure(a)
           case (Success(a), Failure(b)) => Failure(b)
         }
+
         assert(c() == 100)
         a() = 0
         assert(c.toTry.isFailure)
@@ -248,30 +238,6 @@ object AdvancedTests extends TestSuite{
         assert(c() == 1337)
         a() = 10
         assert(c() == 1347)
-      }
-    }
-    "kill" - {
-      "killObs" - {
-        val a = Var(1)
-        val b = Rx{ 2 * a() }
-        var target = 0
-        val o = Obs(b){
-          target = b()
-        }
-
-        assert(a.children == Set(b))
-        assert(b.children == Set(o))
-
-        assert(target == 2)
-        a() = 2
-        assert(target == 4)
-        o.kill()
-
-        assert(a.children == Set(b))
-        assert(b.children == Set())
-
-        a() = 3
-        assert(target == 4)
       }
 
       "killRx" - {
@@ -292,49 +258,19 @@ object AdvancedTests extends TestSuite{
         assert(f() == 36)
 
         // After killing f, it stops updating but others continue to do so
-        assert(e.children == Set(f))
         f.kill()
-        assert(e.children == Set())
         a() = 3
         assert(c() == 5)
         assert(e() == 9)
         assert(f() == 36)
 
         // After killing c, the everyone doesn't get updates anymore
-        assert(a.children == Set(c))
-        assert(b.children == Set(c))
         c.kill()
-        assert(a.children == Set())
-        assert(b.children == Set())
         a() = 1
         assert(c() == 5)
         assert(e() == 9)
         assert(f() == 36)
       }
-      "killAllRx" - {
-        val (a, b, c, d, e, f) = Util.initGraph
-
-        // killAll-ing d makes f die too
-        d.killAll()
-
-        a() = 3
-        assert(c() == 5)
-        assert(e() == 9)
-        assert(f() == 26)
-      }
     }
   }
-  /*
-  "recursion" - {
-    "calculating fixed point" - {
-      lazy val s: Rx[Double] = Rx{ Math.cos(s()) }
-      println(s())
-    }
-    "calculating sqrt" - {
-      lazy val s: Rx[Double] = Rx(default = 10.0){ s() - (s() * s() - 10) / (2 * s()) }
-      println(s())
-    }
-  }
-   */
-
 }
