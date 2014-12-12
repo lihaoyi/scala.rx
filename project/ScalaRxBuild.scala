@@ -12,9 +12,10 @@ object ScalaRxBuild extends Build {
   val logger = ConsoleLogger()
 
   val buildSettings = bintrayPublishSettings ++ Seq(
+    scalaVersion := "2.11.4",
+    scalacOptions ++= Seq("-deprecation", "-unchecked"),
     organization := "uk.co.turingatemyhamster",
     name := "scalarx",
-    scalaVersion := "2.11.4",
     version := "0.2.6",
     publishMavenStyle := false,
 //    bintray.Keys.repository in bintray.Keys.bintray := "sbt-plugins",
@@ -29,8 +30,10 @@ object ScalaRxBuild extends Build {
         settings(platformJvmSettings : _*)
   lazy val scalarxPlatformJs = module.jsProject(scalarxSharedJs).
         settings(platformJsSettings : _*)
-  lazy val scalarxSharedJvm = module.jvmShared()
-  lazy val scalarxSharedJs = module.jsShared(scalarxSharedJvm)
+  lazy val scalarxSharedJvm = module.jvmShared().
+        settings(sharedJvmSettings : _*)
+  lazy val scalarxSharedJs = module.jsShared(scalarxSharedJvm).
+        settings(sharedJsSettings : _*)
 
   lazy val platformJsSettings = Seq(
     libraryDependencies ++= Seq(
@@ -42,7 +45,22 @@ object ScalaRxBuild extends Build {
   lazy val platformJvmSettings = Seq(
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-actor" % "2.3.2" % "provided",
-      "com.lihaoyi" %% "acyclic" % "0.1.2" % "provided"
+      "com.lihaoyi" %% "acyclic" % "0.1.2" % "provided",
+      "com.lihaoyi" %% "utest" % "0.2.4" % "test"
+    )
+  )
+
+  lazy val sharedJvmSettings = Seq(
+    libraryDependencies ++= Seq(
+      "com.lihaoyi" %% "acyclic" % "0.1.2",
+      "com.lihaoyi" %% "utest" % "0.2.4" % "test"
+    )
+  )
+
+  lazy val sharedJsSettings = Seq(
+    libraryDependencies ++= Seq(
+      "com.lihaoyi" %% "acyclic" % "0.1.2",
+      "com.lihaoyi" %% "utest" % "0.2.4" % "test"
     )
   )
 
