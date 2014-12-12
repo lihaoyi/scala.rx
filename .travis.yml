@@ -5,8 +5,8 @@ jdk:
 - oraclejdk7
 env:
   global:
-  - secure: H4FjGg2AcW8Qzus2FLHija+H9yxFxX3+ZtgKeqJcobdnXAE5nt8hzZxSaQbyPVILbknAHb9o/WbvHS/E+1xWinNHjjtWszhkQ8PoH96nMN5rXQic/4aeGoeLLd+dqstzQnhVcFGxSCV/4jTvkAYwbPhqIT0KsImxGR5ZuTJFWi8=
-  - secure: Gn6bbwNlNQPMo6ffZtglbEWl4G+YyaVtG2TUSdALPd4GKO+cwzqISJkrWl/C6Yvdg/0Otm5jOcYqNKtGTznDtzlcvrwi7aSS+GyCuUbjkH9vc0aRPVVTmlV/j1d6vD7OePHyWcYfro1IrRbuRDVDM+rdNGbC05azi7h0HM77O2U=
+  - secure: I1ON0qzob/AgqLvPP+nAeBnq0jo26r8jyeaVENwgxqo172Rlo1XEePLs0LePWlUElqV7/HTX6pZ/UahBmHHIpJUVv2hJR/2VlsRA+MNftcz6C24+W5y6swtDnE96E3AsbwhtjsmX0laVIg7LPJuAx3FjhNCascSLBJizK59vY9E=
+  - secure: JPHNZM54TeTyMH3tT1PgdHI6eba4MvlUz/uuzdf+oxvs7VyxK6Bso6l6zWlNfZeZ2/t98P20hykZDJ4DQSpOdmV1IX0OB7tZcT1Lrt2324GXhbXx4ffLZ/2OBYitex0X6t8LawXwrje0FKCWlaW98V24X7d5V1TaBtSda+Z6pPg=
 after_success:
 - |
   test "${TRAVIS_PULL_REQUEST}" = 'false' && test "${TRAVIS_JDK_VERSION}" = 'oraclejdk7' && sh "$TRAVIS_BUILD_DIR/.travis.credentials.sh" && sbt publish;
