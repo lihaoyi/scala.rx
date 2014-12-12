@@ -11,7 +11,7 @@ object ScalaRxBuild extends Build {
 
   val logger = ConsoleLogger()
 
-  val buildSettings = Seq(
+  val buildSettings = bintrayPublishSettings ++ Seq(
     organization := "uk.co.turingatemyhamster",
     name := "scalarx",
     scalaVersion := "2.11.4",
