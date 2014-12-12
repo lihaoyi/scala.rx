@@ -1,4 +1,12 @@
 language: scala
 scala:
-  - 2.10.4
-  - 2.11.2
+- 2.11.4
+jdk:
+- oraclejdk7
+env:
+  global:
+  - secure: H4FjGg2AcW8Qzus2FLHija+H9yxFxX3+ZtgKeqJcobdnXAE5nt8hzZxSaQbyPVILbknAHb9o/WbvHS/E+1xWinNHjjtWszhkQ8PoH96nMN5rXQic/4aeGoeLLd+dqstzQnhVcFGxSCV/4jTvkAYwbPhqIT0KsImxGR5ZuTJFWi8=
+  - secure: Gn6bbwNlNQPMo6ffZtglbEWl4G+YyaVtG2TUSdALPd4GKO+cwzqISJkrWl/C6Yvdg/0Otm5jOcYqNKtGTznDtzlcvrwi7aSS+GyCuUbjkH9vc0aRPVVTmlV/j1d6vD7OePHyWcYfro1IrRbuRDVDM+rdNGbC05azi7h0HM77O2U=
+after_success:
+- |
+  test "${TRAVIS_PULL_REQUEST}" = 'false' && test "${TRAVIS_JDK_VERSION}" = 'oraclejdk7' && sh "$TRAVIS_BUILD_DIR/.travis.credentials.sh" && sbt publish;

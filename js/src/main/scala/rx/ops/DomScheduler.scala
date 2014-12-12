@@ -1,4 +1,5 @@
-package rx.ops
+package rx
+package ops
 
 import scala.concurrent.duration.FiniteDuration
 

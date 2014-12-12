@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="2.0" xmlns:e="http://ant.apache.org/ivy/extra">
+	<info organisation="uk.co.turingatemyhamster"
+		module="scalarx$sbt_2.11"
+		revision="0.2.6"
+		status="integration"
+		publication="20141212001130"
+	/>
+	<configurations>
+		<conf name="default" visibility="public"/>
+	</configurations>
+	<publications>
+	</publications>
+	<dependencies>
+		<dependency org="org.scala-sbt" name="sbt" rev="0.13.6" conf="default->default(compile)"/>
+		<dependency org="org.eclipse.jgit" name="org.eclipse.jgit" rev="3.0.0.201306101825-r" conf="default->default(compile)"/>
+		<dependency org="com.jcraft" name="jsch" rev="0.1.46" conf="default->default(compile)"/>
+		<dependency org="com.googlecode.javaewah" name="JavaEWAH" rev="0.5.6" conf="default->default(compile)"/>
+		<dependency org="me.lessis" name="bintray-sbt" rev="0.1.2" conf="default->default(compile)" sbtVersion="0.13" scalaVersion="2.10"/>
+		<dependency org="me.lessis" name="bintry_2.10" rev="0.3.0" conf="default->default(compile)"/>
+		<dependency org="org.scala-lang" name="scala-library" rev="2.10.4" conf="default->default(compile)" info.apiURL="http://www.scala-lang.org/api/2.10.4/"/>
+		<dependency org="net.databinder.dispatch" name="dispatch-json4s-native_2.10" rev="0.11.1" conf="default->default(compile)"/>
+		<dependency org="net.databinder.dispatch" name="dispatch-core_2.10" rev="0.11.1" conf="default->default(compile)"/>
+		<dependency org="com.ning" name="async-http-client" rev="1.8.8" conf="default->default(compile)"/>
+		<dependency org="io.netty" name="netty" rev="3.9.0.Final" conf="default->default(compile)"/>
+		<dependency org="org.json4s" name="json4s-core_2.10" rev="3.2.9" conf="default->default(compile)"/>
+		<dependency org="org.json4s" name="json4s-ast_2.10" rev="3.2.9" conf="default->default(compile)"/>
+		<dependency org="com.thoughtworks.paranamer" name="paranamer" rev="2.6" conf="default->default(compile)"/>
+		<dependency org="org.scala-lang" name="scalap" rev="2.10.0" conf="default->default(compile)"/>
+		<dependency org="org.scala-lang" name="scala-compiler" rev="2.10.4" conf="default->default(compile)"/>
+		<dependency org="org.scala-lang" name="scala-reflect" rev="2.10.4" conf="default->default(compile)" info.apiURL="http://www.scala-lang.org/api/2.10.4/"/>
+		<dependency org="org.json4s" name="json4s-native_2.10" rev="3.2.9" conf="default->default(compile)"/>
+		<dependency org="org.slf4j" name="slf4j-nop" rev="1.7.7" conf="default->default(compile)"/>
+		<dependency org="org.slf4j" name="slf4j-api" rev="1.7.7" conf="default->default(compile)"/>
+		<dependency org="org.scoverage" name="sbt-scoverage" rev="0.99.5.1" conf="default->default(compile)" sbtVersion="0.13" scalaVersion="2.10"/>
+		<dependency org="org.scoverage" name="scalac-scoverage-plugin_2.10" rev="0.99.5" conf="default->default(compile)"/>
+		<dependency org="commons-io" name="commons-io" rev="2.4" conf="default->default(compile)"/>
+		<dependency org="com.sksamuel.scoverage" name="sbt-coveralls" rev="0.0.5" conf="default->default(compile)" sbtVersion="0.13" scalaVersion="2.10"/>
+		<dependency org="com.fasterxml.jackson.module" name="jackson-module-scala_2.10" rev="2.2.3" conf="default->default(compile)"/>
+		<dependency org="com.google.code.findbugs" name="jsr305" rev="2.0.1" conf="default->default(compile)"/>
+		<dependency org="org.scalaj" name="scalaj-http_2.10" rev="0.3.6" conf="default->default(compile)"/>
+		<dependency org="org.mockito" name="mockito-core" rev="1.9.5" conf="default->default(compile)"/>
+		<dependency org="org.hamcrest" name="hamcrest-core" rev="1.1" conf="default->default(compile)"/>
+		<dependency org="org.objenesis" name="objenesis" rev="1.0" conf="default->default(compile)"/>
+		<dependency org="com.typesafe.sbt" name="sbt-pgp" rev="0.8.3" conf="default->default(compile)" sbtVersion="0.13" scalaVersion="2.10"/>
+		<dependency org="com.jsuereth" name="gpg-library_2.10" rev="0.8.3" conf="default->default(compile)"/>
+		<dependency org="org.bouncycastle" name="bcpg-jdk15on" rev="1.49" conf="default->default(compile)"/>
+		<dependency org="org.bouncycastle" name="bcprov-jdk15on" rev="1.49" conf="default->default(compile)"/>
+		<dependency org="net.databinder" name="dispatch-http_2.10" rev="0.8.10" conf="default->default(compile)"/>
+		<dependency org="net.databinder" name="dispatch-core_2.10" rev="0.8.10" conf="default->default(compile)"/>
+		<dependency org="org.apache.httpcomponents" name="httpclient" rev="4.1.3" conf="default->default(compile)"/>
+		<dependency org="org.apache.httpcomponents" name="httpcore" rev="4.1.4" conf="default->default(compile)"/>
+		<dependency org="commons-logging" name="commons-logging" rev="1.1.1" conf="default->default(compile)"/>
+		<dependency org="commons-codec" name="commons-codec" rev="1.4" conf="default->default(compile)"/>
+		<dependency org="net.databinder" name="dispatch-futures_2.10" rev="0.8.10" conf="default->default(compile)"/>
+		<dependency org="org.scala-lang" name="scala-actors" rev="2.10.2" conf="default->default(compile)" info.apiURL="http://www.scala-lang.org/api/2.10.2/"/>
+		<dependency org="com.github.inthenow" name="sbt-scalajs" rev="0.56.6" conf="default->default(compile)" sbtVersion="0.13" scalaVersion="2.10"/>
+		<dependency org="com.chuusai" name="shapeless_2.10.4" rev="2.0.0" conf="default->default(compile)"/>
+		<dependency org="org.scala-lang.modules.scalajs" name="scalajs-sbt-plugin" rev="0.5.6" conf="default->default(compile)" sbtVersion="0.13" scalaVersion="2.10"/>
+		<dependency org="org.scala-lang.modules.scalajs" name="scalajs-tools_2.10" rev="0.5.6" conf="default->default(compile)"/>
+		<dependency org="com.google.javascript" name="closure-compiler" rev="v20130603" conf="default->default(compile)"/>
+		<dependency org="args4j" name="args4j" rev="2.0.16" conf="default->default(compile)"/>
+		<dependency org="com.google.guava" name="guava" rev="14.0.1" conf="default->default(compile)"/>
+		<dependency org="com.google.protobuf" name="protobuf-java" rev="2.4.1" conf="default->default(compile)"/>
+		<dependency org="org.json" name="json" rev="20090211" conf="default->default(compile)"/>
+		<dependency org="com.googlecode.json-simple" name="json-simple" rev="1.1.1" conf="default->default(compile)"/>
+		<dependency org="junit" name="junit" rev="4.10" conf="default->default(compile)"/>
+		<dependency org="org.mozilla" name="rhino" rev="1.7R4" conf="default->default(compile)"/>
+		<dependency org="org.webjars" name="envjs" rev="1.2" conf="default->default(compile)"/>
+		<dependency org="com.typesafe.sbt" name="sbt-web" rev="1.1.0" conf="default->default(compile)" sbtVersion="0.13" scalaVersion="2.10"/>
+		<dependency org="com.typesafe.akka" name="akka-actor_2.10" rev="2.3.2" conf="default->default(compile)"/>
+		<dependency org="com.typesafe" name="config" rev="1.2.0" conf="default->default(compile)"/>
+		<dependency org="org.webjars" name="webjars-locator" rev="0.17" conf="default->default(compile)"/>
+		<dependency org="com.fasterxml.jackson.core" name="jackson-databind" rev="2.3.3" conf="default->default(compile)"/>
+		<dependency org="com.fasterxml.jackson.core" name="jackson-annotations" rev="2.3.0" conf="default->default(compile)"/>
+		<dependency org="com.fasterxml.jackson.core" name="jackson-core" rev="2.3.3" conf="default->default(compile)"/>
+		<dependency org="com.github.mpeltonen" name="sbt-idea" rev="1.6.0" conf="default->default(compile)" sbtVersion="0.13" scalaVersion="2.10"/>
+	</dependencies>
+</ivy-module>

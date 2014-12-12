@@ -1,4 +1,5 @@
-package rx.ops
+package rx
+package ops
 
 import akka.actor.ActorSystem
 import scala.concurrent.duration.FiniteDuration
