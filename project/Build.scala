@@ -12,6 +12,15 @@ object Build extends sbt.Build{
     scalaVersion := "2.10.4",
     version := "0.2.7-M1",
 
+    libraryDependencies ++= Seq(
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value
+    ) ++ (
+      if (scalaVersion.value startsWith "2.11.") Nil
+      else Seq(
+        compilerPlugin("org.scalamacros" % s"paradise" % "2.0.0" cross CrossVersion.full),
+        "org.scalamacros" %% s"quasiquotes" % "2.0.0"
+      )
+    ),
     addCompilerPlugin("com.lihaoyi" %% "acyclic" % "0.1.2"),
     autoCompilerPlugins := true,
     // Sonatype

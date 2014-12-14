@@ -1,15 +1,11 @@
 package rx
 //
-//import util.{Success, Failure}
-//import rx.core.Propagator
 import acyclic.file
 
 import scala.util.{Success, Failure}
 
-//import ops._
 import utest._
 object AdvancedTests extends TestSuite{
-//  implicit val prop = Propagator.Immediate
   def tests = TestSuite{
 //    'perf{
 //      'init{
@@ -39,9 +35,9 @@ object AdvancedTests extends TestSuite{
         val b = Rx{
           Rx{ a() } -> Rx{ math.random }
         }
-        val r = b()._2()
+        val r = b.now._2.now
         a() = 2
-        assert(b()._2() == r)
+        assert(b.now._2.now == r)
       }
       "recalc" - {
         var source = 0
@@ -53,11 +49,11 @@ object AdvancedTests extends TestSuite{
           i += 1
         }
         assert(i == 1)
-        assert(a() == 0)
+        assert(a.now == 0)
         source = 1
-        assert(a() == 0)
+        assert(a.now == 0)
         a.recalc()
-        assert(a() == 1)
+        assert(a.now == 1)
         assert(i == 2)
       }
       "multiset" - {
@@ -120,25 +116,24 @@ object AdvancedTests extends TestSuite{
           }
         }
 
-        assert(page().html() == "Home Page! time: 123")
+        assert(page.now.html.now == "Home Page! time: 123")
 
         fakeTime = 234
-        page().update()
-        assert(page().html() == "Home Page! time: 234")
+        page.now.update()
+        assert(page.now.html.now == "Home Page! time: 234")
 
         fakeTime = 345
         url() = "www.mysite.com/about"
-        assert(page().html() == "About Me, time: 345")
+        assert(page.now.html.now == "About Me, time: 345")
 
         fakeTime = 456
-        page().update()
-        assert(page().html() == "About Me, time: 456")
+        page.now.update()
+        assert(page.now.html.now == "About Me, time: 456")
       }
 
     }
 
     "combinators" - {
-      import rx.Ops._
       "foreach" - {
         val a = Var(1)
         var count = 0
@@ -154,11 +149,11 @@ object AdvancedTests extends TestSuite{
         val b = Rx{ a() + 2 }
         val c = a.map(_*2)
         val d = b.map(_+3)
-        assert(c() == 20)
-        assert(d() == 15)
+        assert(c.now == 20)
+        assert(d.now == 15)
         a() = 1
-        assert(c() == 2)
-        assert(d() == 6)
+        assert(c.now == 2)
+        assert(d.now == 6)
       }
 
       "mapAll" - {
@@ -172,10 +167,10 @@ object AdvancedTests extends TestSuite{
           case Success(x) => Failure(new Exception("No Error?"))
           case Failure(x) => Success(x.toString)
         }
-        assert(c() == 20)
+        assert(c.now == 20)
         assert(d.toTry.isFailure)
         a() = 0
-        assert(c() == 1337)
+        assert(c.now == 1337)
         assert(d.toTry == Success("java.lang.ArithmeticException: / by zero"))
       }
 
@@ -183,38 +178,46 @@ object AdvancedTests extends TestSuite{
         val a = Var(10)
         val b = a.filter(_ > 5)
         a() = 1
-        assert(b() == 10)
+        assert(b.now == 10)
         a() = 6
-        assert(b() == 6)
+        assert(b.now == 6)
         a() = 2
-        assert(b() == 6)
+        assert(b.now == 6)
         a() = 19
-        assert(b() == 19)
+        assert(b.now == 19)
       }
+      "filterFirstFail" - {
+        val a = Var(10)
+        val b = a.filter(_ > 15)
+        a() = 1
+        assert(b.now == 10)
 
+      }
       "filterAll" - {
         val a = Var(10L)
         val b = Rx{ 100 / a() }
         val c = b.all.filter(_.isSuccess)
 
-        assert(c() == 10)
+        assert(c.now == 10)
         a() = 9
-        assert(c() == 11)
+        assert(c.now == 11)
         a() = 0
-        assert(c() == 11)
+        assert(c.now == 11)
         a() = 1
-        assert(c() == 100)
+        assert(c.now == 100)
       }
 
       "reduce" - {
         val a = Var(2)
         val b = a.reduce(_ * _)
+        // no-change means no-change
         a() = 2
-        assert(b() == 4)
+        assert(b.now == 2)
+        // only does something when you change
         a() = 3
-        assert(b() == 12)
+        assert(b.now == 6)
         a() = 4
-        assert(b() == 48)
+        assert(b.now == 24)
       }
 
       "reduceAll" - {
@@ -227,7 +230,7 @@ object AdvancedTests extends TestSuite{
           case (Success(a), Failure(b)) => Failure(b)
         }
 
-        assert(c() == 100)
+        assert(c.now == 100)
         a() = 0
         assert(c.toTry.isFailure)
         a() = 10
@@ -235,42 +238,72 @@ object AdvancedTests extends TestSuite{
         a() = 100
         assert(c.toTry.isFailure)
         a() = 0
-        assert(c() == 1337)
+        assert(c.now == 1337)
         a() = 10
-        assert(c() == 1347)
+        assert(c.now == 1347)
       }
 
       "killRx" - {
         val (a, b, c, d, e, f) = Util.initGraph
 
-        assert(c() == 3)
-        assert(e() == 7)
-        assert(f() == 26)
+        assert(c.now == 3)
+        assert(e.now == 7)
+        assert(f.now == 26)
         a() = 3
-        assert(c() == 5)
-        assert(e() == 9)
-        assert(f() == 38)
+        assert(c.now == 5)
+        assert(e.now == 9)
+        assert(f.now == 38)
 
         // Killing d stops it from updating, but the changes can still
         // propagate through e to reach f
         d.kill()
         a() = 1
-        assert(f() == 36)
+        assert(f.now == 36)
 
         // After killing f, it stops updating but others continue to do so
         f.kill()
         a() = 3
-        assert(c() == 5)
-        assert(e() == 9)
-        assert(f() == 36)
+        assert(c.now == 5)
+        assert(e.now == 9)
+        assert(f.now == 36)
 
         // After killing c, the everyone doesn't get updates anymore
         c.kill()
         a() = 1
-        assert(c() == 5)
-        assert(e() == 9)
-        assert(f() == 36)
+        assert(c.now == 5)
+        assert(e.now == 9)
+        assert(f.now == 36)
       }
+    }
+    "higherOrderRxs" - {
+      val a = Var(1)
+      val b = Var(2)
+      val c = Rx(Rx(a() + b()) -> (a() - b()))
+
+      assert(
+        a.Internal.downStream.size == 2,
+        b.Internal.downStream.size == 2,
+        c.now._1.now == 3,
+        c.now._2 == -1
+      )
+
+      a() = 2
+
+      assert(
+        a.Internal.downStream.size == 2,
+        b.Internal.downStream.size == 2,
+        c.now._1.now == 4,
+        c.now._2 == 0
+      )
+
+      b() = 3
+
+      assert(
+        a.Internal.downStream.size == 2,
+        b.Internal.downStream.size == 2,
+        c.now._1.now == 5,
+        c.now._2 == -1
+      )
     }
   }
 }
