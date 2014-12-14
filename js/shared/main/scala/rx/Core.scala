@@ -1,10 +1,10 @@
 package rx
 
-import java.util.concurrent.atomic.AtomicInteger
 import scala.language.experimental.macros
 import scala.collection.mutable
 import scala.reflect.macros.Context
 import scala.util.Try
+
 
 /**
  * A reactive value of type [[T]]. Keeps track of triggers and
@@ -80,16 +80,19 @@ object Node{
     val queue = rxs.to[mutable.PriorityQueue]
     val seen = mutable.Set.empty[Node[_]]
     val observers = obs.to[mutable.Set]
-    while(queue.size > 0){
+    var currentDepth = 0
+    while(!queue.isEmpty){
       val min = queue.dequeue()
+      if (min.Internal.depth > currentDepth){
+        currentDepth = min.Internal.depth
+        seen.clear()
+      }
       if (!seen(min) && !min.Internal.dead) {
         val prev = min.toTry
-        val ds = min.Internal.downStream.toArray
-        val obss = min.Internal.observers
         min.Internal.update()
         if (min.toTry != prev){
-          queue ++= ds
-          observers ++= obss
+          queue ++= min.Internal.downStream
+          observers ++= min.Internal.observers
         }
         seen.add(min)
       }
