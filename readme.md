@@ -55,7 +55,7 @@ ScalaJS
 In addition to running on the JVM, Scala.Rx also compiles to [Scala-Js](http://www.scala-js.org/)! This artifact is currently on [Maven Central](http://search.maven.org/#artifactdetails%7Ccom.scalarx%7Cscalarx_2.10%7C0.2.2-JS%7Cjar) and an be used via the following SBT snippet:
 
 ```scala
-libraryDependencies += "com.scalarx" %%% "scalarx" % "0.2.6"
+libraryDependencies += "com.scalarx" %% "scalarx" % "0.2.6"
 ```
 
 There are some minor differences between running Scala.Rx on the JVM and in Javascript particularly around [asynchronous operations](#timer), the [parallelism model](#parralelism-and-scalajs) and [memory model](#memory-and-scalajs). In general, though, all the examples given in the documentation below will work perfectly when cross-compiled to javascript and run in the browser!
