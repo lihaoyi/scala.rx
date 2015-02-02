@@ -25,23 +25,23 @@ object GcTests extends TestSuite{
         oldCount == count
       }
     }
-    "timersGetGced" - {
-      var count = 0
-      Timer(100 millis).foreach{ x =>
-        count = count + 1
-      }
-
-      eventually{
-        count == 3
-      }
-
-      System.gc()
-
-      intercept[AssertionError]{
-        eventually{
-          count == 4
-        }
-      }
-    }
+//    "timersGetGced" - {
+//      var count = 0
+//      Timer(100 millis).foreach{ x =>
+//        count = count + 1
+//      }
+//
+//      eventually{
+//        count == 3
+//      }
+//
+//      System.gc()
+//
+//      intercept[AssertionError]{
+//        eventually{
+//          count == 4
+//        }
+//      }
+//    }
   }
 }
