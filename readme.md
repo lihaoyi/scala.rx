@@ -119,6 +119,21 @@ As can be seen above, changing the value of `a` causes the change to propagate a
 
 The changes propagate through the dataflow graph in *waves*. Each update to a [Var][3] touches off a propagation, which pushes the changes from that [Var][3] to any [Rx][1] which is (directly or indirectly) dependent on its value. In the process, it is possible for a [Rx][1] to be re-calculated more than once.
 
+When returning `Var`s from a function you may inadvertently expose your `Var` for mutation as below:
+
+```scala
+class Clock {
+  private val currentTime = Var(0L)
+  
+  def time = currentTime
+}
+```
+Things look perfectly safe on the surface, but the caller may actually change the value of `currentTime` by a simple `clock.time() = 123` call. To create a read-only view on a `Var` simply cast them to `Rx`.
+
+```scala
+  def time:Rx[Long] = currentTime
+```
+
 ###Observers
 
 As mentioned, [Obs][2] s can be used to observe [Rx][1] s and [Var][3] s and perform side effects when they change:
