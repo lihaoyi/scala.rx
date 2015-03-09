@@ -4,10 +4,10 @@ val scalarx = crossProject.settings(
   organization := "com.lihaoyi",
   name := "scalarx",
   scalaVersion := "2.10.4",
-  version := "0.2.7",
+  version := "0.2.8",
 
   libraryDependencies ++= Seq(
-    "com.lihaoyi" %%% "utest" % "0.2.5" % "test",
+    "com.lihaoyi" %%% "utest" % "0.3.1" % "test",
     "com.lihaoyi" %% "acyclic" % "0.1.2" % "provided"
   ),
   addCompilerPlugin("com.lihaoyi" %% "acyclic" % "0.1.2"),
