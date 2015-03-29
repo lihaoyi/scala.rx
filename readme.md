@@ -32,9 +32,8 @@ Contents
 - [Execution Model](#execution-model)
   - [Dependency Tracking](#dependency-tracking)
   - [Propagation](#propagation)
-  - [Concurrency and Asynchrony](#concurrency-and-asynchrony)
-  - [Garbage Collection](#garbage-collection)
-  - [Internals](#internals)
+  - [Concurrency and Parallelism](#concurrency-and-parallelism)
+- [Design considerations](#design-considerations)
 - [Related Work](#related-work)
 - [Scaladoc](https://lihaoyi.github.io/scala.rx)
 
@@ -58,7 +57,7 @@ In addition to running on the JVM, Scala.Rx also compiles to [Scala-Js](http://w
 libraryDependencies += "com.lihaoyi" %%% "scalarx" % "0.2.8"
 ```
 
-There are some minor differences between running Scala.Rx on the JVM and in Javascript particularly around [asynchronous operations](#timer), the [parallelism model](#parralelism-and-scalajs) and [memory model](#memory-and-scalajs). In general, though, all the examples given in the documentation below will work perfectly when cross-compiled to javascript and run in the browser!
+There are some minor differences between running Scala.Rx on the JVM and in Javascript particularly around [asynchronous operations](#timer), the [parallelism model](#parallelism-and-scalajs) and [memory model](#memory-and-scalajs). In general, though, all the examples given in the documentation below will work perfectly when cross-compiled to javascript and run in the browser!
 
 Scala.rx 0.2.8 is only compatible with ScalaJS 0.6.x.
 
@@ -80,7 +79,7 @@ a() = 4
 println(c()) // 6
 ```
 
-The above example is an executable program. In general, `import rx._` is enough to get you started with Scala.Rx, and it will be assumed in all further examples. These examples are all taken from the [unit tests]().
+The above example is an executable program. In general, `import rx._` is enough to get you started with Scala.Rx, and it will be assumed in all further examples. These examples are all taken from the [unit tests](scalarx/shared/src/test/scala/rx).
 
 The basic entities you have to care about are [Var][3], [Rx][1] and [Obs][2]:
 
@@ -350,7 +349,7 @@ In this case, we define a web page which has a `html` value (a `Rx[String]`). Ho
 
 Having a `Rx[WebPage]`, where the `WebPage` has an `Rx[String]` inside, seems natural and obvious, and Scala.Rx lets you do it simply and naturally. This kind of objects-within-objects situation arises very naturally when modelling a problem in an object-oriented way. The ability of Scala.Rx to gracefully handle the corresponding [Rx][1]s within [Rx][1]s allows it to gracefully fit into this paradigm, something I found lacking in most of the [Related Work](#related-work) I surveyed.
 
-Most of the examples here are taken from the [unit tests](shared/test/scala/rx/BasicTests.scala), which provide more examples on guidance on how to use this library.
+Most of the examples here are taken from the [unit tests](scalarx/shared/src/test/scala/rx/BasicTests.scala), which provide more examples on guidance on how to use this library.
 
 
 Additional Operations
@@ -672,7 +671,7 @@ Note that asynchronous [Rx][1]s like those from [.async](#async), [.delay](#dela
 
 Concurrency and Parallelism
 --------------------------
-By default, everything happens on a single-threaded execution context and there is no parallelism. By using a custom [Propagator.ExecContext](), it is possible to have the updates in each propagation run happen in parallel (though not on [ScalaJS](#parallelism-and-scalajs). For more information on ExecutionContexts, see the [Akka Documentation](http://doc.akka.io/docs/akka/2.1.2/scala/futures.html#futures-scala). The [unit tests](src/test/scala/rx/ParallelTests.scala) also contain an example of a dependency graph whose evaluation is spread over multiple threads in this way to provide a performance increase.
+By default, everything happens on a single-threaded execution context and there is no parallelism. By using a custom [Propagator.ExecContext][6], it is possible to have the updates in each propagation run happen in parallel (though not on [ScalaJS](#parallelism-and-scalajs). For more information on ExecutionContexts, see the [Akka Documentation](http://doc.akka.io/docs/akka/2.1.2/scala/futures.html#futures-scala). The [unit tests](scalarx/jvm/src/test/scala/rx/ParallelTests.scala) also contain an example of a dependency graph whose evaluation is spread over multiple threads in this way to provide a performance increase.
 
 Even without using an explicitly parallelizing ExecutionContext, parallelism could creep into your code in subtle ways: a delayed [Rx][1], for example may happen to fire and continue its propagation just as you update a [Var][3] somewhere on the same dependency graph, resulting in two propagations proceeding in parallel.
 
@@ -932,6 +931,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 [2]: https://lihaoyi.github.io/scala.rx/#rx.core.Obs
 [3]: https://lihaoyi.github.io/scala.rx/#rx.core.Rx
 [4]: https://lihaoyi.github.io/scala.rx/#rx.ops.AkkaScheduler
-[6]: https://lihaoyi.github.io/scala.rx/#rx.core.Propagator.ExecContext
-[7]: https://lihaoyi.github.io/scala.rx/#rx.core.Propagator.Immediate
+[6]: https://lihaoyi.github.io/scala.rx/#rx.core.Propagator$$ExecContext
+[7]: https://lihaoyi.github.io/scala.rx/#rx.core.Propagator$$Immediate$
 [8]: https://lihaoyi.github.io/scala.rx/#rx.ops.Timer
