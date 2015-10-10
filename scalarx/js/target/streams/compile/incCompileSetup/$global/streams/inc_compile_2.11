@@ -1,0 +1,484 @@
+format version: 5
+output mode:
+1 items
+0 -> single
+output directories:
+1 items
+output dir -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes
+compile options:
+2 items
+0 -> -Xplugin:/home/nick/.ivy2/cache/org.scala-js/scalajs-compiler_2.11.7/jars/scalajs-compiler_2.11.7-0.6.5.jar
+1 -> -Xplugin:/home/nick/.ivy2/cache/com.lihaoyi/acyclic_2.11/jars/acyclic_2.11-0.1.3.jar
+javac options:
+0 items
+compiler version:
+1 items
+0 -> 2.11.7
+compile order:
+1 items
+0 -> Mixed
+name hashing:
+1 items
+0 -> true
+products:
+54 items
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Node$$anonfun$1.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Node$$anonfun$doRecalc$1.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Node$.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Node$Internal$class.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Node$Internal.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Node$class.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Node.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Obs$Internal$.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Obs.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx$$anonfun$2$$anonfun$apply$1.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx$$anonfun$2.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx$$anonfun$kill$1.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx$$typecreator2$1.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx$.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx$Internal$$anonfun$calc$1.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx$Internal$$anonfun$calc$2$$anonfun$apply$2.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx$Internal$$anonfun$calc$2.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx$Internal$$anonfun$clearDownstream$1.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx$Internal$$anonfun$clearUpstream$1.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx$Internal$.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx$transformer$2$$typecreator1$1.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx$transformer$2$.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/RxCtx$.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/RxCtx$Dummy$$anonfun$$lessinit$greater$1.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/RxCtx$Dummy$.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/RxCtx.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Var$$anonfun$set$1.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Var$$anonfun$set$2.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Var$$anonfun$set$3.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Var$.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Var$Internal$.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Var.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/VarTuple$$anonfun$tuples2VarTuple$1.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/VarTuple$.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/VarTuple.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$GenericOps$$anonfun$fold$1.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$GenericOps$$anonfun$foreach$1.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$GenericOps$$anonfun$map$1.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$GenericOps$$anonfun$reduce$1.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$GenericOps$$anonfun$ret$lzycompute$1$1.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$GenericOps.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$Internal$.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$Internal$GenericFunc$.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$Internal$GenericFunc$Apply$.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$Internal$GenericFunc$Normal$.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$Internal$GenericFunc$Try$.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$Internal$GenericFunc$toTryMark$.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$Internal$GenericFunc.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$NodePlus.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$RxPlus$all$.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$RxPlus.class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package.class
+binary dependencies:
+5 items
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.11.7.jar
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /home/nick/.ivy2/cache/org.scala-lang/scala-reflect/jars/scala-reflect-2.11.7.jar
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> /usr/lib/jvm/java-8-oracle/jre/lib/rt.jar
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> /home/nick/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.11.7.jar
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> /usr/lib/jvm/java-8-oracle/jre/lib/rt.jar
+direct source dependencies:
+0 items
+direct external dependencies:
+0 items
+public inherited source dependencies:
+0 items
+public inherited external dependencies:
+0 items
+member reference internal dependencies:
+1 items
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> /home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala
+member reference external dependencies:
+0 items
+inheritance internal dependencies:
+0 items
+inheritance external dependencies:
+0 items
+class names:
+54 items
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Node
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Node$
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Node$$anonfun$1
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Node$$anonfun$doRecalc$1
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Node$Internal
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Node$Internal$class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Node$class
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Obs
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Obs$Internal$
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Rx
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Rx$
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Rx$$anonfun$2
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Rx$$anonfun$2$$anonfun$apply$1
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Rx$$anonfun$kill$1
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Rx$$typecreator2$1
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Rx$Internal$
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Rx$Internal$$anonfun$calc$1
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Rx$Internal$$anonfun$calc$2
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Rx$Internal$$anonfun$calc$2$$anonfun$apply$2
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Rx$Internal$$anonfun$clearDownstream$1
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Rx$Internal$$anonfun$clearUpstream$1
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Rx$transformer$2$
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Rx$transformer$2$$typecreator1$1
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.RxCtx
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.RxCtx$
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.RxCtx$Dummy$
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.RxCtx$Dummy$$anonfun$$lessinit$greater$1
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Var
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Var$
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Var$$anonfun$set$1
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Var$$anonfun$set$2
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Var$$anonfun$set$3
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.Var$Internal$
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.VarTuple
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.VarTuple$
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx.VarTuple$$anonfun$tuples2VarTuple$1
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> rx.package
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> rx.package$
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> rx.package$GenericOps
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> rx.package$GenericOps$$anonfun$fold$1
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> rx.package$GenericOps$$anonfun$foreach$1
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> rx.package$GenericOps$$anonfun$map$1
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> rx.package$GenericOps$$anonfun$reduce$1
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> rx.package$GenericOps$$anonfun$ret$lzycompute$1$1
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> rx.package$Internal$
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> rx.package$Internal$GenericFunc
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> rx.package$Internal$GenericFunc$
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> rx.package$Internal$GenericFunc$Apply$
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> rx.package$Internal$GenericFunc$Normal$
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> rx.package$Internal$GenericFunc$Try$
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> rx.package$Internal$GenericFunc$toTryMark$
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> rx.package$NodePlus
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> rx.package$RxPlus
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> rx.package$RxPlus$all$
+used names:
+235 items
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> !=
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> $m
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> $m$untyped
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> $typecreator1
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> $typecreator2
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> $u
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> &&
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> +
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> ++=
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> <byname>
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> <init>
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> <repeated>
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> ==
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> >
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> AnyRef
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Context
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Dummy
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> EmptyTree
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Exception
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Expr
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> FlagsRepr
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Function0
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Function1
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Int
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Internal
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Iterable
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> List
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Mirror
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Modifiers
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Nil
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Node
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> None
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Nothing
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Obs
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Option
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Ordering
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Predef
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> PriorityQueue
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Product
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Rx
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> RxCtx
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> ScalaRunTime
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Seq
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Serializable
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Set
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> SingleType
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Singleton
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> StringContext
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> SyntacticApplied
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> SyntacticBlock
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> SyntacticFunction
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> SyntacticSelectTerm
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> SyntacticSelectType
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> SyntacticTermIdent
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> SyntacticTypeApplied
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> SyntacticValDef
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> T
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> TermName
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> ThisType
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Transformer
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Tree
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Try
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Tuple2
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Type
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> TypeCreator
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> TypeName
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> TypeRef
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> TypeTag
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> U
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Unit
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Universe
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> Var
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> VarTuple
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> WeakTypeTag
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> _1
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> _2
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> _hashCode
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> _root_
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> _toString
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> add
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> addDownstream
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> apply
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> args
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> asInstanceOf
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> asModule
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> buildMacro
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> by
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> c
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> cached
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> cached_=
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> calc
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> canBuildFrom
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> clear
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> clearDownstream
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> clearUpstream
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> collection
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> ctx
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> currentDepth
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> dead
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> dead_=
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> depth
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> depth_=
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> dequeue
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> doRecalc
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> downStream
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> empty
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> eq
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> experimental
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> flatMap
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> foreach
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> func
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> get
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> immutable
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> in
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> initialValue
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> intWrapper
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> internal
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> isEmpty
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> isInstanceOf
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> kill
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> language
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> macros
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> map
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> materializeWeakTypeTag
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> math
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> max
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> min
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> moduleClass
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> mutable
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> newValue
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> now
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> o
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> obs
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> observers
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> oldValue
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> ordering
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> owned
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> owner
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> package
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> prev
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> q
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> queue
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> reflect
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> reificationSupport
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> remove
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> res
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> resetLocalAttrs
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rootMirror
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> runtime
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rx0
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> rxs
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> s
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> scala
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> seen
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> set
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> staticClass
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> staticModule
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> staticPackage
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> super$toString
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> t
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> thunk
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> to
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> toSet
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> toString
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> toTry
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> tpe
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> transform
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> transformer
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> tree
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> triggerLater
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> ts
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> typedProductIterator
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> unary_!
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> unary_-
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> universe
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> upStream
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> update
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> upstream
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> util
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> v
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> value
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> value_=
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> weakTypeOf
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> while$1
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> ||
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> <init>
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> AnyRef
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> Apply
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> Boolean
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> Dummy
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> Function1
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> Function2
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> GenericFunc
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> GenericOps
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> Id
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> Internal
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> M
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> N
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> Node
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> NodePlus
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> Normal
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> Rx
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> RxCtx
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> RxPlus
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> T
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> Try
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> Unit
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> V
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> _root_
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> addDownstream
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> all
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> apply
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> build
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> ctx
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> f
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> get
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> init
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> n
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> normFunc
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> now
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> package
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> prev
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> ret
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> ret$lzy
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> rx
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> scala
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> start
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> toTry
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> toTryMark
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> trigger
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> util
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> v
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> valFunc
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> ||
+product stamps:
+54 items
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Node$$anonfun$1.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Node$$anonfun$doRecalc$1.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Node$.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Node$Internal$class.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Node$Internal.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Node$class.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Node.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Obs$Internal$.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Obs.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx$$anonfun$2$$anonfun$apply$1.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx$$anonfun$2.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx$$anonfun$kill$1.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx$$typecreator2$1.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx$.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx$Internal$$anonfun$calc$1.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx$Internal$$anonfun$calc$2$$anonfun$apply$2.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx$Internal$$anonfun$calc$2.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx$Internal$$anonfun$clearDownstream$1.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx$Internal$$anonfun$clearUpstream$1.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx$Internal$.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx$transformer$2$$typecreator1$1.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx$transformer$2$.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Rx.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/RxCtx$.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/RxCtx$Dummy$$anonfun$$lessinit$greater$1.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/RxCtx$Dummy$.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/RxCtx.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Var$$anonfun$set$1.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Var$$anonfun$set$2.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Var$$anonfun$set$3.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Var$.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Var$Internal$.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/Var.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/VarTuple$$anonfun$tuples2VarTuple$1.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/VarTuple$.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/VarTuple.class -> lastModified(1444516684000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$.class -> lastModified(1444516686000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$GenericOps$$anonfun$fold$1.class -> lastModified(1444516686000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$GenericOps$$anonfun$foreach$1.class -> lastModified(1444516686000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$GenericOps$$anonfun$map$1.class -> lastModified(1444516686000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$GenericOps$$anonfun$reduce$1.class -> lastModified(1444516686000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$GenericOps$$anonfun$ret$lzycompute$1$1.class -> lastModified(1444516686000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$GenericOps.class -> lastModified(1444516686000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$Internal$.class -> lastModified(1444516686000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$Internal$GenericFunc$.class -> lastModified(1444516686000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$Internal$GenericFunc$Apply$.class -> lastModified(1444516686000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$Internal$GenericFunc$Normal$.class -> lastModified(1444516686000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$Internal$GenericFunc$Try$.class -> lastModified(1444516686000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$Internal$GenericFunc$toTryMark$.class -> lastModified(1444516686000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$Internal$GenericFunc.class -> lastModified(1444516686000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$NodePlus.class -> lastModified(1444516686000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$RxPlus$all$.class -> lastModified(1444516686000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package$RxPlus.class -> lastModified(1444516686000)
+/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes/rx/package.class -> lastModified(1444516686000)
+source stamps:
+2 items
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> hash(1c8ac802bdf8be0420668430108ede530c230375)
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> hash(62665015c4b385b78d271d0dfe406f27e5922a12)
+binary stamps:
+3 items
+/home/nick/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.11.7.jar -> lastModified(1435004218000)
+/home/nick/.ivy2/cache/org.scala-lang/scala-reflect/jars/scala-reflect-2.11.7.jar -> lastModified(1435004253000)
+/usr/lib/jvm/java-8-oracle/jre/lib/rt.jar -> lastModified(1405538551000)
+class names:
+3 items
+/home/nick/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.11.7.jar -> scala.util.Try$
+/home/nick/.ivy2/cache/org.scala-lang/scala-reflect/jars/scala-reflect-2.11.7.jar -> scala.reflect.api.Trees
+/usr/lib/jvm/java-8-oracle/jre/lib/rt.jar -> java.lang.Object
+internal apis:
+2 items
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> 
+rO0ABXNyABB4c2J0aS5hcGkuU291cmNlFlpwRASfbtoCAAZJAAdhcGlIYXNoWgAIaGFzTWFjcm9MABhfaW50ZXJuYWxPbmx5X25hbWVIYXNoZXN0ACRMeHNidGkvYXBpL19pbnRlcm5hbE9ubHlfTmFtZUhhc2hlcztMAANhcGl0ABVMeHNidGkvYXBpL1NvdXJjZUFQSTtMAAtjb21waWxhdGlvbnQAF0x4c2J0aS9hcGkvQ29tcGlsYXRpb247WwAEaGFzaHQAAltCeHCDNMpwAXNyACJ4c2J0aS5hcGkuX2ludGVybmFsT25seV9OYW1lSGFzaGVzVNq+mfrU7EwCAAJbAA9pbXBsaWNpdE1lbWJlcnN0ACNbTHhzYnRpL2FwaS9faW50ZXJuYWxPbmx5X05hbWVIYXNoO1sADnJlZ3VsYXJNZW1iZXJzcQB+AAd4cHVyACNbTHhzYnRpLmFwaS5faW50ZXJuYWxPbmx5X05hbWVIYXNoO0lagLbdlov0AgAAeHAAAAADc3IAIHhzYnRpLmFwaS5faW50ZXJuYWxPbmx5X05hbWVIYXNoWw71InY4V88CAAJJAARoYXNoTAAEbmFtZXQAEkxqYXZhL2xhbmcvU3RyaW5nO3hwqzlhVXQABUR1bW15c3EAfgALMxpau3QADnR1cGxlMlZhclR1cGxlc3EAfgALcInR+nQAD3R1cGxlczJWYXJUdXBsZXVxAH4ACQAAAERzcQB+AAsdOlS6dAAJb2JzZXJ2ZXJzc3EAfgAL8HgHZ3QABm5vdGlmeXNxAH4AC5eVJgt0AAd1bmFwcGx5c3EAfgALR1B7W3QABmNhY2hlZHNxAH4AC6op5790AAlwcm9wYWdhdGVzcQB+AAtKMqjmdAAEd2FpdHNxAH4AC/U529B0AA5jb3B5JGRlZmF1bHQkMnNxAH4AC5uxZaR0AA0kYXNJbnN0YW5jZU9mc3EAfgALCacY0HQABXRodW5rc3EAfgAL9NhPgnQABnJlY2FsY3NxAH4AC8XZD7Z0AANWYXJzcQB+AAup6ymxdAAMcHJvZHVjdEFyaXR5c3EAfgALSB4em3QABmVxdWFsc3NxAH4AC88xGC50AAVvd25lZHNxAH4AC22iB9N0AAx0cmlnZ2VyTGF0ZXJzcQB+AAvJyhIXdAAMYXNJbnN0YW5jZU9mc3EAfgALja4vj3QAA09ic3NxAH4AC0Oh9H10AARkZWFkc3EAfgALgJ6qAXQAA3NldHNxAH4AC8p6BmF0AAxzeW5jaHJvbml6ZWRzcQB+AAtTgarqdAANJGlzSW5zdGFuY2VPZnNxAH4ACz0cBpl0AAROb2Rlc3EAfgALqqrpzHQABGNhbGNzcQB+AAuTt4VwdAAFYnVpbGRzcQB+AAtPCjI6dAAIVmFyVHVwbGVzcQB+AAsvV4ubdAANYWRkRG93bnN0cmVhbXNxAH4AC59T9aR0AAhjYW5FcXVhbHNxAH4AC22+q/10AAJyeHNxAH4ACzBN4f50AAVSeEN0eHNxAH4AC0Wfnpp0AA1wcm9kdWN0UHJlZml4c3EAfgALs2pGVXQACHVwU3RyZWFtc3EAfgALvd58YXQACW5vdGlmeUFsbHNxAH4ACwFyLs10AAtyZWFkUmVzb2x2ZXNxAH4ACz4w5Th0AAJSeHNxAH4ACwhwjk50AApidWlsZE1hY3Jvc3EAfgALrfVSLXQAA25vd3NxAH4AC6gpXY90AAxpc0luc3RhbmNlT2ZzcQB+AAv4x/iMdAAOc3VwZXIkdG9TdHJpbmdzcQB+AAsyajxHdAABdnNxAH4AC11TArt0AAY8aW5pdD5zcQB+AAvrv4+9dAAFYXBwbHlzcQB+AAtl7ntSdAACPT1zcQB+AAsIflzzdAAFY2xvbmVzcQB+AAvgoKQ7dAANY2xlYXJVcHN0cmVhbXNxAH4AC+EmJEB0AAhJbnRlcm5hbHNxAH4AC/R3Hyp0AAYkaW5pdCRzcQB+AAuEV6YSdAAEY29weXNxAH4AC36EOiJ0AAh0b1N0cmluZ3NxAH4AC9AMXFF0AAhkb1JlY2FsY3NxAH4AC86isnh0AAVkZXB0aHNxAH4AC/PfwL90AAV0b1RyeXNxAH4AC7J6PIF0AAIhPXNxAH4AC0tYoZl0AAVvd25lcnNxAH4ACxQ1LCh0AAhnZXRDbGFzc3NxAH4AC5DWFTt0AA5jb3B5JGRlZmF1bHQkMXNxAH4ACzrJXGJ0AAZ1cGRhdGVzcQB+AAt7By/QdAAEa2lsbHNxAH4AC+M9pF10AAJuZXNxAH4ACyWjOZl0AAV2YWx1ZXNxAH4ACwMc4f50AApkb3duU3RyZWFtc3EAfgAL9PC30nQAAmVxc3EAfgALcvho2nQAD3Byb2R1Y3RJdGVyYXRvcnNxAH4AC8KUG9F0AA9jbGVhckRvd25zdHJlYW1zcQB+AAutRxVXdAACIyNzcQB+AAtq0sUHdAAIZmluYWxpemVzcQB+AAulua2fdAAOcHJvZHVjdEVsZW1lbnRzcQB+AAu/nbm5dAAIaGFzaENvZGVzcQB+AAuEttn/dAAHdHJpZ2dlcnNyABN4c2J0aS5hcGkuU291cmNlQVBJuV6n+SkjOKQCAAJbAAtkZWZpbml0aW9uc3QAF1tMeHNidGkvYXBpL0RlZmluaXRpb247WwAIcGFja2FnZXN0ABRbTHhzYnRpL2FwaS9QYWNrYWdlO3hwdXIAF1tMeHNidGkuYXBpLkRlZmluaXRpb247iMlc57TjXg4CAAB4cAAAAAtzcgATeHNidGkuYXBpLkNsYXNzTGlrZYM0HKHfsJdsAgAETAAOZGVmaW5pdGlvblR5cGV0ABpMeHNidGkvYXBpL0RlZmluaXRpb25UeXBlO1sAEHNhdmVkQW5ub3RhdGlvbnN0ABNbTGphdmEvbGFuZy9TdHJpbmc7TAAIc2VsZlR5cGV0ABBMeHNidGkvYXBpL0xhenk7TAAJc3RydWN0dXJlcQB+AKV4cgAheHNidGkuYXBpLlBhcmFtZXRlcml6ZWREZWZpbml0aW9u+RFusdVQPOICAAFbAA50eXBlUGFyYW1ldGVyc3QAGltMeHNidGkvYXBpL1R5cGVQYXJhbWV0ZXI7eHIAFHhzYnRpLmFwaS5EZWZpbml0aW9uhyob6HFC40YCAARMAAZhY2Nlc3N0ABJMeHNidGkvYXBpL0FjY2VzcztbAAthbm5vdGF0aW9uc3QAF1tMeHNidGkvYXBpL0Fubm90YXRpb247TAAJbW9kaWZpZXJzdAAVTHhzYnRpL2FwaS9Nb2RpZmllcnM7TAAEbmFtZXEAfgAMeHBzcgAQeHNidGkuYXBpLlB1YmxpY7pYPa5sLWBCAgAAeHIAEHhzYnRpLmFwaS5BY2Nlc3PdYpr4HWMxSAIAAHhwdXIAF1tMeHNidGkuYXBpLkFubm90YXRpb24765frGRD2jUgCAAB4cAAAAABzcgATeHNidGkuYXBpLk1vZGlmaWVyc8cREyFpnNwkAgABQgAFZmxhZ3N4cAl0AAdyeC5Ob2RldXIAGltMeHNidGkuYXBpLlR5cGVQYXJhbWV0ZXI72W0mDyid8rYCAAB4cAAAAAFzcgAXeHNidGkuYXBpLlR5cGVQYXJhbWV0ZXJnaVXb43KQawIABlsAC2Fubm90YXRpb25zcQB+AKpMAAJpZHEAfgAMTAAKbG93ZXJCb3VuZHQAEEx4c2J0aS9hcGkvVHlwZTtbAA50eXBlUGFyYW1ldGVyc3EAfgCnTAAKdXBwZXJCb3VuZHEAfgC4TAAIdmFyaWFuY2V0ABRMeHNidGkvYXBpL1ZhcmlhbmNlO3hwdXEAfgCwAAAAAHQACXJ4Lk5vZGUuVHNyABR4c2J0aS5hcGkuUHJvamVjdGlvbvPSjVTpRaQtAgACTAACaWRxAH4ADEwABnByZWZpeHQAFkx4c2J0aS9hcGkvU2ltcGxlVHlwZTt4cgAUeHNidGkuYXBpLlNpbXBsZVR5cGVyeGKIISO/QAIAAHhyAA54c2J0aS5hcGkuVHlwZT9q2SEWSarKAgAAeHB0AAdOb3RoaW5nc3IAE3hzYnRpLmFwaS5TaW5nbGV0b278p1/4z1bkRgIAAUwABHBhdGh0ABBMeHNidGkvYXBpL1BhdGg7eHEAfgC/c3IADnhzYnRpLmFwaS5QYXRomz1cCM6lJ4QCAAFbAApjb21wb25lbnRzdAAaW0x4c2J0aS9hcGkvUGF0aENvbXBvbmVudDt4cHVyABpbTHhzYnRpLmFwaS5QYXRoQ29tcG9uZW50O0PaCXQtZxZ0AgAAeHAAAAACc3IADHhzYnRpLmFwaS5JZJgybIs3U8RAAgABTAACaWRxAH4ADHhyABd4c2J0aS5hcGkuUGF0aENvbXBvbmVudF+aIlsuhp+8AgAAeHB0AAVzY2FsYXNyAA54c2J0aS5hcGkuVGhpc9sJ7abMWkBcAgAAeHEAfgDMdXEAfgC1AAAAAHNxAH4AvXQAA0FueXEAfgDFfnIAEnhzYnRpLmFwaS5WYXJpYW5jZQAAAAAAAAAAEgAAeHIADmphdmEubGFuZy5FbnVtAAAAAAAAAAASAAB4cHQACUludmFyaWFudH5yABh4c2J0aS5hcGkuRGVmaW5pdGlvblR5cGUAAAAAAAAAABIAAHhxAH4A1XQABVRyYWl0dXIAE1tMamF2YS5sYW5nLlN0cmluZzut0lbn6R17RwIAAHhwAAAAAHNyABN4c2J0aS5TYWZlTGF6eSRJbXBsUAI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
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> 
+rO0ABXNyABB4c2J0aS5hcGkuU291cmNlFlpwRASfbtoCAAZJAAdhcGlIYXNoWgAIaGFzTWFjcm9MABhfaW50ZXJuYWxPbmx5X25hbWVIYXNoZXN0ACRMeHNidGkvYXBpL19pbnRlcm5hbE9ubHlfTmFtZUhhc2hlcztMAANhcGl0ABVMeHNidGkvYXBpL1NvdXJjZUFQSTtMAAtjb21waWxhdGlvbnQAF0x4c2J0aS9hcGkvQ29tcGlsYXRpb247WwAEaGFzaHQAAltCeHDdK2TOAHNyACJ4c2J0aS5hcGkuX2ludGVybmFsT25seV9OYW1lSGFzaGVzVNq+mfrU7EwCAAJbAA9pbXBsaWNpdE1lbWJlcnN0ACNbTHhzYnRpL2FwaS9faW50ZXJuYWxPbmx5X05hbWVIYXNoO1sADnJlZ3VsYXJNZW1iZXJzcQB+AAd4cHVyACNbTHhzYnRpLmFwaS5faW50ZXJuYWxPbmx5X05hbWVIYXNoO0lagLbdlov0AgAAeHAAAAACc3IAIHhzYnRpLmFwaS5faW50ZXJuYWxPbmx5X05hbWVIYXNoWw71InY4V88CAAJJAARoYXNoTAAEbmFtZXQAEkxqYXZhL2xhbmcvU3RyaW5nO3hwLZEpRnQABlJ4UGx1c3NxAH4ACw9VTbt0AAhOb2RlUGx1c3VxAH4ACQAAACRzcQB+AAvksgYQdAAGTm9ybWFsc3EAfgAL+JdxM3QABm5vdGlmeXNxAH4AC1LD7nt0AAJJZHNxAH4AC6np39d0AAdwYWNrYWdlc3EAfgALhi8Zg3QACkdlbmVyaWNPcHNzcQB+AAsVAfA+dAAEd2FpdHNxAH4AC3ue13V0AA0kYXNJbnN0YW5jZU9mc3EAfgALmPrAWnQAA21hcHNxAH4AC22J2iF0AAZlcXVhbHNzcQB+AAtw0b6udAADYWxsc3EAfgALD39LqnQADGFzSW5zdGFuY2VPZnNxAH4AC3WiFjN0AAxzeW5jaHJvbml6ZWRzcQB+AAu/nbAfdAANJGlzSW5zdGFuY2VPZnNxAH4ACzwoU5p0AARmb2xkc3EAfgAL+PCB33QABUFwcGx5c3EAfgALo+s7MHQACW5vdGlmeUFsbHNxAH4AC21leQh0AAl0b1RyeU1hcmtzcQB+AAttiemZdAAMaXNJbnN0YW5jZU9mc3EAfgAL5sg/BnQABmZpbHRlcnNxAH4AC5jF0VB0AANUcnlzcQB+AAuk6d1+dAAGPGluaXQ+c3EAfgAL3c4Pd3QABWFwcGx5c3EAfgALae4mhXQAAj09c3EAfgALyFmemnQABWNsb25lc3EAfgALJjIMIXQAB2ZvcmVhY2hzcQB+AAtR7//sdAAGcmVkdWNlc3EAfgALKHFEkHQACEludGVybmFsc3EAfgALbkhry3QACHRvU3RyaW5nc3EAfgALcxxQ73QAAiE9c3EAfgALaWJxLnQACGdldENsYXNzc3EAfgALg183o3QAC0dlbmVyaWNGdW5jc3EAfgAL+lC9SnQAAm5lc3EAfgALAiV79XQAAmVxc3EAfgALMTAYSXQAAiMjc3EAfgALi5A/rHQACGZpbmFsaXplc3EAfgALW37ya3QACGhhc2hDb2Rlc3IAE3hzYnRpLmFwaS5Tb3VyY2VBUEm5Xqf5KSM4pAIAAlsAC2RlZmluaXRpb25zdAAXW0x4c2J0aS9hcGkvRGVmaW5pdGlvbjtbAAhwYWNrYWdlc3QAFFtMeHNidGkvYXBpL1BhY2thZ2U7eHB1cgAXW0x4c2J0aS5hcGkuRGVmaW5pdGlvbjuIyVzntONeDgIAAHhwAAAAAXNyABN4c2J0aS5hcGkuQ2xhc3NMaWtlgzQcod+wl2wCAARMAA5kZWZpbml0aW9uVHlwZXQAGkx4c2J0aS9hcGkvRGVmaW5pdGlvblR5cGU7WwAQc2F2ZWRBbm5vdGF0aW9uc3QAE1tMamF2YS9sYW5nL1N0cmluZztMAAhzZWxmVHlwZXQAEEx4c2J0aS9hcGkvTGF6eTtMAAlzdHJ1Y3R1cmVxAH4AY3hyACF4c2J0aS5hcGkuUGFyYW1ldGVyaXplZERlZmluaXRpb275EW6x1VA84gIAAVsADnR5cGVQYXJhbWV0ZXJzdAAaW0x4c2J0aS9hcGkvVHlwZVBhcmFtZXRlcjt4cgAUeHNidGkuYXBpLkRlZmluaXRpb26HKhvocULjRgIABEwABmFjY2Vzc3QAEkx4c2J0aS9hcGkvQWNjZXNzO1sAC2Fubm90YXRpb25zdAAXW0x4c2J0aS9hcGkvQW5ub3RhdGlvbjtMAAltb2RpZmllcnN0ABVMeHNidGkvYXBpL01vZGlmaWVycztMAARuYW1lcQB+AAx4cHNyABB4c2J0aS5hcGkuUHVibGljulg9rmwtYEICAAB4cgAQeHNidGkuYXBpLkFjY2Vzc91imvgdYzFIAgAAeHB1cgAXW0x4c2J0aS5hcGkuQW5ub3RhdGlvbjvrl+sZEPaNSAIAAHhwAAAAAHNyABN4c2J0aS5hcGkuTW9kaWZpZXJzxxETIWmc3CQCAAFCAAVmbGFnc3hwAHQACnJ4LnBhY2thZ2V1cgAaW0x4c2J0aS5hcGkuVHlwZVBhcmFtZXRlcjvZbSYPKJ3ytgIAAHhwAAAAAH5yABh4c2J0aS5hcGkuRGVmaW5pdGlvblR5cGUAAAAAAAAAABIAAHhyAA5qYXZhLmxhbmcuRW51bQAAAAAAAAAAEgAAeHB0AAZNb2R1bGV1cgATW0xqYXZhLmxhbmcuU3RyaW5nO63SVufpHXtHAgAAeHAAAAAAc3IAE3hzYnRpLlNhZmVMYXp5JEltcGxQAi6Tl5dAPwIAA1oACGJpdG1hcCQwTAACX3R0ABJMamF2YS9sYW5nL09iamVjdDtMAARldmFsdAARTHNjYWxhL0Z1bmN0aW9uMDt4cgAWeHNidGkuYXBpLkFic3RyYWN0TGF6edN3tQFfu+egAgAAeHABc3IAE3hzYnRpLmFwaS5FbXB0eVR5cGW8/Z5GSTuJJAIAAHhyABR4c2J0aS5hcGkuU2ltcGxlVHlwZXJ4YoghI79AAgAAeHIADnhzYnRpLmFwaS5UeXBlP2rZIRZJqsoCAAB4cHBzcQB+AHsBc3IAE3hzYnRpLmFwaS5TdHJ1Y3R1cmWpqvmAk2/YAAIAA0wACGRlY2xhcmVkcQB+AGNMAAlpbmhlcml0ZWRxAH4AY0wAB3BhcmVudHNxAH4AY3hxAH4AgnNxAH4AewF1cQB+AF4AAAAAcHNxAH4AewF1cQB+AF4AAAAAcHNxAH4AewF1cgARW0x4c2J0aS5hcGkuVHlwZTt0/6Vae/npQQIAAHhwAAAAAnNyABR4c2J0aS5hcGkuUHJvamVjdGlvbvPSjVTpRaQtAgACTAACaWRxAH4ADEwABnByZWZpeHQAFkx4c2J0aS9hcGkvU2ltcGxlVHlwZTt4cQB+AIF0AAZPYmplY3RzcgATeHNidGkuYXBpLlNpbmdsZXRvbvynX/jPVuRGAgABTAAEcGF0aHQAEEx4c2J0aS9hcGkvUGF0aDt4cQB+AIFzcgAOeHNidGkuYXBpLlBhdGibPVwIzqUnhAIAAVsACmNvbXBvbmVudHN0ABpbTHhzYnRpL2FwaS9QYXRoQ29tcG9uZW50O3hwdXIAGltMeHNidGkuYXBpLlBhdGhDb21wb25lbnQ7Q9oJdC1nFnQCAAB4cAAAAANzcgAMeHNidGkuYXBpLklkmDJsizdTxEACAAFMAAJpZHEAfgAMeHIAF3hzYnRpLmFwaS5QYXRoQ29tcG9uZW50X5oiWy6Gn7wCAAB4cHQABGphdmFzcQB+AJp0AARsYW5nc3IADnhzYnRpLmFwaS5UaGlz2wntpsxaQFwCAAB4cQB+AJtzcQB+AI50AANBbnlzcQB+AJJzcQB+AJV1cQB+AJgAAAACc3EAfgCadAAFc2NhbGFxAH4AoXBwdXIAFFtMeHNidGkuYXBpLlBhY2thZ2U7WxMZN3CnJ6ECAAB4cAAAAAFzcgAReHNidGkuYXBpLlBhY2thZ2V+WY/2rs45WAIAAUwABG5hbWVxAH4ADHhwdAACcnhzcgAVeHNidGkuYXBpLkNvbXBpbGF0aW9u7frgw2rooEICAAJKAAlzdGFydFRpbWVbAAdvdXRwdXRzdAAaW0x4c2J0aS9hcGkvT3V0cHV0U2V0dGluZzt4cAAAAVBT52KRdXIAGltMeHNidGkuYXBpLk91dHB1dFNldHRpbmc7f2rC86eHpUICAAB4cAAAAAFzcgAXeHNidGkuYXBpLk91dHB1dFNldHRpbmd62ZpHdPsdewIAAkwAD291dHB1dERpcmVjdG9yeXEAfgAMTAAPc291cmNlRGlyZWN0b3J5cQB+AAx4cHQAPi9ob21lL25pY2svZm9ya3Mvc2NhbGEucngvc2NhbGFyeC9qcy90YXJnZXQvc2NhbGEtMi4xMS9jbGFzc2VzdAABL3VyAAJbQqzzF/gGCFTgAgAAeHAAAAAUYmZQFcSzhbeNJx0N/kBvJ+WSKhI=
+external apis:
+0 items
+source infos:
+2 items
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/Core.scala -> 
+AAAAAAAAAAA=
+/home/nick/forks/scala.rx/scalarx/shared/src/main/scala/rx/package.scala -> 
+AAAAAAAAAAA=
+compilations:
+3 items
+0 -> rO0ABXNyABV4c2J0aS5hcGkuQ29tcGlsYXRpb27t+uDDauigQgIAAkoACXN0YXJ0VGltZVsAB291dHB1dHN0ABpbTHhzYnRpL2FwaS9PdXRwdXRTZXR0aW5nO3hwAAABUFPMOJR1cgAaW0x4c2J0aS5hcGkuT3V0cHV0U2V0dGluZzt/asLzp4elQgIAAHhwAAAAAXNyABd4c2J0aS5hcGkuT3V0cHV0U2V0dGluZ3rZmkd0+x17AgACTAAPb3V0cHV0RGlyZWN0b3J5dAASTGphdmEvbGFuZy9TdHJpbmc7TAAPc291cmNlRGlyZWN0b3J5cQB+AAZ4cHQAPi9ob21lL25pY2svZm9ya3Mvc2NhbGEucngvc2NhbGFyeC9qcy90YXJnZXQvc2NhbGEtMi4xMS9jbGFzc2VzdAABLw==
+1 -> rO0ABXNyABV4c2J0aS5hcGkuQ29tcGlsYXRpb27t+uDDauigQgIAAkoACXN0YXJ0VGltZVsAB291dHB1dHN0ABpbTHhzYnRpL2FwaS9PdXRwdXRTZXR0aW5nO3hwAAABUFPnTlR1cgAaW0x4c2J0aS5hcGkuT3V0cHV0U2V0dGluZzt/asLzp4elQgIAAHhwAAAAAXNyABd4c2J0aS5hcGkuT3V0cHV0U2V0dGluZ3rZmkd0+x17AgACTAAPb3V0cHV0RGlyZWN0b3J5dAASTGphdmEvbGFuZy9TdHJpbmc7TAAPc291cmNlRGlyZWN0b3J5cQB+AAZ4cHQAPi9ob21lL25pY2svZm9ya3Mvc2NhbGEucngvc2NhbGFyeC9qcy90YXJnZXQvc2NhbGEtMi4xMS9jbGFzc2VzdAABLw==
+2 -> rO0ABXNyABV4c2J0aS5hcGkuQ29tcGlsYXRpb27t+uDDauigQgIAAkoACXN0YXJ0VGltZVsAB291dHB1dHN0ABpbTHhzYnRpL2FwaS9PdXRwdXRTZXR0aW5nO3hwAAABUFPnYpF1cgAaW0x4c2J0aS5hcGkuT3V0cHV0U2V0dGluZzt/asLzp4elQgIAAHhwAAAAAXNyABd4c2J0aS5hcGkuT3V0cHV0U2V0dGluZ3rZmkd0+x17AgACTAAPb3V0cHV0RGlyZWN0b3J5dAASTGphdmEvbGFuZy9TdHJpbmc7TAAPc291cmNlRGlyZWN0b3J5cQB+AAZ4cHQAPi9ob21lL25pY2svZm9ya3Mvc2NhbGEucngvc2NhbGFyeC9qcy90YXJnZXQvc2NhbGEtMi4xMS9jbGFzc2VzdAABLw==

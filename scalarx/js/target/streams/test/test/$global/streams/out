@@ -1,0 +1,47 @@
+[0m[[0mdebug[0m] [0mRunning TaskDef(rx.AdvancedTests, org.scalajs.testadapter.FingerprintSerializers$DeserializedSubclassFingerprint@60eb4438, false, [SuiteSelector])[0m
+[0m[[0mdebug[0m] [0mRunning TaskDef(rx.BasicTests, org.scalajs.testadapter.FingerprintSerializers$DeserializedSubclassFingerprint@2d38a5b7, false, [SuiteSelector])[0m
+[0m[[0minfo[0m] [0m-----------------------------------Results-----------------------------------[0m
+[0m[[0minfo[0m] [0mrx.BasicTests		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m    sigTests		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m        basic		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m            rxHelloWorld		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m            ordering		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m            options		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m        languageFeatures		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m            patternMatching		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m            implicitConversions		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m            useInByNameParameters		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m    obsTests		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m        helloWorld		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m        skipInitial		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m        simpleExample		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m        killing		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m    errorHandling		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m        simpleCatch		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m        longChain		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m    dontPropagateIfUnchanged		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m    printing		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0mrx.AdvancedTests		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m    nesting		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m        nestedRxs		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m        recalc		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m        multiset		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m        webPage		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m    combinators		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m        foreach		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m        map		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m        mapAll		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m        filter		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m        filterFirstFail		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m        filterAll		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m        reduce		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m        reduceAll		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m        killRx		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m    higherOrderRxs		[32mSuccess[0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mTests: 37[0m
+[0m[[0minfo[0m] [0mPassed: 37[0m
+[0m[[0minfo[0m] [0mFailed: 0[0m
+[0m[[0mdebug[0m] [0mPassed tests:[0m
+[0m[[0mdebug[0m] [0m	rx.AdvancedTests[0m
+[0m[[0mdebug[0m] [0m	rx.BasicTests[0m

@@ -1,0 +1,56 @@
+[0m[[0mdebug[0m] [0m[0m
+[0m[[0mdebug[0m] [0mInitial source changes: [0m
+[0m[[0mdebug[0m] [0m	removed:Set()[0m
+[0m[[0mdebug[0m] [0m	added: Set(/home/nick/forks/scala.rx/scalarx/shared/src/test/scala/rx/BasicTests.scala, /home/nick/forks/scala.rx/scalarx/shared/src/test/scala/rx/Util.scala, /home/nick/forks/scala.rx/scalarx/shared/src/test/scala/rx/AdvancedTests.scala)[0m
+[0m[[0mdebug[0m] [0m	modified: Set()[0m
+[0m[[0mdebug[0m] [0mRemoved products: Set()[0m
+[0m[[0mdebug[0m] [0mExternal API changes: API Changes: Set()[0m
+[0m[[0mdebug[0m] [0mModified binary dependencies: Set()[0m
+[0m[[0mdebug[0m] [0mInitial directly invalidated sources: Set(/home/nick/forks/scala.rx/scalarx/shared/src/test/scala/rx/BasicTests.scala, /home/nick/forks/scala.rx/scalarx/shared/src/test/scala/rx/Util.scala, /home/nick/forks/scala.rx/scalarx/shared/src/test/scala/rx/AdvancedTests.scala)[0m
+[0m[[0mdebug[0m] [0m[0m
+[0m[[0mdebug[0m] [0mSources indirectly invalidated by:[0m
+[0m[[0mdebug[0m] [0m	product: Set()[0m
+[0m[[0mdebug[0m] [0m	binary dep: Set()[0m
+[0m[[0mdebug[0m] [0m	external source: Set()[0m
+[0m[[0mdebug[0m] [0mAll initially invalidated sources: Set(/home/nick/forks/scala.rx/scalarx/shared/src/test/scala/rx/BasicTests.scala, /home/nick/forks/scala.rx/scalarx/shared/src/test/scala/rx/Util.scala, /home/nick/forks/scala.rx/scalarx/shared/src/test/scala/rx/AdvancedTests.scala)[0m
+[0m[[0mdebug[0m] [0mRecompiling all 3 sources: invalidated sources (3) exceeded 50.0% of all sources[0m
+[0m[[0minfo[0m] [0mCompiling 3 Scala sources to /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/test-classes...[0m
+[0m[[0mdebug[0m] [0mGetting compiler-interface from component compiler for Scala 2.11.7[0m
+[0m[[0mdebug[0m] [0mGetting compiler-interface from component compiler for Scala 2.11.7[0m
+[0m[[0mdebug[0m] [0mRunning cached compiler 572a3296, interfacing (CompilerInterface) with Scala compiler version 2.11.7[0m
+[0m[[0mdebug[0m] [0mCalling Scala compiler with arguments  (CompilerInterface):[0m
+[0m[[0mdebug[0m] [0m	-Xplugin:/home/nick/.ivy2/cache/org.scala-js/scalajs-compiler_2.11.7/jars/scalajs-compiler_2.11.7-0.6.5.jar[0m
+[0m[[0mdebug[0m] [0m	-Xplugin:/home/nick/.ivy2/cache/com.lihaoyi/acyclic_2.11/jars/acyclic_2.11-0.1.3.jar[0m
+[0m[[0mdebug[0m] [0m	-bootclasspath[0m
+[0m[[0mdebug[0m] [0m	/usr/lib/jvm/java-8-oracle/jre/lib/resources.jar:/usr/lib/jvm/java-8-oracle/jre/lib/rt.jar:/usr/lib/jvm/java-8-oracle/jre/lib/sunrsasign.jar:/usr/lib/jvm/java-8-oracle/jre/lib/jsse.jar:/usr/lib/jvm/java-8-oracle/jre/lib/jce.jar:/usr/lib/jvm/java-8-oracle/jre/lib/charsets.jar:/usr/lib/jvm/java-8-oracle/jre/lib/jfr.jar:/usr/lib/jvm/java-8-oracle/jre/classes:/home/nick/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.11.7.jar[0m
+[0m[[0mdebug[0m] [0m	-classpath[0m
+[0m[[0mdebug[0m] [0m	/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/test-classes:/home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/classes:/home/nick/.ivy2/cache/org.scala-js/scalajs-library_2.11/jars/scalajs-library_2.11-0.6.5.jar:/home/nick/.ivy2/cache/org.scala-lang/scala-reflect/jars/scala-reflect-2.11.7.jar:/home/nick/.ivy2/cache/com.lihaoyi/utest_sjs0.6_2.11/jars/utest_sjs0.6_2.11-0.3.1.jar:/home/nick/.ivy2/cache/org.scala-js/scalajs-test-interface_2.11/jars/scalajs-test-interface_2.11-0.6.1.jar:/home/nick/.ivy2/cache/com.lihaoyi/acyclic_2.11/jars/acyclic_2.11-0.1.3.jar:/home/nick/.ivy2/cache/org.scala-js/scalajs-dom_sjs0.6_2.11/jars/scalajs-dom_sjs0.6_2.11-0.8.2.jar[0m
+[0m[[0mdebug[0m] [0mScala compilation took 13.173164319 s[0m
+[0m[[0mdebug[0m] [0mInvalidating /home/nick/forks/scala.rx/scalarx/shared/src/test/scala/rx/BasicTests.scala...[0m
+[0m[[0mdebug[0m] [0mInvalidating (transitively) by inheritance from /home/nick/forks/scala.rx/scalarx/shared/src/test/scala/rx/BasicTests.scala...[0m
+[0m[[0mdebug[0m] [0mInitial set of included nodes: Set(/home/nick/forks/scala.rx/scalarx/shared/src/test/scala/rx/BasicTests.scala)[0m
+[0m[[0mdebug[0m] [0mInvalidated by transitive inheritance dependency: Set(/home/nick/forks/scala.rx/scalarx/shared/src/test/scala/rx/BasicTests.scala)[0m
+[0m[[0mdebug[0m] [0mThe /home/nick/forks/scala.rx/scalarx/shared/src/test/scala/rx/BasicTests.scala source file has the following regular definitions changed:[0m
+[0m[[0mdebug[0m] [0m	notify, wait, $asInstanceOf, equals, asInstanceOf, synchronized, tests, $isInstanceOf, BasicTests, notifyAll, isInstanceOf, ==, clone, toString, !=, getClass, ne, eq, ##, finalize, hashCode.[0m
+[0m[[0mdebug[0m] [0mAll member reference dependencies will be considered within this context.[0m
+[0m[[0mdebug[0m] [0mInvalidating /home/nick/forks/scala.rx/scalarx/shared/src/test/scala/rx/Util.scala...[0m
+[0m[[0mdebug[0m] [0mInvalidating (transitively) by inheritance from /home/nick/forks/scala.rx/scalarx/shared/src/test/scala/rx/Util.scala...[0m
+[0m[[0mdebug[0m] [0mInitial set of included nodes: Set(/home/nick/forks/scala.rx/scalarx/shared/src/test/scala/rx/Util.scala)[0m
+[0m[[0mdebug[0m] [0mInvalidated by transitive inheritance dependency: Set(/home/nick/forks/scala.rx/scalarx/shared/src/test/scala/rx/Util.scala)[0m
+[0m[[0mdebug[0m] [0mThe /home/nick/forks/scala.rx/scalarx/shared/src/test/scala/rx/Util.scala source file has the following regular definitions changed:[0m
+[0m[[0mdebug[0m] [0m	notify, wait, $asInstanceOf, equals, asInstanceOf, synchronized, $isInstanceOf, Util, notifyAll, isInstanceOf, ==, clone, toString, !=, getClass, initGraph, ne, eq, ##, finalize, hashCode.[0m
+[0m[[0mdebug[0m] [0mAll member reference dependencies will be considered within this context.[0m
+[0m[[0mdebug[0m] [0mThe following modified names cause invalidation of /home/nick/forks/scala.rx/scalarx/shared/src/test/scala/rx/AdvancedTests.scala: Set(asInstanceOf, Util, isInstanceOf, ==, toString, getClass, initGraph, ne)[0m
+[0m[[0mdebug[0m] [0mInvalidating /home/nick/forks/scala.rx/scalarx/shared/src/test/scala/rx/AdvancedTests.scala...[0m
+[0m[[0mdebug[0m] [0mInvalidating (transitively) by inheritance from /home/nick/forks/scala.rx/scalarx/shared/src/test/scala/rx/AdvancedTests.scala...[0m
+[0m[[0mdebug[0m] [0mInitial set of included nodes: Set(/home/nick/forks/scala.rx/scalarx/shared/src/test/scala/rx/AdvancedTests.scala)[0m
+[0m[[0mdebug[0m] [0mInvalidated by transitive inheritance dependency: Set(/home/nick/forks/scala.rx/scalarx/shared/src/test/scala/rx/AdvancedTests.scala)[0m
+[0m[[0mdebug[0m] [0mThe /home/nick/forks/scala.rx/scalarx/shared/src/test/scala/rx/AdvancedTests.scala source file has the following regular definitions changed:[0m
+[0m[[0mdebug[0m] [0m	notify, wait, $asInstanceOf, equals, asInstanceOf, synchronized, tests, $isInstanceOf, AdvancedTests, notifyAll, isInstanceOf, ==, clone, toString, !=, getClass, ne, eq, ##, finalize, hashCode.[0m
+[0m[[0mdebug[0m] [0mAll member reference dependencies will be considered within this context.[0m
+[0m[[0mdebug[0m] [0mNew invalidations:[0m
+[0m[[0mdebug[0m] [0m	Set()[0m
+[0m[[0mdebug[0m] [0mInitial set of included nodes: Set()[0m
+[0m[[0mdebug[0m] [0mPreviously invalidated, but (transitively) depend on new invalidations:[0m
+[0m[[0mdebug[0m] [0m	Set()[0m
+[0m[[0mdebug[0m] [0mAll newly invalidated sources after taking into account (previously) recompiled sources:Set()[0m

@@ -1,0 +1,20 @@
+[0m[[0minfo[0m] [0mFull Optimizing /home/nick/forks/scala.rx/scalarx/js/target/scala-2.11/scalarx-test-opt.js[0m
+[0m[[0mdebug[0m] [0mLinker: Read info: 219145 us[0m
+[0m[[0mdebug[0m] [0mLinker: Compute reachability: 365275 us[0m
+[0m[[0mdebug[0m] [0mLinker: Assemble LinkedClasses: 756352 us[0m
+[0m[[0mdebug[0m] [0mLinker: cache stats: reused: 0 -- invalidated: 4105 -- trees read: 801[0m
+[0m[[0mdebug[0m] [0mLinker: 1373242 us[0m
+[0m[[0mdebug[0m] [0mInc. optimizer: Batch mode: true[0m
+[0m[[0mdebug[0m] [0mInc. optimizer: Incremental part: 500291 us[0m
+[0m[[0mdebug[0m] [0mInc. optimizer: Optimizing 5482 methods.[0m
+[0m[[0mdebug[0m] [0mInc. optimizer: Optimizer part: 3045079 us[0m
+[0m[[0mdebug[0m] [0mInc. optimizer: 3590568 us[0m
+[0m[[0mdebug[0m] [0mRefiner: Compute reachability: 103652 us[0m
+[0m[[0mdebug[0m] [0mRefiner: Assemble LinkedClasses: 29972 us[0m
+[0m[[0mdebug[0m] [0mRefiner: 137722 us[0m
+[0m[[0mdebug[0m] [0mEmitter: Class tree cache stats: reused: 0 -- invalidated: 675[0m
+[0m[[0mdebug[0m] [0mEmitter: Method tree cache stats: resued: 0 -- invalidated: 3265[0m
+[0m[[0mdebug[0m] [0mEmitter (write output): 1970012 us[0m
+[0m[[0minfo[0m] [0mClosure: 0 error(s), 0 warning(s)[0m
+[0m[[0mdebug[0m] [0mClosure: Compiler pass: 14447264 us[0m
+[0m[[0mdebug[0m] [0mClosure: Write result: 1783255 us[0m
