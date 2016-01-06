@@ -1,16 +1,16 @@
-crossScalaVersions := Seq("2.10.4", "2.11.4")
+crossScalaVersions := Seq("2.10.5", "2.11.7")
 
 val scalarx = crossProject.settings(
   organization := "com.lihaoyi",
   name := "scalarx",
-  scalaVersion := "2.10.4",
-  version := "0.2.8",
+  scalaVersion := "2.11.7",
+  version := "0.2.9",
 
   libraryDependencies ++= Seq(
     "com.lihaoyi" %%% "utest" % "0.3.1" % "test",
-    "com.lihaoyi" %% "acyclic" % "0.1.2" % "provided"
+    "com.lihaoyi" %% "acyclic" % "0.1.3" % "provided"
   ),
-  addCompilerPlugin("com.lihaoyi" %% "acyclic" % "0.1.2"),
+  addCompilerPlugin("com.lihaoyi" %% "acyclic" % "0.1.3"),
   testFrameworks += new TestFramework("utest.runner.Framework"),
   autoCompilerPlugins := true,
   // Sonatype
@@ -39,7 +39,7 @@ val scalarx = crossProject.settings(
 
 ).jsSettings(
   libraryDependencies ++= Seq(
-    "org.scala-js" %%% "scalajs-dom" % "0.7.0" % "provided"
+    "org.scala-js" %%% "scalajs-dom" % "0.8.2" % "provided"
   ),
   scalaJSStage in Test := FullOptStage,
   scalacOptions ++= (if (isSnapshot.value) Seq.empty else Seq({
@@ -49,7 +49,7 @@ val scalarx = crossProject.settings(
   }))
 ).jvmSettings(
   libraryDependencies ++= Seq(
-    "com.typesafe.akka" %% "akka-actor" % "2.3.2" % "provided"
+    "com.typesafe.akka" %% "akka-actor" % "2.3.12" % "provided"
   )
 )
 lazy val js = scalarx.js
