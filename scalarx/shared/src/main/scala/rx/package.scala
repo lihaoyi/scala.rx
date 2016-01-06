@@ -38,49 +38,49 @@ package object rx {
      * function `f`. Note that the initial (first) value of this [[Node]]
      * cannot be filtered out, even if it fails the check.
      */
-    def filter(f: M[T] => Boolean): Rx[T] =  {
+    def filter(f: M[T] => Boolean)(implicit ctx: RxCtx): Rx[T] =  {
       var init = true
-      lazy val ret: Rx[T] = Rx.build[T]{ implicit ctx =>
-        n.Internal.addDownstream(ctx)
+      lazy val ret: Rx[T] = Rx.build[T] { implicit innerCtx: RxCtx =>
+        n.Internal.addDownstream(innerCtx)
         val v = valFunc(n)
         if (f(v) || init) {
           init = false
           normFunc(v)
         } else {
-          ret()
+          ret()(innerCtx)
         }
-      }
+      }(ctx)
       ret
     }
 
     /**
      * Creates a new [[Rx]] which depends on this one's value, transformed by `f`.
      */
-    def map[V](f: M[T] => M[V]) = Rx.build { implicit ctx =>
-      n.Internal.addDownstream(ctx)
+    def map[V](f: M[T] => M[V])(implicit ctx: RxCtx) = Rx.build { implicit innerCtx =>
+      n.Internal.addDownstream(innerCtx)
       normFunc(f(valFunc(n)))
-    }
+    }(ctx)
 
     /**
      * Given a `start` value, uses the current and subsequent values of this [[Rx]]
      * to transform the start value using `f`.
      */
-    def fold[V](start: M[V])(f: (M[V], M[T]) => M[V]) = {
+    def fold[V](start: M[V])(f: (M[V], M[T]) => M[V])(implicit ctx: RxCtx) = {
       var prev = start
-      Rx.build{ implicit ctx =>
+      Rx.build { implicit innerCtx =>
         prev = f(prev, valFunc(n))
         normFunc(prev)
-      }
+      }(ctx)
     }
 
     /**
      * Combines subsequent values of this [[Node]] using `f`
      */
-    def reduce(f: (M[T], M[T]) => M[T]) = {
+    def reduce(f: (M[T], M[T]) => M[T])(implicit ctx: RxCtx) = {
       var init = true
       var prev = valFunc(n)
-      Rx.build{ implicit ctx =>
-        n.Internal.addDownstream(ctx)
+      Rx.build { implicit innerCtx =>
+        n.Internal.addDownstream(innerCtx)
         if (init) {
           init = false
           normFunc(valFunc(n))
@@ -88,7 +88,7 @@ package object rx {
           prev = f(prev, valFunc(n))
           normFunc(prev)
         }
-      }
+      }(ctx)
     }
 
     /**

@@ -186,13 +186,14 @@ object AdvancedTests extends TestSuite{
         a() = 19
         assert(b.now == 19)
       }
+
       "filterFirstFail" - {
         val a = Var(10)
         val b = a.filter(_ > 15)
         a() = 1
         assert(b.now == 10)
-
       }
+
       "filterAll" - {
         val a = Var(10L)
         val b = Rx{ 100 / a() }
@@ -304,6 +305,28 @@ object AdvancedTests extends TestSuite{
         c.now._1.now == 5,
         c.now._2 == -1
       )
+    }
+    "leakyRxCtx" - {
+      var testY = 0
+      var testZ = 0
+      val a = Var(10)
+
+      //Correct way to implement a def: Rx[_]
+      def y()(implicit zzz: RxCtx) = Rx { testY += 1; a() }
+
+      //This way will leak an Rx (ie exponential blow up in cpu time), but is not caught at compile time
+      def z() = Rx { testZ += 1; a() }
+
+      //def y()(implicit qqq: RxCtx): Rx[Int] = Rx.build(implicit ctx => { test += 1; a()})
+      val yy = Rx{ a() ; for (i <- 0 until 100) yield y() }
+      val zz = Rx{ a() ; for (i <- 0 until 100) yield z() }
+      a() = 1
+      a() = 2
+      a() = 3
+      a() = 4
+      assert(testY == 500)
+      assert(testZ == 1500)
+
     }
   }
 }
