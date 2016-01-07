@@ -11,13 +11,12 @@ import scala.util.Try
  * other [[Node]]s that depend on it, running any triggers and notifying
  * downstream [[Node]]s when its value changes.
  */
-sealed trait Node[T]{ n =>
+sealed trait Node[+T] { self =>
   /**
    * Get the current value of this [[Node]] at this very moment,
    * without listening for updates
    */
   def now: T
-
 
   trait Internal {
     val downStream = mutable.Set.empty[Rx[_]]
@@ -27,7 +26,7 @@ sealed trait Node[T]{ n =>
     def depth: Int
     def addDownstream(ctx: RxCtx) = {
       downStream.add(ctx.rx)
-      ctx.rx.Internal.upStream.add(n)
+      ctx.rx.Internal.upStream.add(self)
       ctx.rx.Internal.depth = ctx.rx.Internal.depth max (Internal.depth + 1)
     }
   }
@@ -52,6 +51,12 @@ sealed trait Node[T]{ n =>
    * it depends on.
    */
   def kill(): Unit
+
+
+  /**
+   * Force trigger/notifications of any downstream [[Node]]s, without changing the current value
+   */
+  def propagate(): Unit = Node.doRecalc(Internal.downStream.toSet, Internal.observers)
 
   /**
    * Run the given function immediately, and again whenever this [[Node]]s value
@@ -81,7 +86,7 @@ object Node{
     val seen = mutable.Set.empty[Node[_]]
     val observers = obs.to[mutable.Set]
     var currentDepth = 0
-    while(!queue.isEmpty){
+    while(queue.nonEmpty){
       val min = queue.dequeue()
       if (min.Internal.depth > currentDepth){
         currentDepth = min.Internal.depth
@@ -106,10 +111,11 @@ object Node{
  * actually setting it.
  */
 object VarTuple{
-  implicit def tuple2VarTuple[T](t: (Var[T], T)) = {
+  implicit def tuple2VarTuple[T](t: (Var[T], T)): VarTuple[T] = {
     VarTuple(t._1, t._2)
   }
-  implicit def tuples2VarTuple[T](ts: Seq[(Var[T], T)]) = {
+
+  implicit def tuples2VarTuple[T](ts: Seq[(Var[T], T)]): Seq[VarTuple[T]] = {
     ts.map(t => VarTuple(t._1, t._2))
   }
 }
@@ -164,7 +170,6 @@ class Var[T](initialValue: T) extends Node[T]{
   def kill() = {
     Internal.clearDownstream()
   }
-
 }
 
 object Rx{
@@ -187,7 +192,8 @@ object Rx{
       }
     }
 
-    val res = q"rx.Rx.build{implicit foo: rx.RxCtx => ${transformer.transform(func.tree)}}"
+    val ctxName =  c.fresh[TermName]("rxctx")
+    val res = q"rx.Rx.build{implicit $ctxName: rx.RxCtx => ${transformer.transform(func.tree)}}"
 
 //    println(res)
     c.Expr[Rx[T]](c.resetLocalAttrs(res))
@@ -209,50 +215,51 @@ object Rx{
  * automatically when the [[owner]] recalculates, in order to avoid
  * memory leaks from un-used [[Rx]]s hanging around.
  */
-class Rx[T](func: RxCtx => T, owner: Option[RxCtx]) extends Node[T] { r =>
+class Rx[+T](func: RxCtx => T, owner: Option[RxCtx]) extends Node[T] { self =>
 
   owner.foreach{o =>
-    o.rx.Internal.owned.add(this)
-    o.rx.Internal.addDownstream(new RxCtx(this))
+    o.rx.Internal.owned.add(self)
+    o.rx.Internal.addDownstream(new RxCtx(self))
   }
 
+  private [this] var cached: Try[T] = null
+
   object Internal extends Internal{
-    def owner = r.owner
-    var cached: Try[T] = null
+    def owner = self.owner
     var depth = 0
     var dead = false
     val upStream = mutable.Set.empty[Node[_]]
     val owned = mutable.Set.empty[Node[_]]
     override def clearDownstream() = {
-      Internal.downStream.foreach(_.Internal.upStream.remove(r))
+      Internal.downStream.foreach(_.Internal.upStream.remove(self))
       Internal.downStream.clear()
     }
     def clearUpstream() = {
-      Internal.upStream.foreach(_.Internal.downStream.remove(r))
+      Internal.upStream.foreach(_.Internal.downStream.remove(self))
       Internal.upStream.clear()
     }
     def calc(): Try[T] = {
       Internal.clearUpstream()
       Internal.owned.foreach(_.kill())
       Internal.owned.clear()
-      Try(func(new RxCtx(r)))
+      Try(func(new RxCtx(self)))
     }
     def update() = {
       cached = calc()
     }
   }
 
-  Internal.cached = Internal.calc()
+  //Internal.cached = Internal.calc()
+  Internal.update()
 
-  def now = Internal.cached.get
+  def now = cached.get
 
   /**
    * @return the current value of this [[Rx]] as a `Try`
    */
-  def toTry = Internal.cached
+  def toTry = cached
 
   def kill() = {
-
     Internal.dead = true
     owner.foreach(_.rx.Internal.owned.remove(this))
     Internal.clearDownstream()
@@ -264,7 +271,7 @@ class Rx[T](func: RxCtx => T, owner: Option[RxCtx]) extends Node[T] { r =>
    * changed) and propagate changes downstream. Does nothing if the [[Rx]]
    * has been [[kill]]ed
    */
-  def recalc() = if (!Internal.dead) {
+  def recalc(): Unit = if (!Internal.dead) {
     val oldValue = toTry
     Internal.update()
     if (oldValue != toTry)

@@ -1,0 +1,6 @@
+target/
+*.swo
+*.swp
+*.swa
+.idea
+.idea_modules/
