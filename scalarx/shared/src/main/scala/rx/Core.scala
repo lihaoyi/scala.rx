@@ -1,11 +1,9 @@
 package rx
 
-import scala.annotation.compileTimeOnly
 import scala.language.experimental.macros
 import scala.collection.mutable
 import scala.reflect.macros.Context
 import scala.util.Try
-
 
 /**
  * A reactive value of type [[T]]. Keeps track of triggers and
