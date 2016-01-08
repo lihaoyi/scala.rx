@@ -249,6 +249,17 @@ object AdvancedTests extends TestSuite{
         a() = 10
         assert(c() == 1347)
       }
+
+      "zip" - {
+        val a = Var(1L)
+        val b = Var(2L)
+        val c = (a zip b)(_ + _)
+        assert(c.toTry.get == 3)
+        a() = 10
+        assert(c.toTry.get == 12)
+        b() = 100
+        assert(c.toTry.get == 110)
+      }
     }
     "kill" - {
       "killObs" - {

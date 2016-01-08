@@ -57,3 +57,23 @@ private[rx] class Mapper[T, +A](source: Rx[T])
 
   protected[this] val state = SpinSet(makeState)
 }
+
+/**
+ * Calculated value Rx[V] that statically depends on two values Rx[T], Rx[U].
+ */
+private[rx] class Zip[T, U, V](firstSource: Rx[T], secondSource: Rx[U])
+                               (transformer: (Try[T], Try[U]) => Try[V])
+                               extends Spinlock[V]{
+  override def level: Long = math.max(firstSource.level, secondSource.level) + 1
+  override def name: String = "Join"
+  override val parents: Set[Emitter[_]] = Set(firstSource, secondSource)
+  parents.foreach(_.linkChild(this))
+
+  protected[this] type StateType = SpinState
+  def makeState = new SpinState(
+    getStamp,
+    transformer(firstSource.toTry, secondSource.toTry)
+  )
+
+  protected[this] val state = SpinSet(makeState)
+}

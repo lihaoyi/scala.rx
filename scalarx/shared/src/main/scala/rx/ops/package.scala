@@ -125,6 +125,18 @@ package object ops {
              (implicit scheduler: Scheduler, ex: ExecutionContext): Rx[T] = {
       new Delay(source, delay)
     }
+
+    /**
+     * Creates a new [[Rx]] which value is calculated from `source` and `other`
+     * using `combiner`. Because dependencies are known, any kind of dynamic
+     * tracking is not required, what results in faster performance compared with [[Dynamic]].
+     */
+    def zip[U, V](other: Rx[U])
+                 (combiner: (T, U) => V): Rx[V] = {
+      new Zip(source, other)({
+        (first: Try[T], second: Try[U]) => first.flatMap(x => second.map(y => combiner(x, y)))
+      })
+    }
   }
 
 }
