@@ -53,9 +53,6 @@ sealed trait Node[+T] { self =>
    */
   def kill(): Unit
 
-  private [rx] def ctxKill(): Unit
-
-
   /**
    * Force trigger/notifications of any downstream [[Node]]s, without changing the current value
    */
@@ -174,8 +171,6 @@ class Var[T](initialValue: T) extends Node[T]{
   def kill() = {
     Internal.clearDownstream()
   }
-
-  override def ctxKill() = kill()
 }
 
 object Rx{
@@ -196,7 +191,7 @@ object Rx{
 
     object transformer extends c.universe.Transformer {
       override def transform(tree: c.Tree): c.Tree = {
-        if (c.weakTypeOf[RxCtx.Dummy.type] == tree.tpe) q"$ctxName"
+        if (c.weakTypeOf[RxCtx.Unsafe.type] == tree.tpe) q"$ctxName"
         else if(curCtx.tree.toString() == tree.toString()) q"$ctxName"
         else super.transform(tree)
       }
@@ -211,7 +206,7 @@ object Rx{
    * [[RxCtx]]) and an optional `owner` [[RxCtx]].
    */
   def build[T](func: RxCtx => T)(implicit owner: RxCtx): Rx[T] = {
-    new Rx(func, if(owner == RxCtx.Dummy) None else Some(owner))
+    new Rx(func, if(owner == RxCtx.Unsafe) None else Some(owner))
   }
 }
 
@@ -229,16 +224,16 @@ class Rx[+T](func: RxCtx => T, owner: Option[RxCtx]) extends Node[T] { self =>
     o.rx.Internal.addDownstream(new RxCtx(self))
   }
 
+  private [this] var cached: Try[T] = null
+
   object Internal extends Internal{
 
     def owner = self.owner
 
-    private [this] var cached: Try[T] = scala.util.Failure(new Throwable)
-
     var depth = 0
     var dead = false
     val upStream = mutable.Set.empty[Node[_]]
-    val owned = mutable.Set.empty[Node[_]]
+    val owned = mutable.Set.empty[Rx[_]]
 
     override def clearDownstream() = {
       Internal.downStream.foreach(_.Internal.upStream.remove(self))
@@ -252,7 +247,7 @@ class Rx[+T](func: RxCtx => T, owner: Option[RxCtx]) extends Node[T] { self =>
 
     def calc(): Try[T] = {
       Internal.clearUpstream()
-      Internal.owned.foreach(_.ctxKill())
+      Internal.owned.foreach(_.ownerKilled())
       Internal.owned.clear()
       Try(func(new RxCtx(self)))
     }
@@ -260,20 +255,18 @@ class Rx[+T](func: RxCtx => T, owner: Option[RxCtx]) extends Node[T] { self =>
     def update() = {
       cached = calc()
     }
-
-    def current(): Try[T] = cached
   }
 
   Internal.update()
 
-  def now = Internal.current().get
+  def now = cached.get
 
   /**
    * @return the current value of this [[Rx]] as a `Try`
    */
-  def toTry = Internal.current()
+  def toTry = cached
 
-  def ctxKill(): Unit = {
+  def ownerKilled(): Unit = {
     Internal.dead = true
     Internal.clearDownstream()
     Internal.clearUpstream()
@@ -281,7 +274,7 @@ class Rx[+T](func: RxCtx => T, owner: Option[RxCtx]) extends Node[T] { self =>
 
   def kill(): Unit = {
     owner.foreach(_.rx.Internal.owned.remove(this))
-    ctxKill()
+    ownerKilled()
   }
 
   /**
@@ -297,13 +290,10 @@ class Rx[+T](func: RxCtx => T, owner: Option[RxCtx]) extends Node[T] { self =>
   }
 }
 object RxCtx{
-  implicit object Dummy extends RxCtx(throw new Exception(
+  implicit object Unsafe extends RxCtx(throw new Exception(
     "Invalid RxCtx: you can only call `Rx.apply` within an " +
     "`Rx{...}` block or where an implicit `RxCtx` is available"
   ))
-
-//  @compileTimeOnly("Todo Msg RxCtx Bad")
-//  implicit def dummy(): RxCtx = Dummy
 }
 
 /**
@@ -330,5 +320,4 @@ class Obs(val thunk: () => Unit, upstream: Node[_]){
     upstream.Internal.observers.remove(this)
     Internal.dead = true
   }
-
 }

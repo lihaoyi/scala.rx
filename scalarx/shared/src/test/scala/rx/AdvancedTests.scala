@@ -32,7 +32,6 @@ object AdvancedTests extends TestSuite{
 //    }
     "nesting" - {
       "nestedRxs" - {
-        implicit val testCtx = rx.RxCtx.Dummy
         val a = Var(1)
         val b = Rx{
           Rx{ a() } -> Rx{ math.random }
@@ -65,8 +64,6 @@ object AdvancedTests extends TestSuite{
           other()
         }
 
-        implicit val testCtx = RxCtx.Dummy
-
         val things1 = Rx {
           top1Count += 1
           top().map(a => inner1(a))
@@ -86,8 +83,6 @@ object AdvancedTests extends TestSuite{
         chk()
       }
       "recalc" - {
-        implicit val testCtx = rx.RxCtx.Dummy
-
         var source = 0
         val a = Rx{
           source
@@ -105,8 +100,6 @@ object AdvancedTests extends TestSuite{
         assert(i == 2)
       }
       "multiset" - {
-        implicit val testCtx = rx.RxCtx.Dummy
-
         val a = Var(1)
         val b = Var(1)
         val c = Var(1)
@@ -144,8 +137,6 @@ object AdvancedTests extends TestSuite{
         assert(i == 6)
       }
       "webPage" - {
-        implicit val testCtx = rx.RxCtx.Dummy
-
         var fakeTime = 123
         trait WebPage{
           def fTime = fakeTime
@@ -185,7 +176,6 @@ object AdvancedTests extends TestSuite{
     }
 
     "combinators" - {
-      implicit val testCtx = rx.RxCtx.Dummy
       "foreach" - {
         val a = Var(1)
         var count = 0
@@ -330,8 +320,6 @@ object AdvancedTests extends TestSuite{
     }
 
     "higherOrderRxs" - {
-      implicit val testCtx = rx.RxCtx.Dummy
-
       val a = Var(1)
       val b = Var(2)
       val c = Rx(Rx(a() + b()) -> (a() - b()))
@@ -369,8 +357,6 @@ object AdvancedTests extends TestSuite{
 
       //Correct way to implement a def: Rx[_]
       def y()(implicit zzz: RxCtx) = Rx { testY += 1; a() }
-
-      implicit val testCtx = rx.RxCtx.Dummy
 
       //This way will leak an Rx (ie exponential blow up in cpu time), but is not caught at compile time
       def z() = Rx { testZ += 1; a() }
