@@ -1,5 +1,6 @@
 package rx
 
+import scala.annotation.compileTimeOnly
 import scala.language.experimental.macros
 import scala.collection.mutable
 import scala.reflect.macros.Context
@@ -200,7 +201,6 @@ object Rx{
         else super.transform(tree)
       }
     }
-
     val res = q"rx.Rx.build{$ctxName: rx.RxCtx => ${transformer.transform(func.tree)}}($curCtx)"
 
     c.Expr[Rx[T]](c.resetLocalAttrs(res))
@@ -211,7 +211,7 @@ object Rx{
    * [[RxCtx]]) and an optional `owner` [[RxCtx]].
    */
   def build[T](func: RxCtx => T)(implicit owner: RxCtx): Rx[T] = {
-    new Rx(func, if (owner == RxCtx.Dummy) None else Some(owner))
+    new Rx(func, if(owner == RxCtx.Dummy) None else Some(owner))
   }
 }
 
@@ -301,6 +301,9 @@ object RxCtx{
     "Invalid RxCtx: you can only call `Rx.apply` within an " +
     "`Rx{...}` block or where an implicit `RxCtx` is available"
   ))
+
+//  @compileTimeOnly("Todo Msg RxCtx Bad")
+//  implicit def dummy(): RxCtx = Dummy
 }
 
 /**

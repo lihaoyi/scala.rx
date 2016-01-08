@@ -4,6 +4,9 @@ import util.{Failure, Success}
 import utest._
 import acyclic.file
 object BasicTests extends TestSuite{
+
+  implicit val testCtx = rx.RxCtx.Dummy
+
   def tests = TestSuite{
     "sigTests" - {
       "basic" - {

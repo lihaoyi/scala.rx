@@ -6,7 +6,7 @@ object Util {
   /**
    * Generates a short dataflow graph for testing
    */
-  def initGraph = {
+  def initGraph()(implicit ctx: RxCtx) = {
     val a = Var(1) // 3
 
     val b = Var(2) // 2
