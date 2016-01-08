@@ -145,7 +145,7 @@ object BasicTests extends TestSuite{
       }
       "longChain" - {
         val a = Var(1L)
-        val b = Var(2L) 
+        val b = Var(2L)
 
         val c = Rx{ a() / b() }
         val d = Rx{ a() * 5 }

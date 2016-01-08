@@ -39,6 +39,47 @@ object AdvancedTests extends TestSuite{
         a() = 2
         assert(b.now._2.now == r)
       }
+      "macroDoesTheRightThing" - {
+        var top1Count = 0
+        var top2Count = 0
+        var inner1Count = 0
+        var inner2Count = 0
+
+        def chk() = {
+          assert(inner1Count == inner2Count)
+          assert(top1Count == top2Count)
+        }
+        val top = Var(List(1,2,3))
+        val other = Var(1)
+
+        def inner1(num: Int)(implicit topCtx: RxCtx) = Rx.build { newCtx =>
+            inner1Count += 1
+            other()(newCtx)
+        }(topCtx)
+
+        def inner2(num: Int)(implicit topCtx: RxCtx) = Rx {
+          inner2Count += 1
+          other()
+        }
+
+        val things1 = Rx {
+          top1Count += 1
+          top().map(a => inner1(a))
+        }
+
+        val things2 = Rx {
+          top2Count += 1
+          top().map(a => inner2(a))
+        }
+        chk()
+        other() = other.now + 1
+        chk()
+        top() = List(3,2,1)
+        top() = List(2,2,2)
+        top() = List(1,2,3)
+        other() = other.now + 1
+        chk()
+      }
       "recalc" - {
         var source = 0
         val a = Rx{
@@ -115,7 +156,6 @@ object AdvancedTests extends TestSuite{
             case "www.mysite.com/about" => new AboutPage()
           }
         }
-
         assert(page.now.html.now == "Home Page! time: 123")
 
         fakeTime = 234
@@ -276,6 +316,7 @@ object AdvancedTests extends TestSuite{
         assert(f.now == 36)
       }
     }
+
     "higherOrderRxs" - {
       val a = Var(1)
       val b = Var(2)
@@ -306,6 +347,7 @@ object AdvancedTests extends TestSuite{
         c.now._2 == -1
       )
     }
+
     "leakyRxCtx" - {
       var testY = 0
       var testZ = 0
@@ -317,7 +359,6 @@ object AdvancedTests extends TestSuite{
       //This way will leak an Rx (ie exponential blow up in cpu time), but is not caught at compile time
       def z() = Rx { testZ += 1; a() }
 
-      //def y()(implicit qqq: RxCtx): Rx[Int] = Rx.build(implicit ctx => { test += 1; a()})
       val yy = Rx{ a() ; for (i <- 0 until 100) yield y() }
       val zz = Rx{ a() ; for (i <- 0 until 100) yield z() }
       a() = 1
@@ -326,7 +367,6 @@ object AdvancedTests extends TestSuite{
       a() = 4
       assert(testY == 500)
       assert(testZ == 1500)
-
     }
   }
 }

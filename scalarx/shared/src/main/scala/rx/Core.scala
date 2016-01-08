@@ -52,6 +52,8 @@ sealed trait Node[+T] { self =>
    */
   def kill(): Unit
 
+  private [rx] def ctxKill(): Unit
+
 
   /**
    * Force trigger/notifications of any downstream [[Node]]s, without changing the current value
@@ -148,6 +150,7 @@ object Var{
  * [[Node]]s and run any triggers whenever its value changes.
  */
 class Var[T](initialValue: T) extends Node[T]{
+
   object Internal extends Internal{
     def depth = 0
     var value = initialValue
@@ -170,6 +173,8 @@ class Var[T](initialValue: T) extends Node[T]{
   def kill() = {
     Internal.clearDownstream()
   }
+
+  override def ctxKill() = kill()
 }
 
 object Rx{
@@ -181,21 +186,23 @@ object Rx{
    * track of which other [[Node]]s are used within that block (via their
    * `apply` methods) so this [[Rx]] can recalculate when upstream changes.
    */
-  def apply[T](func: => T): Rx[T] = macro buildMacro[T]
+  def apply[T](func: => T)(implicit curCtx: rx.RxCtx): Rx[T] = macro buildMacro[T]
 
-  def buildMacro[T: c.WeakTypeTag](c: Context)(func: c.Expr[T]): c.Expr[Rx[T]] = {
+  def buildMacro[T: c.WeakTypeTag](c: Context)(func: c.Expr[T])(curCtx: c.Expr[rx.RxCtx]): c.Expr[Rx[T]] = {
     import c.universe._
+
+    val ctxName =  c.fresh[TermName]("rxctx")
+
     object transformer extends c.universe.Transformer {
       override def transform(tree: c.Tree): c.Tree = {
-        if (c.weakTypeOf[RxCtx.Dummy.type] == tree.tpe) q"implicitly[rx.RxCtx]"
+        if (c.weakTypeOf[RxCtx.Dummy.type] == tree.tpe) q"$ctxName"
+        else if(curCtx.tree.toString() == tree.toString()) q"$ctxName"
         else super.transform(tree)
       }
     }
 
-    val ctxName =  c.fresh[TermName]("rxctx")
-    val res = q"rx.Rx.build{implicit $ctxName: rx.RxCtx => ${transformer.transform(func.tree)}}"
+    val res = q"rx.Rx.build{$ctxName: rx.RxCtx => ${transformer.transform(func.tree)}}($curCtx)"
 
-//    println(res)
     c.Expr[Rx[T]](c.resetLocalAttrs(res))
   }
 
@@ -217,53 +224,64 @@ object Rx{
  */
 class Rx[+T](func: RxCtx => T, owner: Option[RxCtx]) extends Node[T] { self =>
 
-  owner.foreach{o =>
+  owner.foreach { o =>
     o.rx.Internal.owned.add(self)
     o.rx.Internal.addDownstream(new RxCtx(self))
   }
 
-  private [this] var cached: Try[T] = null
-
   object Internal extends Internal{
+
     def owner = self.owner
+
+    private [this] var cached: Try[T] = scala.util.Failure(new Throwable)
+
     var depth = 0
     var dead = false
     val upStream = mutable.Set.empty[Node[_]]
     val owned = mutable.Set.empty[Node[_]]
+
     override def clearDownstream() = {
       Internal.downStream.foreach(_.Internal.upStream.remove(self))
       Internal.downStream.clear()
     }
+
     def clearUpstream() = {
       Internal.upStream.foreach(_.Internal.downStream.remove(self))
       Internal.upStream.clear()
     }
+
     def calc(): Try[T] = {
       Internal.clearUpstream()
-      Internal.owned.foreach(_.kill())
+      Internal.owned.foreach(_.ctxKill())
       Internal.owned.clear()
       Try(func(new RxCtx(self)))
     }
+
     def update() = {
       cached = calc()
     }
+
+    def current(): Try[T] = cached
   }
 
-  //Internal.cached = Internal.calc()
   Internal.update()
 
-  def now = cached.get
+  def now = Internal.current().get
 
   /**
    * @return the current value of this [[Rx]] as a `Try`
    */
-  def toTry = cached
+  def toTry = Internal.current()
 
-  def kill() = {
+  def ctxKill(): Unit = {
     Internal.dead = true
-    owner.foreach(_.rx.Internal.owned.remove(this))
     Internal.clearDownstream()
     Internal.clearUpstream()
+  }
+
+  def kill(): Unit = {
+    owner.foreach(_.rx.Internal.owned.remove(this))
+    ctxKill()
   }
 
   /**
