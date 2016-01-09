@@ -1,5 +1,6 @@
 package rx
 
+import scala.annotation.compileTimeOnly
 import scala.language.experimental.macros
 import scala.collection.mutable
 import scala.reflect.macros.Context
@@ -182,6 +183,8 @@ object Rx{
    */
   def apply[T](func: => T)(implicit curCtx: rx.RxCtx): Rx[T] = macro buildMacro[T]
 
+  def unsafe[T](func: => T): Rx[T] = macro buildUnsafe[T]
+
   def buildMacro[T: c.WeakTypeTag](c: Context)(func: c.Expr[T])(curCtx: c.Expr[rx.RxCtx]): c.Expr[Rx[T]] = {
     import c.universe._
 
@@ -194,8 +197,30 @@ object Rx{
         else super.transform(tree)
       }
     }
-    val res = q"rx.Rx.build{$ctxName: rx.RxCtx => ${transformer.transform(func.tree)}}($curCtx)"
 
+    println(c.internal.enclosingOwner.owner.isMethod)
+    //val yolo = scala.util.Try(c.internal.enclosingOwner.info)
+    val lol = if(!c.internal.enclosingOwner.owner.isMethod) c.Expr[RxCtx](q"rx.RxCtx.Unsafe") else curCtx
+    val res = q"rx.Rx.build{$ctxName: rx.RxCtx => ${transformer.transform(func.tree)}}($lol)"
+    //println(c.enclosingDef)
+    //println(c.enclosingUnit)
+    println("== BEFORE ==")
+    println(func.tree)
+    println("== AFTE R ==")
+    println(res)
+    c.Expr[Rx[T]](c.resetLocalAttrs(res))
+  }
+
+  def buildUnsafe[T: c.WeakTypeTag](c: Context)(func: c.Expr[T]): c.Expr[Rx[T]] = {
+    import c.universe._
+    val ctxName = c.fresh[TermName]("rxctx")
+    object transformer extends c.universe.Transformer {
+      override def transform(tree: c.Tree): c.Tree = {
+        if (tree.tpe <:< c.weakTypeOf[RxCtx]) q"$ctxName"
+        else super.transform(tree)
+      }
+    }
+    val res = q"rx.Rx.build{$ctxName: rx.RxCtx => ${transformer.transform(func.tree)}}(rx.RxCtx.Unsafe)"
     c.Expr[Rx[T]](c.resetLocalAttrs(res))
   }
 
@@ -288,10 +313,12 @@ class Rx[+T](func: RxCtx => T, owner: Option[RxCtx]) extends Node[T] { self =>
   }
 }
 object RxCtx{
-  implicit object Unsafe extends RxCtx(throw new Exception(
+  object Unsafe extends RxCtx(throw new Exception(
     "Invalid RxCtx: you can only call `Rx.apply` within an " +
     "`Rx{...}` block or where an implicit `RxCtx` is available"
   ))
+  @compileTimeOnly("OMG OMG OMG")
+  implicit def safe: RxCtx = Unsafe
 }
 
 /**
