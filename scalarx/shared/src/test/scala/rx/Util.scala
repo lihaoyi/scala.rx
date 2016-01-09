@@ -34,4 +34,10 @@ object Util {
     val aHeh = heh()
     aHeh()
   }
+
+  class Wurt()(implicit ctx: RxCtx) {
+    val yay = Rx {
+      WORKPLZ()
+    }
+  }
 }

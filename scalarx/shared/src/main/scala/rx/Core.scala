@@ -192,15 +192,29 @@ object Rx{
 
     object transformer extends c.universe.Transformer {
       override def transform(tree: c.Tree): c.Tree = {
-        if (c.weakTypeOf[RxCtx.Unsafe.type] == tree.tpe) q"$ctxName"
-        else if(curCtx.tree.toString() == tree.toString()) q"$ctxName"
+        if (tree.tpe <:< c.weakTypeOf[RxCtx]) q"$ctxName"
         else super.transform(tree)
       }
     }
 
+    def checkOwners(chk: c.Symbol): Boolean = {
+      println(s"CHECKIGN : $chk (${chk.isMethod},${chk.isModule},${chk.isClass},${chk.isModuleClass})" + chk)
+      if(chk.isMethod || (chk.isClass && !chk.isModuleClass)) false
+      else if(chk.owner == NoSymbol) {
+        println("YAY: " + chk)
+        true
+      }
+      else {
+        println("NOT A METHOD: " + chk)
+        checkOwners(chk.owner)
+      }
+    }
     println(c.internal.enclosingOwner.owner.isMethod)
+
+    val ROFLCOPTER = checkOwners(c.internal.enclosingOwner)
+
     //val yolo = scala.util.Try(c.internal.enclosingOwner.info)
-    val lol = if(!c.internal.enclosingOwner.owner.isMethod) c.Expr[RxCtx](q"rx.RxCtx.Unsafe") else curCtx
+    val lol = if(ROFLCOPTER) c.Expr[RxCtx](q"rx.RxCtx.Unsafe") else curCtx
     val res = q"rx.Rx.build{$ctxName: rx.RxCtx => ${transformer.transform(func.tree)}}($lol)"
     //println(c.enclosingDef)
     //println(c.enclosingUnit)
