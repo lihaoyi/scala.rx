@@ -43,6 +43,36 @@ object AdvancedTests extends TestSuite{
     }
   }
 
+  object SafeTrait {
+    trait RxTrait {
+      implicit def ctx: RxCtx // leave ctx abstract
+      val aa = Var(1)
+      lazy val meh = Rx { aa() }
+    }
+
+    object RxObj extends RxTrait {
+      //override implicit val ctx = RxCtx.Unsafe
+      override implicit val ctx = RxCtx.safe()
+      val objRx = Rx { meh() }
+    }
+
+    class RxClass extends RxTrait {
+      //compile time error:
+      //override implicit val ctx = RxCtx.safe()
+      override implicit val ctx = RxCtx.Unsafe
+      val classRx = Rx { meh() }
+    }
+
+    //One other way RxCtx.safe() can be used
+    class RxClass2()(implicit ZZZ: RxCtx) extends RxTrait {
+      override val ctx = RxCtx.safe()
+    }
+
+    //Although this would be more normal
+    class RxClass3()(implicit override val ctx: RxCtx) extends RxTrait {
+    }
+  }
+
   def tests = TestSuite {
 //    'perf{
 //      'init{
@@ -87,6 +117,24 @@ object AdvancedTests extends TestSuite{
         top() = List(1,2,3)
         other() = other.now + 1
         chk()
+      }
+      "safeTrait" - {
+        import SafeTrait._
+        RxObj.aa() = 3
+        assert(RxObj.meh.now == 3)
+        assert(RxObj.objRx.now == 3)
+
+        val instance = new RxClass
+        assert(instance.meh.now == 1)
+        instance.aa() = 5
+        assert(instance.classRx.now == 5)
+
+        val instance2 = new RxClass2()(RxCtx.Unsafe)
+        assert(instance2.meh.now == 1)
+
+        val instance3 = new RxClass3()(RxCtx.Unsafe)
+        instance3.aa() = 42
+        assert(instance3.meh.now == 42)
       }
       "recalc" - {
         implicit val testctx = RxCtx.Unsafe
@@ -184,9 +232,7 @@ object AdvancedTests extends TestSuite{
         page.now.update()
         assert(page.now.html.now == "About Me, time: 456")
       }
-
     }
-
     "combinators" - {
       implicit val testctx = RxCtx.Unsafe
 

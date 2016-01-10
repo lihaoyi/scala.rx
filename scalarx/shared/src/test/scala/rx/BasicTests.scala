@@ -5,6 +5,7 @@ import utest._
 import acyclic.file
 object BasicTests extends TestSuite{
 
+  //We dont care about potential Rx leaks in BasicTest
   implicit val testctx = RxCtx.Unsafe
 
   def tests = TestSuite{
@@ -16,6 +17,12 @@ object BasicTests extends TestSuite{
           assert(c.now == 3)
           a() = 4
           assert(c.now == 6)
+        }
+        "toRx" - {
+          val a = Var(1)
+          val b = a.toRx
+          a() = 2
+          assert(b.now == 2)
         }
         "ordering" - {
           var changes = ""

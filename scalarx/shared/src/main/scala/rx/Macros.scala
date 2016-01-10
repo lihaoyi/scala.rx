@@ -20,8 +20,13 @@ object Macros {
 
   def ensureStaticEnclosingOwners(c: Context)(chk: c.Symbol): Unit = {
     import c.universe._
+    //Failed due to an enclosing trait or abstract class
+    if(chk.isAbstract && chk.isClass) {
+      val msg = s"This Rx might leak! Either explicitly mark it unsafe (Rx.unsafe) or ensure an implicit RxCtx is in scope!"
+      c.abort(c.enclosingPosition,msg)
+    }
     //Failed due to an enclosing method or class
-    if(chk.isMethod || (chk.isClass && !chk.isModuleClass)) {
+    else if(chk.isMethod || (chk.isClass && !chk.isModuleClass)) {
       val msg =s"""
         |This Rx might leak! Either explicitly mark it unsafe (Rx.unsafe) or make an implicit RxCtx available
         |in the enclosing scope, for example, by adding (implicit ctx: RxCtx) to line ${chk.pos.line}: $chk
@@ -30,6 +35,24 @@ object Macros {
     }
     else if(chk.owner == NoSymbol) ()
     else ensureStaticEnclosingOwners(c)(chk.owner)
+  }
+
+  def buildSafeCtx(c: Context)(): c.Expr[RxCtx] = {
+    import c.universe._
+
+    val inferredCtx = c.inferImplicitValue(c.weakTypeOf[rx.RxCtx])
+
+    val isCompileTimeCtx = inferredCtx.tpe =:= c.weakTypeOf[rx.RxCtx.CompileTime.type]
+
+    if(isCompileTimeCtx)
+      ensureStaticEnclosingOwners(c)(c.internal.enclosingOwner)
+
+    val safeCtx =
+      if(isCompileTimeCtx) c.Expr[RxCtx](q"rx.RxCtx.Unsafe")
+      else if(c.internal.enclosingOwner.fullName == inferredCtx.symbol.fullName) c.Expr[RxCtx](q"rx.RxCtx.Unsafe")
+      else c.Expr[RxCtx](q"$inferredCtx")
+
+    safeCtx
   }
 
   def buildMacro[T: c.WeakTypeTag](c: Context)(func: c.Expr[T])(curCtx: c.Expr[rx.RxCtx]): c.Expr[Rx[T]] = {
@@ -48,6 +71,7 @@ object Macros {
 
     val res = q"rx.Rx.build{$newCtx: rx.RxCtx => ${transformFunc(c)(func, newCtx, curCtx.tree)}}($enclosingCtx)"
     c.Expr[Rx[T]](c.resetLocalAttrs(res))
+
   }
 
   def buildUnsafe[T: c.WeakTypeTag](c: Context)(func: c.Expr[T]): c.Expr[Rx[T]] = {

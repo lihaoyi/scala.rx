@@ -76,6 +76,9 @@ sealed trait Node[+T] { self =>
     Internal.observers.add(o)
     o
   }
+
+  def toRx(implicit ctx: RxCtx): Rx[T]
+
   override def toString() = s"${super.toString}($now)"
 }
 object Node{
@@ -153,7 +156,7 @@ class Var[T](initialValue: T) extends Node[T]{
     var value = initialValue
   }
 
-  def now = Internal.value
+  override def now = Internal.value
 
   /**
    * Sets the value of this [[Var]] and runs any triggers/notifies
@@ -167,7 +170,9 @@ class Var[T](initialValue: T) extends Node[T]{
     }
   }
 
-  def kill() = {
+  override def toRx(implicit ctx: RxCtx): Rx[T] = Rx.build { inner => this.apply()(inner) }
+
+  override def kill() = {
     Internal.clearDownstream()
   }
 }
@@ -243,7 +248,7 @@ class Rx[+T](func: RxCtx => T, owner: Option[RxCtx]) extends Node[T] { self =>
 
   Internal.update()
 
-  def now = cached.get
+  override def now = cached.get
 
   /**
    * @return the current value of this [[Rx]] as a `Try`
@@ -256,7 +261,9 @@ class Rx[+T](func: RxCtx => T, owner: Option[RxCtx]) extends Node[T] { self =>
     Internal.clearUpstream()
   }
 
-  def kill(): Unit = {
+  override def toRx(implicit ctx: RxCtx): Rx[T] = Rx.build { inner => this.apply()(inner) }
+
+  override def kill(): Unit = {
     owner.foreach(_.rx.Internal.owned.remove(this))
     ownerKilled()
   }
@@ -279,10 +286,10 @@ object RxCtx{
     "`Rx{...}` block or where an implicit `RxCtx` is available"
   ))
 
-  //@compileTimeOnly("OMG OMG OMG")
-  //implicit def safe: RxCtx = Unsafe
-  @compileTimeOnly("LOLZ")
+  @compileTimeOnly("No implicit RxCtx is available here!")
   implicit object CompileTime extends RxCtx(throw new Exception())
+
+  def safe(): RxCtx = macro Macros.buildSafeCtx
 }
 
 /**
