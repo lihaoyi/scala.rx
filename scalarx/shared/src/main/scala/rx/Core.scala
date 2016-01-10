@@ -195,6 +195,7 @@ object Rx{
    * [[RxCtx]]) and an optional `owner` [[RxCtx]].
    */
   def build[T](func: RxCtx => T)(implicit owner: RxCtx): Rx[T] = {
+    require(owner != null, "owning RxCtx was null! Perhaps mark the caller lazy?")
     new Rx(func, if(owner == RxCtx.Unsafe) None else Some(owner))
   }
 }
