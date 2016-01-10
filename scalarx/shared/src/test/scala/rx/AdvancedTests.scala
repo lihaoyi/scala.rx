@@ -73,6 +73,16 @@ object AdvancedTests extends TestSuite{
     }
   }
 
+  object TopLevelVarCombinators {
+    val aa = Var(1)
+
+    val mapped = aa.map(_ + 10)
+
+    val filtered = aa.filter(_ % 2 == 0)
+
+    val reduced = aa.reduce((a,b) => a+b)
+  }
+
   def tests = TestSuite {
 //    'perf{
 //      'init{
@@ -235,7 +245,6 @@ object AdvancedTests extends TestSuite{
     }
     "combinators" - {
       implicit val testctx = RxCtx.Unsafe
-
       "foreach" - {
         val a = Var(1)
         var count = 0
@@ -257,7 +266,6 @@ object AdvancedTests extends TestSuite{
         assert(c.now == 2)
         assert(d.now == 6)
       }
-
       "mapAll" - {
         val a = Var(10L)
         val b = Rx{ 100 / a() }
@@ -275,7 +283,6 @@ object AdvancedTests extends TestSuite{
         assert(c.now == 1337)
         assert(d.toTry == Success("java.lang.ArithmeticException: / by zero"))
       }
-
       "filter" - {
         val a = Var(10)
         val b = a.filter(_ > 5)
@@ -288,14 +295,12 @@ object AdvancedTests extends TestSuite{
         a() = 19
         assert(b.now == 19)
       }
-
       "filterFirstFail" - {
         val a = Var(10)
         val b = a.filter(_ > 15)
         a() = 1
         assert(b.now == 10)
       }
-
       "filterAll" - {
         val a = Var(10L)
         val b = Rx{ 100 / a() }
@@ -309,7 +314,6 @@ object AdvancedTests extends TestSuite{
         a() = 1
         assert(c.now == 100)
       }
-
       "reduce" - {
         val a = Var(2)
         val b = a.reduce(_ * _)
@@ -322,7 +326,6 @@ object AdvancedTests extends TestSuite{
         a() = 4
         assert(b.now == 24)
       }
-
       "reduceAll" - {
         val a = Var(1L)
         val b = Rx{ 100 / a() }
@@ -378,7 +381,20 @@ object AdvancedTests extends TestSuite{
         assert(f.now == 36)
       }
     }
-
+    "topLevelCombinators" - {
+      import TopLevelVarCombinators._
+      assert(mapped.now == 11)
+      assert(filtered.now == 1)
+      assert(reduced.now == 1)
+      aa() = 2
+      assert(mapped.now == 12)
+      assert(filtered.now == 2)
+      assert(reduced.now == 3)
+      aa() = 3
+      assert(mapped.now == 13)
+      assert(filtered.now == 2)
+      assert(reduced.now == 6)
+    }
     "higherOrderRxs" - {
       implicit val testctx = RxCtx.Unsafe
 
@@ -411,7 +427,6 @@ object AdvancedTests extends TestSuite{
         c.now._2 == -1
       )
     }
-
     "leakyRxCtx" - {
       var testY = 0
       var testZ = 0

@@ -170,7 +170,7 @@ class Var[T](initialValue: T) extends Node[T]{
     }
   }
 
-  override def toRx(implicit ctx: RxCtx): Rx[T] = Rx.build { inner => this.apply()(inner) }
+  override def toRx(implicit ctx: RxCtx): Rx[T] = Rx.build { inner => this.apply()(inner) }(ctx)
 
   override def kill() = {
     Internal.clearDownstream()
@@ -261,7 +261,7 @@ class Rx[+T](func: RxCtx => T, owner: Option[RxCtx]) extends Node[T] { self =>
     Internal.clearUpstream()
   }
 
-  override def toRx(implicit ctx: RxCtx): Rx[T] = Rx.build { inner => this.apply()(inner) }
+  override def toRx(implicit ctx: RxCtx): Rx[T] = Rx.build { inner => this.apply()(inner) }(ctx)
 
   override def kill(): Unit = {
     owner.foreach(_.rx.Internal.owned.remove(this))
@@ -280,16 +280,26 @@ class Rx[+T](func: RxCtx => T, owner: Option[RxCtx]) extends Node[T] { self =>
       Node.doRecalc(Internal.downStream, Internal.observers)
   }
 }
-object RxCtx{
+
+object RxCtx {
   object Unsafe extends RxCtx(throw new Exception(
     "Invalid RxCtx: you can only call `Rx.apply` within an " +
     "`Rx{...}` block or where an implicit `RxCtx` is available"
   ))
 
-  @compileTimeOnly("No implicit RxCtx is available here!")
-  implicit object CompileTime extends RxCtx(throw new Exception())
-
   def safe(): RxCtx = macro Macros.buildSafeCtx
+
+  @compileTimeOnly("No implicit RxCtx is available here!")
+  object CompileTime extends RxCtx(throw new Exception())
+
+  /**
+   * Dark magic. End result is the implicit ctx will be one of
+   *  1) The enclosing RxCtx, if it exists
+   *  2) RxCtx.Unsafe, if in a "static context"
+   *  3) RxCtx.CompileTime, if in a "dynamic context" (other macros will rewrite CompileTime away)
+   */
+  @compileTimeOnly("@}}>---: A rose by any other name.")
+  implicit def voodoo: RxCtx = macro Macros.buildImplicitRxCtx
 }
 
 /**

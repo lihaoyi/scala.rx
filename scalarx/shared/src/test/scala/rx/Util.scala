@@ -1,7 +1,6 @@
 package rx
 import acyclic.file
 
-
 object Util {
   /**
    * Generates a short dataflow graph for testing
