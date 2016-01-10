@@ -181,62 +181,9 @@ object Rx{
    * track of which other [[Node]]s are used within that block (via their
    * `apply` methods) so this [[Rx]] can recalculate when upstream changes.
    */
-  def apply[T](func: => T)(implicit curCtx: rx.RxCtx): Rx[T] = macro buildMacro[T]
+  def apply[T](func: => T)(implicit curCtx: rx.RxCtx): Rx[T] = macro Macros.buildMacro[T]
 
-  def unsafe[T](func: => T): Rx[T] = macro buildUnsafe[T]
-
-  def buildMacro[T: c.WeakTypeTag](c: Context)(func: c.Expr[T])(curCtx: c.Expr[rx.RxCtx]): c.Expr[Rx[T]] = {
-    import c.universe._
-
-    val ctxName =  c.fresh[TermName]("rxctx")
-
-    object transformer extends c.universe.Transformer {
-      override def transform(tree: c.Tree): c.Tree = {
-        if (tree.tpe <:< c.weakTypeOf[RxCtx]) q"$ctxName"
-        else super.transform(tree)
-      }
-    }
-
-    def checkOwners(chk: c.Symbol): Boolean = {
-      println(s"CHECKIGN : $chk (${chk.isMethod},${chk.isModule},${chk.isClass},${chk.isModuleClass})" + chk)
-      if(chk.isMethod || (chk.isClass && !chk.isModuleClass)) false
-      else if(chk.owner == NoSymbol) {
-        println("YAY: " + chk)
-        true
-      }
-      else {
-        println("NOT A METHOD: " + chk)
-        checkOwners(chk.owner)
-      }
-    }
-    println(c.internal.enclosingOwner.owner.isMethod)
-
-    val ROFLCOPTER = checkOwners(c.internal.enclosingOwner)
-
-    //val yolo = scala.util.Try(c.internal.enclosingOwner.info)
-    val lol = if(ROFLCOPTER) c.Expr[RxCtx](q"rx.RxCtx.Unsafe") else curCtx
-    val res = q"rx.Rx.build{$ctxName: rx.RxCtx => ${transformer.transform(func.tree)}}($lol)"
-    //println(c.enclosingDef)
-    //println(c.enclosingUnit)
-    println("== BEFORE ==")
-    println(func.tree)
-    println("== AFTE R ==")
-    println(res)
-    c.Expr[Rx[T]](c.resetLocalAttrs(res))
-  }
-
-  def buildUnsafe[T: c.WeakTypeTag](c: Context)(func: c.Expr[T]): c.Expr[Rx[T]] = {
-    import c.universe._
-    val ctxName = c.fresh[TermName]("rxctx")
-    object transformer extends c.universe.Transformer {
-      override def transform(tree: c.Tree): c.Tree = {
-        if (tree.tpe <:< c.weakTypeOf[RxCtx]) q"$ctxName"
-        else super.transform(tree)
-      }
-    }
-    val res = q"rx.Rx.build{$ctxName: rx.RxCtx => ${transformer.transform(func.tree)}}(rx.RxCtx.Unsafe)"
-    c.Expr[Rx[T]](c.resetLocalAttrs(res))
-  }
+  def unsafe[T](func: => T): Rx[T] = macro Macros.buildUnsafe[T]
 
   /**
    * Constructs a new [[Rx]] from an expression (which explicitly takes an
@@ -331,8 +278,11 @@ object RxCtx{
     "Invalid RxCtx: you can only call `Rx.apply` within an " +
     "`Rx{...}` block or where an implicit `RxCtx` is available"
   ))
-  @compileTimeOnly("OMG OMG OMG")
-  implicit def safe: RxCtx = Unsafe
+
+  //@compileTimeOnly("OMG OMG OMG")
+  //implicit def safe: RxCtx = Unsafe
+  @compileTimeOnly("LOLZ")
+  implicit object CompileTime extends RxCtx(throw new Exception())
 }
 
 /**

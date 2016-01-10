@@ -5,6 +5,8 @@ import utest._
 import acyclic.file
 object BasicTests extends TestSuite{
 
+  implicit val testctx = RxCtx.Unsafe
+
   def tests = TestSuite{
     "sigTests" - {
       "basic" - {

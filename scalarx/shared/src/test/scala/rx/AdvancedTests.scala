@@ -7,6 +7,42 @@ import scala.util.{Success, Failure}
 import utest._
 object AdvancedTests extends TestSuite{
 
+  //Using a static scope for some tests to check the more common use case of the Rx macro
+  object MacroDoesRightThing {
+    var top1Count = 0
+    var top2Count = 0
+    var inner1Count = 0
+    var inner2Count = 0
+
+    def chk() = {
+      assert(inner1Count == inner2Count)
+      assert(top1Count == top2Count)
+    }
+
+    val top = Var(List(1,2,3))
+    val other = Var(1)
+
+    def inner1(num: Int)(implicit topCtx: RxCtx) = Rx.build { newCtx =>
+      inner1Count += 1
+      other()(newCtx)
+    }(topCtx)
+
+    def inner2(num: Int)(implicit topCtx: RxCtx) = Rx {
+      inner2Count += 1
+      other()
+    }
+
+    val things1 = Rx {
+      top1Count += 1
+      top().map(a => inner1(a))
+    }
+
+    val things2 = Rx {
+      top2Count += 1
+      top().map(a => inner2(a))
+    }
+  }
+
   def tests = TestSuite {
 //    'perf{
 //      'init{
@@ -32,6 +68,8 @@ object AdvancedTests extends TestSuite{
 //    }
     "nesting" - {
       "nestedRxs" - {
+        implicit val testctx = RxCtx.Unsafe
+
         val a = Var(1)
         val b = Rx{
           Rx{ a() } -> Rx{ math.random }
@@ -41,39 +79,7 @@ object AdvancedTests extends TestSuite{
         assert(b.now._2.now == r)
       }
       "macroDoesTheRightThing" - {
-
-        var top1Count = 0
-        var top2Count = 0
-        var inner1Count = 0
-        var inner2Count = 0
-
-        def chk() = {
-          assert(inner1Count == inner2Count)
-          assert(top1Count == top2Count)
-        }
-        val top = Var(List(1,2,3))
-        val other = Var(1)
-
-        def inner1(num: Int)(implicit topCtx: RxCtx) = Rx.build { newCtx =>
-            inner1Count += 1
-            other()(newCtx)
-        }(topCtx)
-
-        def inner2(num: Int)(implicit topCtx: RxCtx) = Rx {
-          inner2Count += 1
-          other()
-        }
-
-        val things1 = Rx {
-          top1Count += 1
-          top().map(a => inner1(a))
-        }
-
-        val things2 = Rx {
-          top2Count += 1
-          top().map(a => inner2(a))
-        }
-
+        import MacroDoesRightThing._
         chk()
         other() = other.now + 1
         top() = List(3,2,1)
@@ -83,6 +89,8 @@ object AdvancedTests extends TestSuite{
         chk()
       }
       "recalc" - {
+        implicit val testctx = RxCtx.Unsafe
+
         var source = 0
         val a = Rx{
           source
@@ -100,6 +108,8 @@ object AdvancedTests extends TestSuite{
         assert(i == 2)
       }
       "multiset" - {
+        implicit val testctx = RxCtx.Unsafe
+
         val a = Var(1)
         val b = Var(1)
         val c = Var(1)
@@ -137,6 +147,8 @@ object AdvancedTests extends TestSuite{
         assert(i == 6)
       }
       "webPage" - {
+        implicit val testctx = RxCtx.Unsafe
+
         var fakeTime = 123
         trait WebPage{
           def fTime = fakeTime
@@ -176,6 +188,8 @@ object AdvancedTests extends TestSuite{
     }
 
     "combinators" - {
+      implicit val testctx = RxCtx.Unsafe
+
       "foreach" - {
         val a = Var(1)
         var count = 0
@@ -287,7 +301,7 @@ object AdvancedTests extends TestSuite{
       }
 
       "killRx" - {
-        val (a, b, c, d, e, f) = Util.initGraph
+        val (a, b, c, d, e, f) = Util.initGraph()
 
         assert(c.now == 3)
         assert(e.now == 7)
@@ -320,6 +334,8 @@ object AdvancedTests extends TestSuite{
     }
 
     "higherOrderRxs" - {
+      implicit val testctx = RxCtx.Unsafe
+
       val a = Var(1)
       val b = Var(2)
       val c = Rx(Rx(a() + b()) -> (a() - b()))
@@ -359,10 +375,10 @@ object AdvancedTests extends TestSuite{
       def y()(implicit zzz: RxCtx) = Rx { testY += 1; a() }
 
       //This way will leak an Rx (ie exponential blow up in cpu time), but is not caught at compile time
-      def z() = Rx { testZ += 1; a() }
+      def z() = Rx.unsafe { testZ += 1; a() }
 
-      val yy = Rx{ a() ; for (i <- 0 until 100) yield y() }
-      val zz = Rx{ a() ; for (i <- 0 until 100) yield z() }
+      val yy = Rx.unsafe { a() ; for (i <- 0 until 100) yield y() }
+      val zz = Rx.unsafe { a() ; for (i <- 0 until 100) yield z() }
       a() = 1
       a() = 2
       a() = 3
