@@ -28,7 +28,7 @@ object Macros {
       else false
     }
     //Failed due to an enclosing method or class
-    else if(chk.isMethod || (chk.isClass && !chk.isModuleClass)) {
+    else if((chk.isMethod && !chk.isTerm) || (chk.isClass && !chk.isModuleClass)) {
       val msg =s"""
         |This Rx might leak! Either explicitly mark it unsafe (Rx.unsafe) or make an implicit RxCtx available
         |in the enclosing scope, for example, by adding (implicit ctx: RxCtx) to line ${chk.pos.line}: $chk
@@ -100,9 +100,9 @@ object Macros {
     val isCompileTime = inferredCtx.isEmpty
     val staticContext = ensureStaticEnclosingOwners(c)(c.internal.enclosingOwner, abortOnFail = false)
     val implicitCtx =
-      if(isCompileTime && staticContext) c.Expr[RxCtx](q"rx.RxCtx.Unsafe")
-      else if(isCompileTime && !staticContext) c.Expr[RxCtx](q"rx.RxCtx.CompileTime")
-      else c.Expr[RxCtx](q"$inferredCtx")
-    implicitCtx
+      if(isCompileTime && staticContext) q"rx.RxCtx.Unsafe"
+      else if(isCompileTime && !staticContext) q"rx.RxCtx.CompileTime"
+      else q"$inferredCtx"
+    c.Expr[RxCtx](c.resetLocalAttrs(implicitCtx))
   }
 }

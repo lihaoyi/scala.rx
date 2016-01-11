@@ -260,6 +260,8 @@ class Rx[+T](func: RxCtx => T, owner: Option[RxCtx]) extends Node[T] { self =>
     Internal.dead = true
     Internal.clearDownstream()
     Internal.clearUpstream()
+    Internal.owned.foreach(_.ownerKilled())
+    Internal.owned.clear()
   }
 
   override def toRx(implicit ctx: RxCtx): Rx[T] = Rx.build { inner => this.apply()(inner) }(ctx)
