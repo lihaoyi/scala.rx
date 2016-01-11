@@ -112,4 +112,5 @@ package object rx {
   implicit class RxPlus[T](n: Rx[T]){
     object all extends GenericOps[Try, Rx, T](n, GenericFunc.toTryMark, GenericFunc.Try)
   }
+
 }

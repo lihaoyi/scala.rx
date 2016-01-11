@@ -4,16 +4,25 @@ import util.{Failure, Success}
 import utest._
 import acyclic.file
 object BasicTests extends TestSuite{
+
+  //We dont care about potential Rx leaks in BasicTest
+  implicit val testctx = RxCtx.Unsafe
+
   def tests = TestSuite{
     "sigTests" - {
       "basic" - {
         "rxHelloWorld" - {
           val a = Var(1); val b = Var(2)
           val c = Rx.build{i: RxCtx=> a()(i) + b()(i) }
-          println(a.Internal.downStream.size)
           assert(c.now == 3)
           a() = 4
           assert(c.now == 6)
+        }
+        "toRx" - {
+          val a = Var(1)
+          val b = a.toRx
+          a() = 2
+          assert(b.now == 2)
         }
         "ordering" - {
           var changes = ""
@@ -145,7 +154,7 @@ object BasicTests extends TestSuite{
       }
       "longChain" - {
         val a = Var(1L)
-        val b = Var(2L) 
+        val b = Var(2L)
 
         val c = Rx{ a() / b() }
         val d = Rx{ a() * 5 }
@@ -193,11 +202,9 @@ object BasicTests extends TestSuite{
       // if a doesn't change, don't update anything
       a() = 2
       assert(ai == 4, bi == 4, ci == 2)
-      println(a.now, b.now, c.now)
 
       // if b doesn't change, don't update bi or ci
       a() = 0
-      println(a.now, b.now, c.now)
       assert(ai == 5, bi == 5, ci == 3)
       a() = -1
       assert(ai == 6, bi == 5, ci == 3)
