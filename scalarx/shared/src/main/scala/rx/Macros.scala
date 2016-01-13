@@ -21,6 +21,7 @@ object Macros {
 
   def ensureStaticEnclosingOwners(c: Context)(chk: c.Symbol, abortOnFail: Boolean): Boolean = {
     import c.universe._
+
     //Failed due to an enclosing trait or abstract class
     if(chk.isAbstract && chk.isClass) {
       val msg = s"This Rx might leak! Either explicitly mark it unsafe (Rx.unsafe) or ensure an implicit RxCtx is in scope!"
@@ -28,7 +29,7 @@ object Macros {
       else false
     }
     //Failed due to an enclosing method or class
-    else if((chk.isMethod && !chk.isTerm) || (chk.isClass && !chk.isModuleClass)) {
+    else if(chk.isMethod || (chk.isClass && !chk.isModuleClass)) {
       val msg =s"""
         |This Rx might leak! Either explicitly mark it unsafe (Rx.unsafe) or make an implicit RxCtx available
         |in the enclosing scope, for example, by adding (implicit ctx: RxCtx) to line ${chk.pos.line}: $chk

@@ -10,7 +10,7 @@ object Util {
 
     val b = Var(2) // 2
 
-    val c = Rx { a() + b() } // 5
+    val c = Rx{ a() + b() } // 5
     val d = Rx{ c() * 5 } // 25
     val e = Rx{ c() + 4 } // 9
     val f = Rx{ d() + e() + 4 } // 25 + 9 + 4 =
