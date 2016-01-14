@@ -1,6 +1,5 @@
 package rx
 
-import scala.annotation.compileTimeOnly
 import scala.language.experimental.macros
 import scala.collection.mutable
 import scala.reflect.macros.Context
@@ -165,12 +164,11 @@ class Var[T](initialValue: T) extends Node[T]{
   def update(newValue: T): Unit = {
     if (Internal.value != newValue) {
       Internal.value = newValue
-
       Node.doRecalc(Internal.downStream.toSet, Internal.observers)
     }
   }
 
-  override def toRx(implicit ctx: RxCtx): Rx[T] = Rx.build { inner => this.apply()(inner) }(ctx)
+  override def toRx(implicit ctx: RxCtx): Rx[T] = Rx.build { inner => apply()(inner) }(ctx)
 
   override def kill() = {
     Internal.clearDownstream()

@@ -101,6 +101,10 @@ object BasicTests extends TestSuite{
         assert(count == 0)
         a() = 2
         assert(count == 1)
+        a() = 2
+        assert(count == 1)
+        a() = 3
+        assert(count == 2)
       }
 
       "simpleExample" - {
