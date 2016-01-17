@@ -82,6 +82,7 @@ trait Rx[+T] extends Emitter[T] with Reactor[Any]{
    * descendants
    * ancestors
    * Shorthand to call `.kill()` on this [[Rx]] as well as any of its
+   * children and descendents at one go
    */
   def killAll(): Unit = {
     this.kill()
