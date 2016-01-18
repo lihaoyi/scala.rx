@@ -72,6 +72,17 @@ object Macros {
     enclosingCtx
   }
 
+  def getDownstream[T: c.WeakTypeTag](c: Context)(node: c.Tree): c.Tree = {
+    import c.universe._
+    def rec(base: c.Tree, tpe: c.Type): c.Tree = {
+      if (tpe <:< c.weakTypeOf[rx.Node[_]]) {
+        val innerType = tpe.typeArgs.head
+        q"$base.node :: ${rec(q"$base.node.now", innerType)}"
+      } else q"$base.node :: Nil"
+    }
+    c.resetLocalAttrs(rec(node, c.weakTypeOf[T]))
+  }
+
   def addDownstreamOfAll[T: c.WeakTypeTag](c: Context)(node: c.Expr[rx.Node[T]])(ctx: c.Expr[RxCtx]): c.Expr[Unit] = {
     import c.universe._
     val next = if(c.weakTypeOf[T] <:< c.weakTypeOf[rx.Node[_]]) {
@@ -202,35 +213,60 @@ object Macros {
     val isSafe = c.weakTypeOf[OpsCtx] <:< c.weakTypeOf[rx.SafeContext.type]
     val isHigher = c.weakTypeOf[Out] <:< c.weakTypeOf[rx.Var[_]]
 
-    val appliedReduceFunc = if(isSafe) {
-      q"${transform(c)(f.tree,newCtx,ctx.tree)}(prev,$tPrefix.node.toTry)"
-    } else {
-      q"${transform(c)(f.tree,newCtx,ctx.tree)}(prev,$tPrefix.node.now)"
-    }
+    val reduceFunc = transform(c)(f.tree,newCtx,ctx.tree)
 
-    val init =
-      if(isHigher && !isSafe) q"rx.Var.duplicate($tPrefix.node.now)($newCtx)"
-      else if (isHigher && isSafe) q"$tPrefix.node.toTry.map(in => rx.Var.duplicate(in)($newCtx))"
-      else if (!isHigher && !isSafe) q"$tPrefix.node.now"
-      else q"$tPrefix.node.toTry"
+    val initValue =
+      if(isHigher && !isSafe) q"($newCtx: RxCtx) => rx.Var.duplicate($tPrefix.node.now)($newCtx)"
+      else if (isHigher && isSafe) q"($newCtx: RxCtx) => $tPrefix.node.toTry.map(in => rx.Var.duplicate(in)($newCtx))"
+      else if (!isHigher && !isSafe) q"($newCtx: RxCtx) => $tPrefix.node.now"
+      else q"($newCtx: RxCtx) => $tPrefix.node.toTry"
 
-    val res = c.Expr[Rx[Out]](
-      q"""{
-        var init = true
-        var prev = ${if(isSafe) q"${c.prefix}.node.toTry" else q"${c.prefix}.node.now" }
-        rx.Rx.build { $newCtx: rx.RxCtx =>
-          rx.Node.addDownstreamOfAll($tPrefix.node)($newCtx)
-          if(init) {
-            init = false
-            prev = $init
-            ${if(isSafe) q"prev.get" else q"prev"}
-          } else {
-            prev = $appliedReduceFunc
-            ${if(isSafe) q"prev.get" else q"prev"}
-          }
-        }(${encCtx(c)(ctx)})
-      }""")
+    val res = c.Expr[Rx[Out]](q"""
+      rx.Macros.reducedImpl(
+        $initValue,
+        $tPrefix.node,
+        ${c.prefix}.node
+      )(
+        $reduceFunc,
+        ${if (isSafe) q"_.toTry" else q"_.now"},
+        ${if (isSafe) q"_.get" else q"(x => x)"},
+        ${encCtx(c)(ctx)},
+        rx.Node.getDownstream($tPrefix.node)
+      )
+    """)
+
     c.Expr[rx.Rx[Out]](c.resetLocalAttrs(res.tree))
+  }
+
+  /**
+    * Split into two to make type-inference work
+    */
+  def reducedImpl[T, Out](initValue: RxCtx => T,
+                          tPrefix: Node[Out],
+                          prefix: Node[Out])
+                         (reduceFunc: (T, T) => T,
+                          toT: Node[Out] => T,
+                          toOut: T => Out,
+                          enclosing: RxCtx,
+                          downStream: Seq[Node[_]]): Rx[Out] = {
+    var init = true
+    def getPrev = toT(prefix)
+
+    var prev = getPrev
+
+    def next: Out = toOut(prev)
+
+    rx.Rx.build { newCtx: rx.RxCtx =>
+      downStream.foreach(_.Internal.addDownstream(newCtx))
+      if(init) {
+        init = false
+        prev = initValue(newCtx)
+        next
+      } else {
+        prev = reduceFunc(prev, getPrev)
+        next
+      }
+    }(enclosing)
   }
 
   def buildMacro[T: c.WeakTypeTag](c: Context)(func: c.Expr[T])(curCtx: c.Expr[rx.RxCtx]): c.Expr[Rx[T]] = {

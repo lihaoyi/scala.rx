@@ -79,6 +79,8 @@ sealed trait Node[+T] { self =>
 
   def toRx(implicit ctx: RxCtx): Rx[T]
 
+  def toTry: Try[T]
+
   override def toString() = s"${super.toString}($now)"
 }
 object Node{
@@ -109,7 +111,8 @@ object Node{
 
   //For Higher Order Combinators, this will add ctx to every nested Node type in T
   def addDownstreamOfAll[T](node: Node[T])(ctx: RxCtx): Unit = macro Macros.addDownstreamOfAll[T]
-  }
+  def getDownstream[T](node: Node[T]): Seq[Node[_]] = macro Macros.getDownstream[T]
+}
 
 /**
  * Encapsulates the act of setting of a [[Var]] to a value, without
@@ -162,6 +165,8 @@ class Var[T](initialValue: T) extends Node[T]{
   }
 
   override def now = Internal.value
+
+  def toTry = util.Success(now)
 
   /**
    * Sets the value of this [[Var]] and runs any triggers/notifies

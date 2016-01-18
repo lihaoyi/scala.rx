@@ -231,46 +231,48 @@ object AdvancedTests extends TestSuite{
 
         assert(i == 6)
       }
-      "webPage" - {
-        implicit val testctx = RxCtx.Unsafe
-
-        var fakeTime = 123
-        trait WebPage{
-          def fTime = fakeTime
-          val time = Var(fTime)
-          def update(): Unit  = time() = fTime
-          val html: Rx[String]
-        }
-        class HomePage extends WebPage {
-          val html = Rx{"Home Page! time: " + time()}
-        }
-        class AboutPage extends WebPage {
-          val html = Rx{"About Me, time: " + time()}
-        }
-
-        val url = Var("www.mysite.com/home")
-        val page = Rx{
-          url() match{
-            case "www.mysite.com/home" => new HomePage()
-            case "www.mysite.com/about" => new AboutPage()
-          }
-        }
-        assert(page.now.html.now == "Home Page! time: 123")
-
-        fakeTime = 234
-        page.now.update()
-        assert(page.now.html.now == "Home Page! time: 234")
-
-        fakeTime = 345
-        url() = "www.mysite.com/about"
-        assert(page.now.html.now == "About Me, time: 345")
-
-        fakeTime = 456
-        page.now.update()
-        assert(page.now.html.now == "About Me, time: 456")
-      }
+//      "webPage" - {
+//        implicit val testctx = RxCtx.Unsafe
+//
+//        var fakeTime = 123
+//        trait WebPage{
+//          def fTime = fakeTime
+//          val time = Var(fTime)
+//          def update(): Unit  = time() = fTime
+//          val html: Rx[String]
+//        }
+//        class HomePage extends WebPage {
+//          val html = Rx{"Home Page! time: " + time()}
+//        }
+//        class AboutPage extends WebPage {
+//          val html = Rx{"About Me, time: " + time()}
+//        }
+//
+//        val url = Var("www.mysite.com/home")
+//        val page = Rx{
+//          url() match{
+//            case "www.mysite.com/home" => new HomePage()
+//            case "www.mysite.com/about" => new AboutPage()
+//          }
+//        }
+//        assert(page.now.html.now == "Home Page! time: 123")
+//
+//        fakeTime = 234
+//        page.now.update()
+//        assert(page.now.html.now == "Home Page! time: 234")
+//
+//        fakeTime = 345
+//        url() = "www.mysite.com/about"
+//        assert(page.now.html.now == "About Me, time: 345")
+//
+//        fakeTime = 456
+//        page.now.update()
+//        assert(page.now.html.now == "About Me, time: 456")
+//      }
     }
     "combinators" - {
+
+
       implicit val testctx = RxCtx.Unsafe
       "foreach" - {
         val a = Var(1)
@@ -444,8 +446,11 @@ object AdvancedTests extends TestSuite{
         // no-change means no-change
         a() = 2
         assert(b.now == 2)
+        println(b.Internal.upStream )
+        println(a.now, b.now)
         // only does something when you change
         a() = 3
+        println(a.now, b.now)
         assert(b.now == 6)
         a() = 4
         assert(b.now == 24)
