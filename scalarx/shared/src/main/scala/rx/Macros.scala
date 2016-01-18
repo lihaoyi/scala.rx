@@ -145,86 +145,152 @@ object Macros {
     c.Expr[rx.Rx[V]](c.resetLocalAttrs(res.tree))
   }
 
-  def filtered[In: c.WeakTypeTag, T: c.WeakTypeTag, OpsCtx <: rx.OpsContext : c.WeakTypeTag](c: Context)(f: c.Expr[In => Boolean])(ctx: c.Expr[rx.RxCtx]): c.Expr[Rx[T]] = {
+  def filtered[In: c.WeakTypeTag, T: c.WeakTypeTag](c: Context)(f: c.Expr[In => Boolean])(ctx: c.Expr[rx.RxCtx]): c.Expr[Rx[T]] = {
     import c.universe._
     val newCtx =  c.fresh[TermName]("rxctx")
     val tPrefix = transform(c)(c.prefix.tree,newCtx,ctx.tree)
     val tTpe = c.weakTypeOf[T]
-    val isSafe = c.weakTypeOf[OpsCtx] <:< c.weakTypeOf[rx.SafeContext.type]
     def isHigher = c.weakTypeOf[In] <:< c.weakTypeOf[rx.Var[_]]
-
-    val init =
-      if(isHigher && !isSafe) q"rx.Var.duplicate($tPrefix.node.now)($newCtx)"
-      else if (isHigher && isSafe) q"$tPrefix.node.toTry.map(in => rx.Var.duplicate(in)($newCtx))"
-      else if (!isHigher && !isSafe) q"$tPrefix.node.now"
-      else q"$tPrefix.node.toTry"
-
-    val checkFunc = if(isSafe) {
-      q"${transform(c)(f.tree,newCtx,ctx.tree)}($tPrefix.node.toTry)"
-    } else {
-      q"${transform(c)(f.tree,newCtx,ctx.tree)}($tPrefix.node.now)"
+    val isSafe = c.prefix.tree.tpe <:< c.weakTypeOf[SafeOps[_]]
+    val initValue = (isHigher, isSafe) match{
+      case (true, false) => q"rx.Var.duplicate($tPrefix.node.now)($newCtx)"
+      case (true, true) => q"$tPrefix.node.toTry.map(rx.Var.duplicate(_)($newCtx))"
+      case (false, false) => q"$tPrefix.node.now"
+      case (false, true) => q"$tPrefix.node.toTry"
     }
 
-    val res = c.Expr[Rx[T]](
-      q"""{
-        var init = true
-        var prev = ${if(isSafe) q"${c.prefix}.node.toTry" else q"${c.prefix}.node.now" }
-        rx.Rx.build { $newCtx: rx.RxCtx =>
-          rx.Node.addDownstreamOfAll($tPrefix.node)($newCtx)
-          if($checkFunc || init) {
-            init = false
-            prev = $init
-            ${if(isSafe) q"prev.get" else q"prev"}
-          }
-          else ${if(isSafe) q"prev.get" else q"prev"}
-        }(${encCtx(c)(ctx)})
-      }""")
+    val checkFunc = q"${transform(c)(f.tree,newCtx,ctx.tree)}"
+
+    val res = c.Expr[Rx[T]](q"""
+      ${c.prefix}.macroImpls.filterImpl(
+        ($newCtx: RxCtx) => $initValue,
+        ${c.prefix}.node,
+        ($newCtx: RxCtx) => $tPrefix.node
+      )(
+        ($newCtx: RxCtx) => $checkFunc,
+        ($newCtx: RxCtx) => rx.Node.getDownstream($tPrefix.node),
+        ($newCtx: RxCtx) => ${encCtx(c)(ctx)},
+        ${c.prefix}.macroImpls.get,
+        ${c.prefix}.macroImpls.unwrap,
+        $ctx
+      )
+    """)
     c.Expr[rx.Rx[T]](c.resetLocalAttrs(res.tree))
   }
 
-  def folded[T: c.WeakTypeTag, V: c.WeakTypeTag, Out: c.WeakTypeTag, OpsCtx <: rx.OpsContext : c.WeakTypeTag](c: Context)(start: c.Expr[V])(f: c.Expr[(V,T) => V])(ctx: c.Expr[rx.RxCtx]): c.Expr[Rx[Out]] = {
+  type Id[T] = T
+
+  def folded[T: c.WeakTypeTag, V: c.WeakTypeTag, Wrap[_]]
+            (c: Context)
+            (start: c.Expr[V])
+            (f: c.Expr[(V,T) => V])
+            (ctx: c.Expr[rx.RxCtx])
+            (implicit w: c.WeakTypeTag[Wrap[_]]): c.Expr[Rx[T]] = {
+
     import c.universe._
     val newCtx =  c.fresh[TermName]("rxctx")
-    val tPrefix = transform(c)(c.prefix.tree,newCtx,ctx.tree)
-    val isSafe = c.weakTypeOf[OpsCtx] <:< c.weakTypeOf[rx.SafeContext.type]
-    val foldFunc = transform(c)(f.tree,newCtx,ctx.tree)
+    val tPrefix = transform(c)(c.prefix.tree, newCtx, ctx.tree)
+    val foldFunc = transform(c)(f.tree, newCtx, ctx.tree)
 
-    val res = c.Expr[Rx[Out]](q"""
-      rx.Macros.foldImpl(
-        $start,
-        $tPrefix.node
+    val res = c.Expr[Rx[T]](c.resetLocalAttrs(q"""
+      ${c.prefix}.macroImpls.foldImpl(
+        ($newCtx: RxCtx) => $start,
+        ($newCtx: RxCtx) => $tPrefix.node
       )(
-        $foldFunc,
+        ($newCtx: RxCtx) => $foldFunc,
         ($newCtx: RxCtx) => rx.Node.getDownstream($tPrefix.node),
         ${encCtx(c)(ctx)},
-        ${if (isSafe) q"_.toTry" else q"_.now"},
-        ${if (isSafe) q"_.get" else q"(x => x)"}
+        ${c.prefix}.macroImpls.get,
+        ${c.prefix}.macroImpls.unwrap,
+        ${c.prefix}.macroImpls.unwrap
       )
-    """)
-    c.Expr[rx.Rx[Out]](c.resetLocalAttrs(res.tree))
+    """))
+    res
   }
 
-  def foldImpl[T, V, Out](start: V,
-                          tPrefix: Node[Out])
-                         (f: (V, T) => V,
-                          downStream: RxCtx => Seq[Node[_]],
-                          enclosing: RxCtx,
-                          toT: Node[Out] => T,
-                          toOut: V => Out) = {
-    var prev = start
-    rx.Rx.build { newCtx: rx.RxCtx =>
-      downStream(newCtx).foreach(_.Internal.addDownstream(newCtx))
-      prev = f(prev, toT(tPrefix))
-      toOut(prev)
-    }(enclosing)
+  class Operator[Wrap[_]]{
+    def foldImpl[T, V](start: RxCtx => Wrap[V],
+                       tPrefix: RxCtx => Node[T])
+                      (f: RxCtx => (Wrap[V], Wrap[T]) => Wrap[V],
+                       downStream: RxCtx => Seq[Node[_]],
+                       enclosing: RxCtx,
+                       toT: Node[T] => Wrap[T],
+                       toOut: Wrap[V] => V,
+                       toOut2: Wrap[T] => T): Rx[V] = {
+
+      var prev: Wrap[V] = start(enclosing)
+      rx.Rx.build { newCtx: rx.RxCtx =>
+        downStream(newCtx).foreach(_.Internal.addDownstream(newCtx))
+        prev = f(newCtx)(prev, toT(tPrefix(newCtx)))
+        toOut(prev)
+      }(enclosing)
+    }
+
+    /**
+      * Split into two to make type-inference work
+      */
+    def reducedImpl[T](initValue: RxCtx => Wrap[T],
+                        tPrefix: Node[T],
+                        prefix: Node[T])
+                       (reduceFunc: (Wrap[T], Wrap[T]) => Wrap[T],
+                        toT: Node[T] => Wrap[T],
+                        toOut: Wrap[T] => T,
+                        enclosing: RxCtx,
+                        downStream: Seq[Node[_]]): Rx[T] = {
+      var init = true
+      def getPrev = toT(prefix)
+
+      var prev = getPrev
+
+      def next: T = toOut(prev)
+
+      rx.Rx.build { newCtx: rx.RxCtx =>
+        downStream.foreach(_.Internal.addDownstream(newCtx))
+        if(init) {
+          init = false
+          prev = initValue(newCtx)
+          next
+        } else {
+          prev = reduceFunc(prev, getPrev)
+          next
+        }
+      }(enclosing)
+    }
+
+    def filterImpl[T, Out](start: RxCtx => T,
+                           prefix: Node[Out],
+                           tPrefix: RxCtx => Node[Out])
+                          (f: RxCtx => T => Boolean,
+                           downStream: RxCtx => Seq[Node[_]],
+                           enclosing: RxCtx => RxCtx,
+                           toT: Node[Out] => T,
+                           toOut: T => Out,
+                           ctx: RxCtx) = {
+
+      var init = true
+      var prev = toT(prefix)
+      rx.Rx.build { newCtx: rx.RxCtx =>
+        downStream(newCtx).foreach(_.Internal.addDownstream(newCtx))
+        if(f(newCtx)(toT(tPrefix(newCtx))) || init) {
+          init = false
+          prev = start(newCtx)
+        }
+        toOut(prev)
+      }(enclosing(ctx))
+    }
+
   }
 
-  def reduced[T: c.WeakTypeTag, Out: c.WeakTypeTag, OpsCtx <: rx.OpsContext : c.WeakTypeTag](c: Context)(f: c.Expr[(T,T) => T])(ctx: c.Expr[rx.RxCtx]): c.Expr[Rx[Out]] = {
+  def reduced[T: c.WeakTypeTag, Wrap[_]]
+             (c: Context)
+             (f: c.Expr[(Wrap[T], Wrap[T]) => Wrap[T]])
+             (ctx: c.Expr[rx.RxCtx])
+             (implicit w: c.WeakTypeTag[Wrap[_]]): c.Expr[Rx[T]] = {
     import c.universe._
     val newCtx =  c.fresh[TermName]("rxctx")
     val tPrefix = transform(c)(c.prefix.tree,newCtx,ctx.tree)
-    val isSafe = c.weakTypeOf[OpsCtx] <:< c.weakTypeOf[rx.SafeContext.type]
-    val isHigher = c.weakTypeOf[Out] <:< c.weakTypeOf[rx.Var[_]]
+    val isSafe = c.prefix.tree.tpe <:< c.weakTypeOf[SafeOps[_]]
+    val isHigher = c.weakTypeOf[T] <:< c.weakTypeOf[rx.Var[_]]
 
     val reduceFunc = transform(c)(f.tree,newCtx,ctx.tree)
 
@@ -235,8 +301,9 @@ object Macros {
       case (false, true) => q"$tPrefix.node.toTry"
     }
 
-    val res = c.Expr[Rx[Out]](q"""
-      rx.Macros.reducedImpl(
+
+    val res = c.Expr[Rx[T]](q"""
+      ${c.prefix}.macroImpls.reducedImpl[${weakTypeOf[T]}](
         ($newCtx: RxCtx) => $initValue,
         $tPrefix.node,
         ${c.prefix}.node
@@ -249,38 +316,7 @@ object Macros {
       )
     """)
 
-    c.Expr[rx.Rx[Out]](c.resetLocalAttrs(res.tree))
-  }
-
-  /**
-    * Split into two to make type-inference work
-    */
-  def reducedImpl[T, Out](initValue: RxCtx => T,
-                          tPrefix: Node[Out],
-                          prefix: Node[Out])
-                         (reduceFunc: (T, T) => T,
-                          toT: Node[Out] => T,
-                          toOut: T => Out,
-                          enclosing: RxCtx,
-                          downStream: Seq[Node[_]]): Rx[Out] = {
-    var init = true
-    def getPrev = toT(prefix)
-
-    var prev = getPrev
-
-    def next: Out = toOut(prev)
-
-    rx.Rx.build { newCtx: rx.RxCtx =>
-      downStream.foreach(_.Internal.addDownstream(newCtx))
-      if(init) {
-        init = false
-        prev = initValue(newCtx)
-        next
-      } else {
-        prev = reduceFunc(prev, getPrev)
-        next
-      }
-    }(enclosing)
+    c.Expr[rx.Rx[T]](c.resetLocalAttrs(res.tree))
   }
 
   def buildMacro[T: c.WeakTypeTag](c: Context)(func: c.Expr[T])(curCtx: c.Expr[rx.RxCtx]): c.Expr[Rx[T]] = {

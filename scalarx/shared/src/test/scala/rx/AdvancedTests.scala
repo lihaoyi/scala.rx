@@ -88,24 +88,24 @@ object AdvancedTests extends TestSuite{
     val b = Var(6)
     val c: Var[Var[Int]] = Var(a)
 
-    val thing = c.filter(_() >= 10)
-      .map { m => "x"*(m.now/2) }
-      .flatMap(s => Rx { s.length + b() })
-      .fold(List.empty[Int])((acc,elem) => elem::acc)
-
-    assert(thing.now == List(6))
-    a() = 2
-    assert(thing.now == List(6))
-    a() = 12
-    assert(thing.now == List(12,6))
-    b() = 100
-    assert(thing.now == List(106,12,6))
-    a() = 18
-    assert(thing.now == List(109,106,12,6))
-    a() = 10
-    assert(thing.now == List(105,109,106,12,6))
-    a() = 20
-    assert(thing.now == List(110,105,109,106,12,6))
+//    val thing = c.filter(_() >= 10)
+//      .map { m => "x"*(m.now/2) }
+//      .flatMap(s => Rx { s.length + b() })
+//      .fold(List.empty[Int])((acc,elem) => elem::acc)
+//
+//    assert(thing.now == List(6))
+//    a() = 2
+//    assert(thing.now == List(6))
+//    a() = 12
+//    assert(thing.now == List(12,6))
+//    b() = 100
+//    assert(thing.now == List(106,12,6))
+//    a() = 18
+//    assert(thing.now == List(109,106,12,6))
+//    a() = 10
+//    assert(thing.now == List(105,109,106,12,6))
+//    a() = 20
+//    assert(thing.now == List(110,105,109,106,12,6))
 
     def wat(): Unit = ()
   }
@@ -270,6 +270,8 @@ object AdvancedTests extends TestSuite{
         assert(page.now.html.now == "About Me, time: 456")
       }
     }
+
+
     "combinators" - {
       implicit val testctx = RxCtx.Unsafe
       "foreach" - {
@@ -504,6 +506,20 @@ object AdvancedTests extends TestSuite{
       }
       "fold" - {
         val a = Var(2)
+//        val x = rx.Macros.foldImpl[Int, List[Int], List[Int]](
+//          (rxctx$macro$246: RxCtx) => collection.immutable.List.empty[Int],
+//          (rxctx$macro$246: RxCtx) => rx.GenericOps[Int](a).node
+//        )(
+//          (rxctx$macro$246: RxCtx) => (acc: List[Int], elem: Int) => {
+//          val x$22: Int = elem;
+//            acc.::[Int](x$22)
+//          },
+//          ((rxctx$macro$246: RxCtx) => rx.Node.getDownstream(rx.GenericOps[Int](a).node)),
+//          testctx,
+//          ((x$72) => x$72.now),
+//          ((x) => x)
+//        )
+
         val b = a.fold(List.empty[Int])((acc,elem) => elem :: acc)
         assert(b.now == List(2))
         // no-change means no-change
@@ -515,6 +531,7 @@ object AdvancedTests extends TestSuite{
         a() = 4
         assert(b.now == List(4,3,2))
       }
+
       "foldAll" - {
         val a = Var(1L)
         val b = Rx{ 100 / a() }
@@ -550,6 +567,7 @@ object AdvancedTests extends TestSuite{
         v() = Var(10)
         assert(folded.now.map(_.now) == List(10,5,4,1))
       }
+
       "higherOrderAllFold" - {
         val rv = Var(Rx(Var(0)))
         val folded = rv.toRx.all.fold(Try(List.empty[Int])) {
