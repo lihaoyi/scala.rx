@@ -2,7 +2,7 @@ package rx
 //
 import acyclic.file
 
-import scala.util.{Success, Failure}
+import scala.util.{Try, Success, Failure}
 
 import utest._
 object AdvancedTests extends TestSuite{
@@ -81,6 +81,33 @@ object AdvancedTests extends TestSuite{
     val filtered = aa.filter(_ % 2 == 0)
 
     val reduced = aa.reduce((a,b) => a+b)
+  }
+
+  object MoarCombinators {
+    val a = Var(1)
+    val b = Var(6)
+    val c: Var[Var[Int]] = Var(a)
+
+    val thing = c.filter(_() >= 10)
+      .map { m => "x"*(m.now/2) }
+      .flatMap(s => Rx { s.length + b() })
+      .fold(List.empty[Int])((acc,elem) => elem::acc)
+
+    assert(thing.now == List(6))
+    a() = 2
+    assert(thing.now == List(6))
+    a() = 12
+    assert(thing.now == List(12,6))
+    b() = 100
+    assert(thing.now == List(106,12,6))
+    a() = 18
+    assert(thing.now == List(109,106,12,6))
+    a() = 10
+    assert(thing.now == List(105,109,106,12,6))
+    a() = 20
+    assert(thing.now == List(110,105,109,106,12,6))
+
+    def wat(): Unit = ()
   }
 
   def tests = TestSuite {
@@ -286,7 +313,27 @@ object AdvancedTests extends TestSuite{
         assert(c.now == 1337)
         assert(d.toTry == Success("java.lang.ArithmeticException: / by zero"))
       }
-      "flatMap" - {
+      "higherOrderMap" - {
+        val v = Var(Var(1))
+        val a = v.map(_() + 42)
+        assert(a.now == 43)
+        v.now() = 100
+        assert(a.now == 142)
+        v() = Var(3)
+        assert(a.now == 45)
+
+        //Ensure this thing behaves in some normal fashion
+        val vv = Var(Rx(Var(1)))
+        val va = vv.map(aa => "a" * aa.now.now)
+        assert(va.now == "a")
+        vv.now.now() = 2
+        assert(va.now == "a"*2)
+        vv() = Rx(Var(3))
+        assert(va.now == "a"*3)
+        vv() = Rx(Var(4))
+        assert(va.now == "a"*4)
+      }
+      "flatMapForComprehension" - {
         val a = Var(10)
         val b = for {
           aa <- a
@@ -298,6 +345,28 @@ object AdvancedTests extends TestSuite{
         assert(b.now == 10 + 15 + 2)
         a() = 100
         assert(b.now == 100 + 105 + 2)
+      }
+      "higherOrderFlatMap" - {
+        val v = Var(Var(1))
+        val a = v.flatMap(_.map("a"*_))
+        assert(a.now == "a")
+        v.now() = 5
+        assert(a.now == "a"*5)
+        v() = Var(3)
+        assert(a.now == "aaa")
+        var innerCount = 0
+        val vv = Var(Var(Var(1)))
+        val aa = vv.flatMap(_.map{i => innerCount += 1; i.now + 1})
+        vv.now() = Var(2)
+        assert(aa.now == 3)
+        vv.now() = Var(2)
+        assert(aa.now == 3)
+        vv.now.now() = 10
+        assert(aa.now == 11)
+        val c1 = innerCount
+        vv.now.now() = 10
+        val c2 = innerCount
+        assert(aa.now == 11 && c1 == c2)
       }
       "filter" - {
         val a = Var(10)
@@ -330,6 +399,45 @@ object AdvancedTests extends TestSuite{
         a() = 1
         assert(c.now == 100)
       }
+      "higherOrderFilter" - {
+        val v = Var(Var(1))
+        val a: Rx[Var[Int]] = v.filter(_() % 2 == 1)
+        val b = a.all.filter(_.toOption.exists(_() % 5 == 0))
+        v.now() = 2
+        assert(a.now.now == 1)
+        assert(b.now.now == 1)
+        v.now() = 3
+        assert(a.now.now == 3)
+        assert(b.now.now == 1)
+        v() = Var(4)
+        assert(a.now.now == 3)
+        v() = Var(5)
+        assert(a.now.now == 5)
+        assert(b.now.now == 5)
+
+        //Ahh
+        val vv = Var(Var(Var(1)))
+        val zz = vv.filter { q =>
+          q()
+          q.now()
+          q.now.now % 2 == 1
+        }
+        assert(zz.now.now.now == 1)
+        vv.now.now() = 2
+        assert(zz.now.now.now == 1)
+        vv.now.now() = 4
+        assert(zz.now.now.now == 1)
+        vv.now.now() = 3
+        assert(zz.now.now.now == 3)
+        vv.now() = Var(5)
+        assert(zz.now.now.now == 5)
+        vv.now() = Var(6)
+        assert(zz.now.now.now == 5)
+        vv() = Var(Var(7))
+        assert(zz.now.now.now == 7)
+        vv() = Var(Var(8))
+        assert(zz.now.now.now == 7)
+      }
       "reduce" - {
         val a = Var(2)
         val b = a.reduce(_ * _)
@@ -351,7 +459,6 @@ object AdvancedTests extends TestSuite{
           case (Failure(a), Success(b)) => Failure(a)
           case (Success(a), Failure(b)) => Failure(b)
         }
-
         assert(c.now == 100)
         a() = 0
         assert(c.toTry.isFailure)
@@ -364,7 +471,103 @@ object AdvancedTests extends TestSuite{
         a() = 10
         assert(c.now == 1347)
       }
-
+      "higherOrderReduce" - {
+        val v = Var(Var(1))
+        val reduced = v.reduce { (prev,next) => Var(prev.now+next.now) }
+        assert(reduced.now.now == 1)
+        //No recalc, Var has same value and does not update
+        v.now() = 1
+        assert(reduced.now.now == 1)
+        v.now() = 4
+        assert(reduced.now.now == 5)
+        v.now() = 5
+        assert(reduced.now.now == 10)
+        v() = Var(10)
+        assert(reduced.now.now == 20)
+      }
+      "higherOrderAllReduce" - {
+        val v = Rx(Var(0))
+        val reduced = v.all.reduce {
+          case (Success(prev),Success(next)) =>
+            if(next.now % 2 == 0) Success(Var(next.now+prev.now))
+            else Success(prev)
+          case (prev, _)=> prev
+        }
+        v.now() = 2
+        assert(reduced.now.now == 2)
+        v.now() = 4
+        assert(reduced.now.now == 6)
+        v.now() = 3
+        assert(reduced.now.now == 6)
+        v.now() = 6
+        assert(reduced.now.now == 12)
+      }
+      "fold" - {
+        val a = Var(2)
+        val b = a.fold(List.empty[Int])((acc,elem) => elem :: acc)
+        assert(b.now == List(2))
+        // no-change means no-change
+        a() = 2
+        assert(b.now == List(2))
+        // only does something when you change
+        a() = 3
+        assert(b.now == List(3,2))
+        a() = 4
+        assert(b.now == List(4,3,2))
+      }
+      "foldAll" - {
+        val a = Var(1L)
+        val b = Rx{ 100 / a() }
+        val c = b.all.fold(Try(List.empty[Long])) {
+          case (Success(a), Success(b)) => Success(b :: a)
+          case (Failure(a), Failure(b)) => Success(List(1337))
+          case (Failure(a), Success(b)) => Failure(a)
+          case (Success(a), Failure(b)) => Failure(b)
+        }
+        assert(c.now == List(100))
+        a() = 0
+        assert(c.toTry.isFailure)
+        a() = 10
+        assert(c.toTry.isFailure)
+        a() = 100
+        assert(c.toTry.isFailure)
+        a() = 0
+        assert(c.now == List(1337))
+        a() = 10
+        assert(c.now == List(10,1337))
+      }
+      "higherOrderFold" - {
+        val v = Var(Var(1))
+        val folded = v.fold(List.empty[Var[Int]]) { (prev,next) => Var(next.now) :: prev }
+        assert(folded.now.map(_.now) == List(1))
+        //No recalc, Var has same value and does not update
+        v.now() = 1
+        assert(folded.now.map(_.now) == List(1))
+        v.now() = 4
+        assert(folded.now.map(_.now) == List(4,1))
+        v.now() = 5
+        assert(folded.now.map(_.now) == List(5,4,1))
+        v() = Var(10)
+        assert(folded.now.map(_.now) == List(10,5,4,1))
+      }
+      "higherOrderAllFold" - {
+        val rv = Var(Rx(Var(0)))
+        val folded = rv.toRx.all.fold(Try(List.empty[Int])) {
+          case (Success(prev),Success(next)) =>
+            if(next.now.now % 2 == 0) Success(next.now.now :: prev)
+            else Success(prev)
+          case (prev, _)=> prev
+        }
+        assert(folded.now == List(0))
+        rv.now.now() = 2
+        assert(folded.now == List(2,0))
+        rv.now.now() = 4
+        assert(folded.now == List(4,2,0))
+        rv() = Rx(Var(3))
+        assert(folded.now == List(4,2,0))
+        rv() = Rx(Var(6))
+        assert(folded.now == List(6,4,2,0))
+      }
       "killRx" - {
         val (a, b, c, d, e, f) = Util.initGraph()
 
@@ -410,6 +613,9 @@ object AdvancedTests extends TestSuite{
       assert(mapped.now == 13)
       assert(filtered.now == 2)
       assert(reduced.now == 6)
+    }
+    "moreCombinators" - {
+      MoarCombinators.wat()
     }
     "higherOrderRxs" - {
       implicit val testctx = RxCtx.Unsafe

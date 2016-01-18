@@ -106,7 +106,10 @@ object Node{
     }
     observers.foreach(_.thunk())
   }
-}
+
+  //For Higher Order Combinators, this will add ctx to every nested Node type in T
+  def addDownstreamOfAll[T](node: Node[T])(ctx: RxCtx): Unit = macro Macros.addDownstreamOfAll[T]
+  }
 
 /**
  * Encapsulates the act of setting of a [[Var]] to a value, without
@@ -144,6 +147,8 @@ object Var{
       args.flatMap(_.v.Internal.observers)
     )
   }
+
+  def duplicate[T](node: Var[T])(ctx: RxCtx): Var[T] = macro Macros.duplicate[T]
 }
 /**
  * A smart variable that can be set manually, and will notify downstream
