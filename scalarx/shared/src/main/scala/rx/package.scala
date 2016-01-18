@@ -8,10 +8,9 @@ import scala.util.Try
  */
 package object rx {
 
-  sealed trait OpsContext[Wrap[_]] extends Operators.Operator[Wrap]{
+  sealed trait OpsContext[Wrap[_]] extends Operators[Wrap]{
     def get[T](t: Node[T]): Wrap[T]
     def unwrap[T](t: Wrap[T]): T
-    def map[T, V](t: Wrap[T])(f: T => V): Wrap[V]
   }
 
 

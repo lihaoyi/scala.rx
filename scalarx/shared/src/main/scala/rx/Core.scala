@@ -151,7 +151,6 @@ object Var{
     )
   }
 
-  def duplicate[T](node: Var[T])(ctx: RxCtx): Var[T] = macro Operators.duplicate[T]
 }
 /**
   * A smart variable that can be set manually, and will notify downstream
