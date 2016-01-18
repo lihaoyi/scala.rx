@@ -4,14 +4,18 @@ import rx.Util._
 
 import scala.language.experimental.macros
 import scala.reflect.macros._
+
 object Operators {
-    def filtered[In: c.WeakTypeTag, T: c.WeakTypeTag](c: Context)(f: c.Expr[In => Boolean])(ctx: c.Expr[RxCtx]): c.Expr[Rx[T]] = {
+  def initialize(c: Context)(f: c.Tree, ctx: c.Expr[RxCtx]) = {
     import c.universe._
     val newCtx =  c.fresh[TermName]("rxctx")
-
+    val newFunc = transform(c)(f, newCtx, ctx.tree)
+    (newFunc, newCtx)
+  }
+  def filtered[In: c.WeakTypeTag, T: c.WeakTypeTag](c: Context)(f: c.Expr[In => Boolean])(ctx: c.Expr[RxCtx]): c.Expr[Rx[T]] = {
+    import c.universe._
+    val (checkFunc, newCtx) = initialize(c)(f.tree, ctx)
     val initValue = q"${c.prefix}.macroImpls.get(${c.prefix}.node)"
-
-    val checkFunc = transform(c)(f.tree,newCtx,ctx.tree)
 
     val res = c.Expr[rx.Rx[T]](q"""
       ${c.prefix}.macroImpls.filterImpl(
@@ -37,9 +41,7 @@ object Operators {
             (implicit w: c.WeakTypeTag[Wrap[_]]): c.Expr[Rx[T]] = {
 
     import c.universe._
-    val newCtx =  c.fresh[TermName]("rxctx")
-    val foldFunc = transform(c)(f.tree, newCtx, ctx.tree)
-
+    val (foldFunc, newCtx) = initialize(c)(f.tree, ctx)
     val res = c.Expr[Rx[T]](c.resetLocalAttrs(q"""
       ${c.prefix}.macroImpls.foldImpl(
         $start,
@@ -61,9 +63,7 @@ object Operators {
             : c.Expr[Rx[V]] = {
 
     import c.universe._
-    val newCtx =  c.fresh[TermName]("rxctx")
-    val tryTpe = c.weakTypeOf[scala.util.Try[_]]
-    val call =  transform(c)(f.tree,newCtx,ctx.tree)
+    val (call, newCtx) = initialize(c)(f.tree, ctx)
 
     val res = c.Expr[Rx[V]](c.resetLocalAttrs(q"""
       ${c.prefix}.macroImpls.mappedImpl(
@@ -86,9 +86,7 @@ object Operators {
                 : c.Expr[Rx[V]] = {
 
     import c.universe._
-    val newCtx =  c.fresh[TermName]("rxctx")
-    val tryTpe = c.weakTypeOf[scala.util.Try[_]]
-    val call =  transform(c)(f.tree,newCtx,ctx.tree)
+    val (call, newCtx) = initialize(c)(f.tree, ctx)
 
     val res = c.Expr[Rx[V]](c.resetLocalAttrs(q"""
       ${c.prefix}.macroImpls.flatMappedImpl(
@@ -110,10 +108,7 @@ object Operators {
   (ctx: c.Expr[RxCtx])
   (implicit w: c.WeakTypeTag[Wrap[_]]): c.Expr[Rx[T]] = {
     import c.universe._
-    val newCtx =  c.fresh[TermName]("rxctx")
-    val isHigher = c.weakTypeOf[T] <:< c.weakTypeOf[Var[_]]
-
-    val reduceFunc = transform(c)(f.tree,newCtx,ctx.tree)
+    val (reduceFunc, newCtx) = initialize(c)(f.tree, ctx)
 
     val initValue = q"${c.prefix}.macroImpls.get(${c.prefix}.node)"
 
