@@ -1,6 +1,5 @@
 crossScalaVersions := Seq("2.10.5", "2.11.7")
 
-
 val scalarx = crossProject.settings(
   organization := "com.lihaoyi",
   name := "scalarx",
