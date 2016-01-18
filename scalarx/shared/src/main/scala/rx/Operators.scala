@@ -24,24 +24,24 @@ object Operators {
   def filtered[In: c.WeakTypeTag, T: c.WeakTypeTag](c: Context)(f: c.Expr[In => Boolean])(ctx: c.Expr[RxCtx]): c.Expr[Rx[T]] = {
     import c.universe._
     val newCtx =  c.fresh[TermName]("rxctx")
-    val tPrefix = transform(c)(c.prefix.tree,newCtx,ctx.tree)
+
+    
     val tTpe = c.weakTypeOf[T]
     def isHigher = c.weakTypeOf[In] <:< c.weakTypeOf[Var[_]]
 
     val initValue =
-      if (isHigher) q"${c.prefix}.macroImpls.map(${c.prefix}.macroImpls.get($tPrefix.node))(Var.duplicate(_)($newCtx))"
-      else q"${c.prefix}.macroImpls.get($tPrefix.node)"
+      if (isHigher) q"${c.prefix}.macroImpls.map(${c.prefix}.macroImpls.get(${c.prefix}.node))(Var.duplicate(_)($newCtx))"
+      else q"${c.prefix}.macroImpls.get(${c.prefix}.node)"
 
     val checkFunc = q"${transform(c)(f.tree,newCtx,ctx.tree)}"
 
     val res = c.Expr[rx.Rx[T]](q"""
       ${c.prefix}.macroImpls.filterImpl(
         ($newCtx: RxCtx) => $initValue,
-        ${c.prefix}.node,
-        ($newCtx: RxCtx) => $tPrefix.node
+        ${c.prefix}.node
       )(
         ($newCtx: RxCtx) => $checkFunc,
-        ($newCtx: RxCtx) => rx.Node.getDownstream($tPrefix.node),
+        ($newCtx: RxCtx) => rx.Node.getDownstream(${c.prefix}.node),
         ($newCtx: RxCtx) => ${encCtx(c)(ctx)},
         ${c.prefix}.macroImpls.get,
         ${c.prefix}.macroImpls.unwrap,
@@ -62,16 +62,15 @@ object Operators {
 
     import c.universe._
     val newCtx =  c.fresh[TermName]("rxctx")
-    val tPrefix = transform(c)(c.prefix.tree, newCtx, ctx.tree)
     val foldFunc = transform(c)(f.tree, newCtx, ctx.tree)
 
     val res = c.Expr[Rx[T]](c.resetLocalAttrs(q"""
       ${c.prefix}.macroImpls.foldImpl(
         ($newCtx: RxCtx) => $start,
-        ($newCtx: RxCtx) => $tPrefix.node
+        ($newCtx: RxCtx) => ${c.prefix}.node
       )(
         ($newCtx: RxCtx) => $foldFunc,
-        ($newCtx: RxCtx) => rx.Node.getDownstream($tPrefix.node),
+        ($newCtx: RxCtx) => rx.Node.getDownstream(${c.prefix}.node),
         ${encCtx(c)(ctx)},
         ${c.prefix}.macroImpls.get,
         ${c.prefix}.macroImpls.unwrap,
@@ -91,15 +90,14 @@ object Operators {
     import c.universe._
     val newCtx =  c.fresh[TermName]("rxctx")
     val tryTpe = c.weakTypeOf[scala.util.Try[_]]
-    val tPrefix = transform(c)(c.prefix.tree,newCtx,ctx.tree)
     val call =  transform(c)(f.tree,newCtx,ctx.tree)
 
     val res = c.Expr[Rx[V]](c.resetLocalAttrs(q"""
       ${c.prefix}.macroImpls.mappedImpl(
-        ($newCtx: RxCtx) => $tPrefix.node,
+        ($newCtx: RxCtx) => ${c.prefix}.node,
         ($newCtx: RxCtx) => $call
       )(
-        ($newCtx: RxCtx) => rx.Node.getDownstream($tPrefix.node),
+        ($newCtx: RxCtx) => rx.Node.getDownstream(${c.prefix}.node),
         ${encCtx(c)(ctx)},
         ${c.prefix}.macroImpls.get,
         ${c.prefix}.macroImpls.unwrap
@@ -119,15 +117,14 @@ object Operators {
     import c.universe._
     val newCtx =  c.fresh[TermName]("rxctx")
     val tryTpe = c.weakTypeOf[scala.util.Try[_]]
-    val tPrefix = transform(c)(c.prefix.tree,newCtx,ctx.tree)
     val call =  transform(c)(f.tree,newCtx,ctx.tree)
 
     val res = c.Expr[Rx[V]](c.resetLocalAttrs(q"""
       ${c.prefix}.macroImpls.flatMappedImpl(
-        ($newCtx: RxCtx) => $tPrefix.node,
+        ($newCtx: RxCtx) => ${c.prefix}.node,
         ($newCtx: RxCtx) => $call
       )(
-        ($newCtx: RxCtx) => rx.Node.getDownstream($tPrefix.node),
+        ($newCtx: RxCtx) => rx.Node.getDownstream(${c.prefix}.node),
         ${encCtx(c)(ctx)},
         ${c.prefix}.macroImpls.get,
         ${c.prefix}.macroImpls.unwrap
@@ -138,7 +135,7 @@ object Operators {
   }
 
   class Operator[Wrap[_]]{
-    def flatMappedImpl[T, V](tPrefix: RxCtx => Node[T],
+    def flatMappedImpl[T, V](prefix: RxCtx => Node[T],
                          call: RxCtx => Wrap[T] => Wrap[Rx[V]])
                         (downStream: RxCtx => Seq[Node[_]],
                          enclosing: RxCtx,
@@ -147,10 +144,10 @@ object Operators {
 
       Rx.build { implicit newCtx: RxCtx =>
         downStream(newCtx).foreach(_.Internal.addDownstream(newCtx))
-        toOut(call(newCtx)(toT(tPrefix(newCtx)))).apply()
+        toOut(call(newCtx)(toT(prefix(newCtx)))).apply()
       }(enclosing)
     }
-    def mappedImpl[T, V](tPrefix: RxCtx => Node[T],
+    def mappedImpl[T, V](prefix: RxCtx => Node[T],
                          call: RxCtx => Wrap[T] => Wrap[V])
                         (downStream: RxCtx => Seq[Node[_]],
                          enclosing: RxCtx,
@@ -159,12 +156,12 @@ object Operators {
 
       Rx.build { implicit newCtx: RxCtx =>
         downStream(newCtx).foreach(_.Internal.addDownstream(newCtx))
-        toOut(call(newCtx)(toT(tPrefix(newCtx))))
+        toOut(call(newCtx)(toT(prefix(newCtx))))
       }(enclosing)
     }
 
     def foldImpl[T, V](start: RxCtx => Wrap[V],
-                       tPrefix: RxCtx => Node[T])
+                       prefix: RxCtx => Node[T])
                       (f: RxCtx => (Wrap[V], Wrap[T]) => Wrap[V],
                        downStream: RxCtx => Seq[Node[_]],
                        enclosing: RxCtx,
@@ -175,7 +172,7 @@ object Operators {
       var prev: Wrap[V] = start(enclosing)
       Rx.build { newCtx: RxCtx =>
         downStream(newCtx).foreach(_.Internal.addDownstream(newCtx))
-        prev = f(newCtx)(prev, toT(tPrefix(newCtx)))
+        prev = f(newCtx)(prev, toT(prefix(newCtx)))
         toOut(prev)
       }(enclosing)
     }
@@ -184,7 +181,6 @@ object Operators {
       * Split into two to make type-inference work
       */
     def reducedImpl[T](initValue: RxCtx => Wrap[T],
-                        tPrefix: Node[T],
                         prefix: Node[T])
                        (reduceFunc: (Wrap[T], Wrap[T]) => Wrap[T],
                         toT: Node[T] => Wrap[T],
@@ -212,8 +208,7 @@ object Operators {
     }
 
     def filterImpl[T, Out](start: RxCtx => T,
-                           prefix: Node[Out],
-                           tPrefix: RxCtx => Node[Out])
+                           prefix: Node[Out])
                           (f: RxCtx => T => Boolean,
                            downStream: RxCtx => Seq[Node[_]],
                            enclosing: RxCtx => RxCtx,
@@ -225,7 +220,7 @@ object Operators {
       var prev = toT(prefix)
       Rx.build { newCtx: RxCtx =>
         downStream(newCtx).foreach(_.Internal.addDownstream(newCtx))
-        if(f(newCtx)(toT(tPrefix(newCtx))) || init) {
+        if(f(newCtx)(toT(prefix)) || init) {
           init = false
           prev = start(newCtx)
         }
@@ -242,26 +237,24 @@ object Operators {
              (implicit w: c.WeakTypeTag[Wrap[_]]): c.Expr[Rx[T]] = {
     import c.universe._
     val newCtx =  c.fresh[TermName]("rxctx")
-    val tPrefix = transform(c)(c.prefix.tree,newCtx,ctx.tree)
     val isHigher = c.weakTypeOf[T] <:< c.weakTypeOf[Var[_]]
 
     val reduceFunc = transform(c)(f.tree,newCtx,ctx.tree)
 
     val initValue =
-      if (isHigher) q"${c.prefix}.macroImpls.map(${c.prefix}.macroImpls.get($tPrefix.node))(Var.duplicate(_)($newCtx))"
-      else q"${c.prefix}.macroImpls.get($tPrefix.node)"
+      if (isHigher) q"${c.prefix}.macroImpls.map(${c.prefix}.macroImpls.get(${c.prefix}.node))(Var.duplicate(_)($newCtx))"
+      else q"${c.prefix}.macroImpls.get(${c.prefix}.node)"
 
     val res = c.Expr[Rx[T]](q"""
       ${c.prefix}.macroImpls.reducedImpl[${weakTypeOf[T]}](
         ($newCtx: RxCtx) => $initValue,
-        $tPrefix.node,
         ${c.prefix}.node
       )(
         $reduceFunc,
         ${c.prefix}.macroImpls.get,
         ${c.prefix}.macroImpls.unwrap,
         ${encCtx(c)(ctx)},
-        rx.Node.getDownstream($tPrefix.node)
+        rx.Node.getDownstream(${c.prefix}.node)
       )
     """)
 

@@ -507,6 +507,7 @@ object AdvancedTests extends TestSuite{
         v.now() = 6
         assert(reduced.now.now == 12)
       }
+
       "fold" - {
         val a = Var(2)
 //        val x = rx.Macros.foldImpl[Int, List[Int], List[Int]](
