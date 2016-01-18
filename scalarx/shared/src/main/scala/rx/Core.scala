@@ -108,10 +108,6 @@ object Node{
     }
     observers.foreach(_.thunk())
   }
-
-  //For Higher Order Combinators, this will add ctx to every nested Node type in T
-
-  def getDownstream[T](node: Node[T]): Seq[Node[_]] = macro Util.getDownstream[T]
 }
 
 /**

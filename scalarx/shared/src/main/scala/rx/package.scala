@@ -8,10 +8,6 @@ import scala.util.Try
  */
 package object rx {
 
-  sealed trait OpsContext[Wrap[_]] extends Operators[Wrap]{
-    def get[T](t: Node[T]): Wrap[T]
-    def unwrap[T](t: Wrap[T]): T
-  }
 
 
   /**
@@ -20,7 +16,7 @@ package object rx {
   implicit class GenericOps[T](val node: Node[T]) extends AnyVal {
     import scala.language.experimental.macros
 
-    def macroImpls = new OpsContext[Id] {
+    def macroImpls = new Operators[T, Id] {
       def get[T](t: Node[T]) = t.now
       def unwrap[T](t: T) = t
       def map[T, V](t: T)(f: T => V) = f(t)
@@ -40,7 +36,7 @@ package object rx {
 
   abstract class SafeOps[T](val node: Rx[T]) {
     import scala.language.experimental.macros
-    def macroImpls = new OpsContext[util.Try] {
+    def macroImpls = new Operators[T, util.Try] {
       def get[T](t: Node[T]) = t.toTry
       def unwrap[T](t: Try[T]) = t.get
       def map[T, V](t: Try[T])(f: T => V) = t.map(f)

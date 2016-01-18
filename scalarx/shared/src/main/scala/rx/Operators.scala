@@ -10,7 +10,7 @@ object Operators {
     import c.universe._
     val newCtx =  c.fresh[TermName]("rxctx")
     val newFunc = transform(c)(f, newCtx, ctx.tree)
-    (newFunc, newCtx)
+    (q"($newCtx: RxCtx) => $newFunc", newCtx)
   }
   def filtered[In: c.WeakTypeTag, T: c.WeakTypeTag](c: Context)(f: c.Expr[In => Boolean])(ctx: c.Expr[RxCtx]): c.Expr[Rx[T]] = {
     import c.universe._
@@ -20,11 +20,9 @@ object Operators {
     val res = c.Expr[rx.Rx[T]](q"""
       ${c.prefix}.macroImpls.filterImpl(
         ($newCtx: RxCtx) => $initValue,
-        ${c.prefix}.node
-      )(
-        ($newCtx: RxCtx) => $checkFunc,
+        ${c.prefix}.node,
+         $checkFunc,
         ($newCtx: RxCtx) => ${encCtx(c)(ctx)},
-        ${c.prefix}.macroImpls,
         $ctx
       )
     """)
@@ -45,11 +43,9 @@ object Operators {
     val res = c.Expr[Rx[T]](c.resetLocalAttrs(q"""
       ${c.prefix}.macroImpls.foldImpl(
         $start,
-        ${c.prefix}.node
-      )(
-        ($newCtx: RxCtx) => $foldFunc,
-        ${encCtx(c)(ctx)},
-        ${c.prefix}.macroImpls
+        ${c.prefix}.node,
+        $foldFunc,
+        ${encCtx(c)(ctx)}
       )
     """))
     res
@@ -68,10 +64,8 @@ object Operators {
     val res = c.Expr[Rx[V]](c.resetLocalAttrs(q"""
       ${c.prefix}.macroImpls.mappedImpl(
         ${c.prefix}.node,
-        ($newCtx: RxCtx) => $call
-      )(
-        ${encCtx(c)(ctx)},
-        ${c.prefix}.macroImpls
+        $call,
+        ${encCtx(c)(ctx)}
       )
     """
     ))
@@ -91,10 +85,8 @@ object Operators {
     val res = c.Expr[Rx[V]](c.resetLocalAttrs(q"""
       ${c.prefix}.macroImpls.flatMappedImpl(
         ${c.prefix}.node,
-        ($newCtx: RxCtx) => $call
-      )(
-        ${encCtx(c)(ctx)},
-        ${c.prefix}.macroImpls
+        $call,
+        ${encCtx(c)(ctx)}
       )
     """
     ))
@@ -103,22 +95,20 @@ object Operators {
 
 
   def reduced[T: c.WeakTypeTag, Wrap[_]]
-  (c: Context)
-  (f: c.Expr[(Wrap[T], Wrap[T]) => Wrap[T]])
-  (ctx: c.Expr[RxCtx])
-  (implicit w: c.WeakTypeTag[Wrap[_]]): c.Expr[Rx[T]] = {
+             (c: Context)
+             (f: c.Expr[(Wrap[T], Wrap[T]) => Wrap[T]])
+             (ctx: c.Expr[RxCtx])
+             (implicit w: c.WeakTypeTag[Wrap[_]]): c.Expr[Rx[T]] = {
     import c.universe._
     val (reduceFunc, newCtx) = initialize(c)(f.tree, ctx)
 
     val initValue = q"${c.prefix}.macroImpls.get(${c.prefix}.node)"
 
     val res = c.Expr[Rx[T]](q"""
-      ${c.prefix}.macroImpls.reducedImpl[${weakTypeOf[T]}](
+      ${c.prefix}.macroImpls.reducedImpl(
         $initValue,
-        ${c.prefix}.node
-      )(
+        ${c.prefix}.node,
         $reduceFunc,
-        ${c.prefix}.macroImpls,
         ${encCtx(c)(ctx)}
       )
     """)
@@ -128,56 +118,54 @@ object Operators {
 
 
 }
-class Operators[Wrap[_]]{
-  def flatMappedImpl[T, V](prefix: Node[T],
-                           call: RxCtx => Wrap[T] => Wrap[Rx[V]])
-                          (enclosing: RxCtx,
-                           ops: OpsContext[Wrap]): Rx[V] = {
+trait Operators[T, Wrap[_]]{
+  def get[V](t: Node[V]): Wrap[V]
+  def unwrap[V](t: Wrap[V]): V
+  def flatMappedImpl[V](prefix: Node[T],
+                           call: RxCtx => Wrap[T] => Wrap[Rx[V]],
+                           enclosing: RxCtx): Rx[V] = {
 
     Rx.build { implicit newCtx: RxCtx =>
       prefix.Internal.addDownstream(newCtx)
-      ops.unwrap(call(newCtx)(ops.get(prefix))).apply()
+      this.unwrap(call(newCtx)(this.get(prefix))).apply()
     }(enclosing)
   }
-  def mappedImpl[T, V](prefix: Node[T],
-                       call: RxCtx => Wrap[T] => Wrap[V])
-                      (enclosing: RxCtx,
-                       ops: OpsContext[Wrap]): Rx[V] = {
+  def mappedImpl[V](prefix: Node[T],
+                       call: RxCtx => Wrap[T] => Wrap[V],
+                       enclosing: RxCtx): Rx[V] = {
 
     Rx.build { implicit newCtx: RxCtx =>
       prefix.Internal.addDownstream(newCtx)
-      ops.unwrap(call(newCtx)(ops.get(prefix)))
+      this.unwrap(call(newCtx)(this.get(prefix)))
     }(enclosing)
   }
 
-  def foldImpl[T, V](start: Wrap[V],
-                     prefix: Node[T])
-                    (f: RxCtx => (Wrap[V], Wrap[T]) => Wrap[V],
-                     enclosing: RxCtx,
-                    ops: OpsContext[Wrap]): Rx[V] = {
+  def foldImpl[V](start: Wrap[V],
+                  prefix: Node[T],
+                  f: RxCtx => (Wrap[V], Wrap[T]) => Wrap[V],
+                  enclosing: RxCtx): Rx[V] = {
 
     var prev: Wrap[V] = start
     Rx.build { newCtx: RxCtx =>
       prefix.Internal.addDownstream(newCtx)
-      prev = f(newCtx)(prev, ops.get(prefix))
-      ops.unwrap(prev)
+      prev = f(newCtx)(prev, this.get(prefix))
+      this.unwrap(prev)
     }(enclosing)
   }
 
   /**
     * Split into two to make type-inference work
     */
-  def reducedImpl[T](initValue: Wrap[T],
-                     prefix: Node[T])
-                    (reduceFunc: (Wrap[T], Wrap[T]) => Wrap[T],
-                     ops: OpsContext[Wrap],
-                     enclosing: RxCtx): Rx[T] = {
+  def reducedImpl(initValue: Wrap[T],
+                  prefix: Node[T],
+                  reduceFunc: RxCtx => (Wrap[T], Wrap[T]) => Wrap[T],
+                  enclosing: RxCtx): Rx[T] = {
     var init = true
-    def getPrev = ops.get(prefix)
+    def getPrev = this.get(prefix)
 
     var prev = getPrev
 
-    def next: T = ops.unwrap(prev)
+    def next: T = this.unwrap(prev)
 
     Rx.build { newCtx: RxCtx =>
       prefix.Internal.addDownstream(newCtx)
@@ -186,28 +174,27 @@ class Operators[Wrap[_]]{
         prev = initValue
         next
       } else {
-        prev = reduceFunc(prev, getPrev)
+        prev = reduceFunc(newCtx)(prev, getPrev)
         next
       }
     }(enclosing)
   }
 
-  def filterImpl[T](start: RxCtx => Wrap[T],
-                    prefix: Node[T])
-                   (f: RxCtx => Wrap[T] => Boolean,
-                    enclosing: RxCtx => RxCtx,
-                    ops: OpsContext[Wrap],
-                    ctx: RxCtx) = {
+  def filterImpl(start: RxCtx => Wrap[T],
+                 prefix: Node[T],
+                 f: RxCtx => Wrap[T] => Boolean,
+                 enclosing: RxCtx => RxCtx,
+                 ctx: RxCtx) = {
 
     var init = true
-    var prev = ops.get(prefix)
+    var prev = this.get(prefix)
     Rx.build { newCtx: RxCtx =>
       prefix.Internal.addDownstream(newCtx)
-      if(f(newCtx)(ops.get(prefix)) || init) {
+      if(f(newCtx)(this.get(prefix)) || init) {
         init = false
         prev = start(newCtx)
       }
-      ops.unwrap(prev)
+      this.unwrap(prev)
     }(enclosing(ctx))
   }
 
