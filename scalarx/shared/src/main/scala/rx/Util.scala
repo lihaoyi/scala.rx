@@ -77,7 +77,9 @@ object Util {
   def getDownstream[T: c.WeakTypeTag](c: Context)(node: c.Tree): c.Tree = {
     import c.universe._
     def rec(base: c.Tree, tpe: c.Type): c.Tree = {
-      if (tpe <:< c.weakTypeOf[Node[_]]) {
+      // Can't use <:< because of this bug =/
+      // https://github.com/sirthias/parboiled2/issues/81
+      if (tpe.baseClasses.contains(c.mirror.staticClass("rx.Node"))) {
         val innerType = tpe.typeArgs.head
         q"$base.node :: ${rec(q"$base.node.now", innerType)}"
       } else q"$base.node :: Nil"
