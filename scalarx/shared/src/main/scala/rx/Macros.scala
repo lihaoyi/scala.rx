@@ -215,15 +215,16 @@ object Macros {
 
     val reduceFunc = transform(c)(f.tree,newCtx,ctx.tree)
 
-    val initValue =
-      if(isHigher && !isSafe) q"($newCtx: RxCtx) => rx.Var.duplicate($tPrefix.node.now)($newCtx)"
-      else if (isHigher && isSafe) q"($newCtx: RxCtx) => $tPrefix.node.toTry.map(in => rx.Var.duplicate(in)($newCtx))"
-      else if (!isHigher && !isSafe) q"($newCtx: RxCtx) => $tPrefix.node.now"
-      else q"($newCtx: RxCtx) => $tPrefix.node.toTry"
+    val initValue = (isHigher, isSafe) match{
+      case (true, false) => q"rx.Var.duplicate($tPrefix.node.now)($newCtx)"
+      case (true, true) => q"$tPrefix.node.toTry.map(rx.Var.duplicate(_)($newCtx))"
+      case (false, false) => q"$tPrefix.node.now"
+      case (false, true) => q"$tPrefix.node.toTry"
+    }
 
     val res = c.Expr[Rx[Out]](q"""
       rx.Macros.reducedImpl(
-        $initValue,
+        ($newCtx: RxCtx) => $initValue,
         $tPrefix.node,
         ${c.prefix}.node
       )(
