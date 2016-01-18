@@ -187,23 +187,36 @@ object Macros {
     val newCtx =  c.fresh[TermName]("rxctx")
     val tPrefix = transform(c)(c.prefix.tree,newCtx,ctx.tree)
     val isSafe = c.weakTypeOf[OpsCtx] <:< c.weakTypeOf[rx.SafeContext.type]
-    val appliedFoldFunc = if(isSafe) {
-      q"${transform(c)(f.tree,newCtx,ctx.tree)}(prev,$tPrefix.node.toTry)"
-    } else {
-      q"${transform(c)(f.tree,newCtx,ctx.tree)}(prev,$tPrefix.node.now)"
-    }
+    val foldFunc = transform(c)(f.tree,newCtx,ctx.tree)
 
-    val res = c.Expr[Rx[Out]](
-      q"""{
-            var prev = $start
-            rx.Rx.build { $newCtx: rx.RxCtx =>
-              rx.Node.addDownstreamOfAll($tPrefix.node)($newCtx)
-              prev = $appliedFoldFunc
-              ${if(isSafe) q"prev.get" else q"prev"}
-            }(${encCtx(c)(ctx)})
-          }
-      """)
+    val res = c.Expr[Rx[Out]](q"""
+      rx.Macros.foldImpl(
+        $start,
+        $tPrefix.node
+      )(
+        $foldFunc,
+        ($newCtx: RxCtx) => rx.Node.getDownstream($tPrefix.node),
+        ${encCtx(c)(ctx)},
+        ${if (isSafe) q"_.toTry" else q"_.now"},
+        ${if (isSafe) q"_.get" else q"(x => x)"}
+      )
+    """)
     c.Expr[rx.Rx[Out]](c.resetLocalAttrs(res.tree))
+  }
+
+  def foldImpl[T, V, Out](start: V,
+                          tPrefix: Node[Out])
+                         (f: (V, T) => V,
+                          downStream: RxCtx => Seq[Node[_]],
+                          enclosing: RxCtx,
+                          toT: Node[Out] => T,
+                          toOut: V => Out) = {
+    var prev = start
+    rx.Rx.build { newCtx: rx.RxCtx =>
+      downStream(newCtx).foreach(_.Internal.addDownstream(newCtx))
+      prev = f(prev, toT(tPrefix))
+      toOut(prev)
+    }(enclosing)
   }
 
   def reduced[T: c.WeakTypeTag, Out: c.WeakTypeTag, OpsCtx <: rx.OpsContext : c.WeakTypeTag](c: Context)(f: c.Expr[(T,T) => T])(ctx: c.Expr[rx.RxCtx]): c.Expr[Rx[Out]] = {
