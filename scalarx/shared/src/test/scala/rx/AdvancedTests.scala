@@ -287,6 +287,7 @@ object AdvancedTests extends TestSuite{
       "map" - {
         val a = Var(10)
         val b = Rx{ a() + 2 }
+
         val c = a.map(_*2)
         val d = b.map(_+3)
         val e = a.map(_*2).map(_+3)
@@ -299,8 +300,10 @@ object AdvancedTests extends TestSuite{
         assert(e.now == 5)
       }
       "mapAll" - {
+
         val a = Var(10L)
         val b = Rx{ 100 / a() }
+
         val c = b.all.map{
           case Success(x) => Success(x * 2)
           case Failure(_) => Success(1337)

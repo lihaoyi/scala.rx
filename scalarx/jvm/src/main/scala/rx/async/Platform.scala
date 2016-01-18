@@ -1,8 +1,6 @@
-package rx
+package rx.async
 
 import java.util.concurrent.Executors
-
-import rx.async.Scheduler
 
 import scala.concurrent.ExecutionContext
 

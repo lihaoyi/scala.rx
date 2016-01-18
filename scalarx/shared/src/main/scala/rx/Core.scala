@@ -7,15 +7,15 @@ import scala.reflect.macros.Context
 import scala.util.Try
 
 /**
- * A reactive value of type [[T]]. Keeps track of triggers and
- * other [[Node]]s that depend on it, running any triggers and notifying
- * downstream [[Node]]s when its value changes.
- */
+  * A reactive value of type [[T]]. Keeps track of triggers and
+  * other [[Node]]s that depend on it, running any triggers and notifying
+  * downstream [[Node]]s when its value changes.
+  */
 sealed trait Node[+T] { self =>
   /**
-   * Get the current value of this [[Node]] at this very moment,
-   * without listening for updates
-   */
+    * Get the current value of this [[Node]] at this very moment,
+    * without listening for updates
+    */
   def now: T
 
   trait Internal {
@@ -34,43 +34,43 @@ sealed trait Node[+T] { self =>
   def Internal: Internal
 
   /**
-   * Get the current value of this [[Node]] and listen for updates. Only
-   * callable with an `Rx{...}` block (or equivalently when an implicit
-   * [[RxCtx]] is available), and the contextual/implicit [[Rx]] is the
-   * one that will update when the value of this [[Node]] changes.
-   */
+    * Get the current value of this [[Node]] and listen for updates. Only
+    * callable with an `Rx{...}` block (or equivalently when an implicit
+    * [[RxCtx]] is available), and the contextual/implicit [[Rx]] is the
+    * one that will update when the value of this [[Node]] changes.
+    */
   def apply()(implicit ctx: RxCtx) = {
     Internal.addDownstream(ctx)
     now
   }
 
   /**
-   * Kills this [[Node]]; stop listening for updates, and release all references
-   * to other [[Node]]s. This lets the [[Node]] be garbage-collected, since otherwise
-   * even when not-in-use it will continue to be referenced by the other [[Node]]s
-   * it depends on.
-   */
+    * Kills this [[Node]]; stop listening for updates, and release all references
+    * to other [[Node]]s. This lets the [[Node]] be garbage-collected, since otherwise
+    * even when not-in-use it will continue to be referenced by the other [[Node]]s
+    * it depends on.
+    */
   def kill(): Unit
 
   /**
-   * Force trigger/notifications of any downstream [[Node]]s, without changing the current value
-   */
+    * Force trigger/notifications of any downstream [[Node]]s, without changing the current value
+    */
   def propagate(): Unit = Node.doRecalc(Internal.downStream.toSet, Internal.observers)
 
   /**
-   * Run the given function immediately, and again whenever this [[Node]]s value
-   * changes. Returns an [[Obs]] if you want to keep track of this trigger or
-   * kill it later.
-   */
+    * Run the given function immediately, and again whenever this [[Node]]s value
+    * changes. Returns an [[Obs]] if you want to keep track of this trigger or
+    * kill it later.
+    */
   def trigger(thunk: => Unit) = {
     thunk
     triggerLater(thunk)
   }
   /**
-   * Run the given function whenever this [[Node]]s value changes, but
-   * not immediately. Returns an [[Obs]] if you want to keep track of this trigger or
-   * kill it later.
-   */
+    * Run the given function whenever this [[Node]]s value changes, but
+    * not immediately. Returns an [[Obs]] if you want to keep track of this trigger or
+    * kill it later.
+    */
   def triggerLater(thunk: => Unit): Obs = {
     val o = new Obs(() => thunk, this)
     Internal.observers.add(o)
@@ -110,14 +110,14 @@ object Node{
   }
 
   //For Higher Order Combinators, this will add ctx to every nested Node type in T
-  def addDownstreamOfAll[T](node: Node[T])(ctx: RxCtx): Unit = macro Macros.addDownstreamOfAll[T]
-  def getDownstream[T](node: Node[T]): Seq[Node[_]] = macro Macros.getDownstream[T]
+
+  def getDownstream[T](node: Node[T]): Seq[Node[_]] = macro Util.getDownstream[T]
 }
 
 /**
- * Encapsulates the act of setting of a [[Var]] to a value, without
- * actually setting it.
- */
+  * Encapsulates the act of setting of a [[Var]] to a value, without
+  * actually setting it.
+  */
 object VarTuple{
   implicit def tuple2VarTuple[T](t: (Var[T], T)): VarTuple[T] = {
     VarTuple(t._1, t._2)
@@ -134,15 +134,15 @@ case class VarTuple[T](v: Var[T], value: T){
 
 object Var{
   /**
-   * Create a [[Var]] from an initial value
-   */
+    * Create a [[Var]] from an initial value
+    */
   def apply[T](initialValue: T) = new Var(initialValue)
 
   /**
-   * Set the value of multiple [[Var]]s at the same time; in doing so,
-   * reduces the redundant updates that would normally occur setting
-   * them one by one
-   */
+    * Set the value of multiple [[Var]]s at the same time; in doing so,
+    * reduces the redundant updates that would normally occur setting
+    * them one by one
+    */
   def set(args: VarTuple[_]*) = {
     args.foreach(_.set())
     Node.doRecalc(
@@ -151,12 +151,12 @@ object Var{
     )
   }
 
-  def duplicate[T](node: Var[T])(ctx: RxCtx): Var[T] = macro Macros.duplicate[T]
+  def duplicate[T](node: Var[T])(ctx: RxCtx): Var[T] = macro Operators.duplicate[T]
 }
 /**
- * A smart variable that can be set manually, and will notify downstream
- * [[Node]]s and run any triggers whenever its value changes.
- */
+  * A smart variable that can be set manually, and will notify downstream
+  * [[Node]]s and run any triggers whenever its value changes.
+  */
 class Var[T](initialValue: T) extends Node[T]{
 
   object Internal extends Internal{
@@ -169,9 +169,9 @@ class Var[T](initialValue: T) extends Node[T]{
   def toTry = util.Success(now)
 
   /**
-   * Sets the value of this [[Var]] and runs any triggers/notifies
-   * any downstream [[Node]]s to update
-   */
+    * Sets the value of this [[Var]] and runs any triggers/notifies
+    * any downstream [[Node]]s to update
+    */
   def update(newValue: T): Unit = {
     if (Internal.value != newValue) {
       Internal.value = newValue
@@ -188,21 +188,21 @@ class Var[T](initialValue: T) extends Node[T]{
 
 object Rx{
   /**
-   * Constructs a new [[Rx]] from an expression, that will be re-run any time
-   * an upstream [[Node]] changes to re-calculate the value of this [[Rx]].
-   *
-   * Also injects an implicit [[RxCtx]] into that block, which serves to keep
-   * track of which other [[Node]]s are used within that block (via their
-   * `apply` methods) so this [[Rx]] can recalculate when upstream changes.
-   */
-  def apply[T](func: => T)(implicit curCtx: rx.RxCtx): Rx[T] = macro Macros.buildMacro[T]
+    * Constructs a new [[Rx]] from an expression, that will be re-run any time
+    * an upstream [[Node]] changes to re-calculate the value of this [[Rx]].
+    *
+    * Also injects an implicit [[RxCtx]] into that block, which serves to keep
+    * track of which other [[Node]]s are used within that block (via their
+    * `apply` methods) so this [[Rx]] can recalculate when upstream changes.
+    */
+  def apply[T](func: => T)(implicit curCtx: RxCtx): Rx[T] = macro Util.buildMacro[T]
 
-  def unsafe[T](func: => T): Rx[T] = macro Macros.buildUnsafe[T]
+  def unsafe[T](func: => T): Rx[T] = macro Util.buildUnsafe[T]
 
   /**
-   * Constructs a new [[Rx]] from an expression (which explicitly takes an
-   * [[RxCtx]]) and an optional `owner` [[RxCtx]].
-   */
+    * Constructs a new [[Rx]] from an expression (which explicitly takes an
+    * [[RxCtx]]) and an optional `owner` [[RxCtx]].
+    */
   def build[T](func: RxCtx => T)(implicit owner: RxCtx): Rx[T] = {
     require(owner != null, "owning RxCtx was null! Perhaps mark the caller lazy?")
     new Rx(func, if(owner == RxCtx.Unsafe) None else Some(owner))
@@ -210,12 +210,12 @@ object Rx{
 }
 
 /**
- * A [[Node]] that depends on other [[Node]]s, updating automatically
- * when their value changes. Optionally has an [[owner]], which is
- * another [[Rx]] this one was defined within. The [[Rx]] gets killed
- * automatically when the [[owner]] recalculates, in order to avoid
- * memory leaks from un-used [[Rx]]s hanging around.
- */
+  * A [[Node]] that depends on other [[Node]]s, updating automatically
+  * when their value changes. Optionally has an [[owner]], which is
+  * another [[Rx]] this one was defined within. The [[Rx]] gets killed
+  * automatically when the [[owner]] recalculates, in order to avoid
+  * memory leaks from un-used [[Rx]]s hanging around.
+  */
 class Rx[+T](func: RxCtx => T, owner: Option[RxCtx]) extends Node[T] { self =>
 
   owner.foreach { o =>
@@ -261,8 +261,8 @@ class Rx[+T](func: RxCtx => T, owner: Option[RxCtx]) extends Node[T] { self =>
   override def now = cached.get
 
   /**
-   * @return the current value of this [[Rx]] as a `Try`
-   */
+    * @return the current value of this [[Rx]] as a `Try`
+    */
   def toTry = cached
 
   def ownerKilled(): Unit = {
@@ -281,10 +281,10 @@ class Rx[+T](func: RxCtx => T, owner: Option[RxCtx]) extends Node[T] { self =>
   }
 
   /**
-   * Force this [[Rx]] to recompute (whether or not any upstream [[Node]]s
-   * changed) and propagate changes downstream. Does nothing if the [[Rx]]
-   * has been [[kill]]ed
-   */
+    * Force this [[Rx]] to recompute (whether or not any upstream [[Node]]s
+    * changed) and propagate changes downstream. Does nothing if the [[Rx]]
+    * has been [[kill]]ed
+    */
   def recalc(): Unit = if (!Internal.dead) {
     val oldValue = toTry
     Internal.update()
@@ -296,44 +296,44 @@ class Rx[+T](func: RxCtx => T, owner: Option[RxCtx]) extends Node[T] { self =>
 object RxCtx {
   object Unsafe extends RxCtx(throw new Exception(
     "Invalid RxCtx: you can only call `Rx.apply` within an " +
-    "`Rx{...}` block or where an implicit `RxCtx` is available"
+      "`Rx{...}` block or where an implicit `RxCtx` is available"
   ))
 
-  def safe(): RxCtx = macro Macros.buildSafeCtx
+  def safe(): RxCtx = macro Util.buildSafeCtx
 
   @compileTimeOnly("No implicit RxCtx is available here!")
   object CompileTime extends RxCtx(throw new Exception())
 
   /**
-   * Dark magic. End result is the implicit ctx will be one of
-   *  1) The enclosing RxCtx, if it exists
-   *  2) RxCtx.Unsafe, if in a "static context"
-   *  3) RxCtx.CompileTime, if in a "dynamic context" (other macros will rewrite CompileTime away)
-   */
+    * Dark magic. End result is the implicit ctx will be one of
+    *  1) The enclosing RxCtx, if it exists
+    *  2) RxCtx.Unsafe, if in a "static context"
+    *  3) RxCtx.CompileTime, if in a "dynamic context" (other macros will rewrite CompileTime away)
+    */
   @compileTimeOnly("@}}>---: A rose by any other name.")
-  implicit def voodoo: RxCtx = macro Macros.buildImplicitRxCtx
+  implicit def voodoo: RxCtx = macro Util.buildImplicitRxCtx
 }
 
 /**
- * An implicit scope representing a "currently evaluating" [[Rx]]. Used to keep
- * track of dependencies or ownership.
- */
+  * An implicit scope representing a "currently evaluating" [[Rx]]. Used to keep
+  * track of dependencies or ownership.
+  */
 class RxCtx(rx0: => Rx[_]){
   lazy val rx = rx0
 }
 
 /**
- * Wraps a simple callback, created by `trigger`, that fires when that
- * [[Node]] changes.
- */
+  * Wraps a simple callback, created by `trigger`, that fires when that
+  * [[Node]] changes.
+  */
 class Obs(val thunk: () => Unit, upstream: Node[_]){
   object Internal{
     var dead = false
   }
 
   /**
-   * Stop this observer from triggering and allow it to be garbage-collected
-   */
+    * Stop this observer from triggering and allow it to be garbage-collected
+    */
   def kill() = {
     upstream.Internal.observers.remove(this)
     Internal.dead = true
