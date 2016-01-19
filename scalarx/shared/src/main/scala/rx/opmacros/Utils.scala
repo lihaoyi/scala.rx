@@ -1,6 +1,6 @@
 package rx.opmacros
 
-import rx.{Rx, RxCtx}
+import rx.Rx
 
 import scala.language.experimental.macros
 import scala.reflect.macros._
@@ -9,19 +9,23 @@ import scala.reflect.macros._
   */
 object Utils {
   /**
-    * Walks a tree and injects in an implicit `RxCtx` over any `RxCtx` that
+    * Walks a tree and injects in an implicit `Ctx.Owner` over any `Ctx.Owner` that
     * was previously inferred. This is done because by the time the macro runs,
     * implicits have already been resolved, so we cannot rely on implicit
     * resolution to do this for us
     */
-  def injectRxCtx[T](c: Context)(src: c.Tree, newCtx: c.universe.TermName, curCtxTree: c.Tree): c.Tree = {
+  def injectRxCtx[T](c: Context)
+                    (src: c.Tree,
+                     newCtx: c.universe.TermName,
+                     curCtxTree: c.Tree)
+                    : c.Tree = {
     import c.universe._
     object transformer extends c.universe.Transformer {
       override def transform(tree: c.Tree): c.Tree = {
         if (curCtxTree.isEmpty) q"$newCtx"
-        else if (tree.tpe =:= c.weakTypeOf[RxCtx.CompileTime.type]) q"$newCtx"
+        else if (tree.tpe =:= c.weakTypeOf[rx.Ctx.Owner.CompileTime.type]) q"$newCtx"
         else if (tree.equalsStructure(curCtxTree)) q"$newCtx"
-        else if (tree.tpe =:= c.weakTypeOf[RxCtx.Unsafe.type]) q"$newCtx"
+        else if (tree.tpe =:= c.weakTypeOf[rx.Ctx.Owner.Unsafe.type]) q"$newCtx"
         else super.transform(tree)
       }
     }
@@ -40,7 +44,7 @@ object Utils {
     else if((chk.isMethod && !(chk.isMethod && chk.isTerm && chk.asTerm.isLazy)) || (chk.isClass && !chk.isModuleClass)) {
       val msg =s"""
                   |This Rx might leak! Either explicitly mark it unsafe (Rx.unsafe) or make an implicit RxCtx available
-                  |in the enclosing scope, for example, by adding (implicit ctx: RxCtx) to line ${chk.pos.line}: $chk
+                  |in the enclosing scope, for example, by adding (implicit ctx: Ctx.Owner) to line ${chk.pos.line}: $chk
                   |""".stripMargin
       if(abortOnFail) c.abort(c.enclosingPosition, msg)
       else false
@@ -49,83 +53,88 @@ object Utils {
     else ensureStaticEnclosingOwners(c)(chk.owner, abortOnFail)
   }
 
-  def buildSafeCtx(c: Context)(): c.Expr[RxCtx] = {
+  def buildSafeCtx(c: Context)(): c.Tree = {
     import c.universe._
 
-    val inferredCtx = c.inferImplicitValue(c.weakTypeOf[RxCtx], withMacrosDisabled = true)
+    val inferredCtx = c.inferImplicitValue(c.weakTypeOf[rx.Ctx.Owner], withMacrosDisabled = true)
 
-    val isCompileTimeCtx = inferredCtx.isEmpty || inferredCtx.tpe =:= c.weakTypeOf[RxCtx.CompileTime.type]
+    val isCompileTimeCtx = inferredCtx.isEmpty || inferredCtx.tpe =:= c.weakTypeOf[rx.Ctx.Owner.CompileTime.type]
 
     if(isCompileTimeCtx)
       ensureStaticEnclosingOwners(c)(c.internal.enclosingOwner, abortOnFail = true)
 
     val safeCtx =
-      if(isCompileTimeCtx) c.Expr[RxCtx](q"rx.RxCtx.Unsafe")
-      else if(c.internal.enclosingOwner.fullName == inferredCtx.symbol.fullName) c.Expr[RxCtx](q"rx.RxCtx.Unsafe")
-      else c.Expr[RxCtx](q"$inferredCtx")
+      if(isCompileTimeCtx) q"rx.Ctx.Owner.Unsafe"
+      else if(c.internal.enclosingOwner.fullName == inferredCtx.symbol.fullName) q"rx.Ctx.Owner.Unsafe"
+      else q"$inferredCtx"
 
     safeCtx
   }
 
-  def encCtx(c: Context)(ctx: c.Expr[RxCtx]) = {
+  def encCtx(c: Context)(ctx: c.Tree): c.Tree = {
     import c.universe._
-    val isCompileTimeCtx = ctx.tree.tpe =:= c.weakTypeOf[RxCtx.CompileTime.type]
+    val isCompileTimeCtx = ctx.tpe =:= c.weakTypeOf[rx.Ctx.Owner.CompileTime.type]
 
     if(isCompileTimeCtx)
       ensureStaticEnclosingOwners(c)(c.internal.enclosingOwner, abortOnFail = true)
 
     val enclosingCtx =
-      if(isCompileTimeCtx) c.Expr[RxCtx](q"rx.RxCtx.Unsafe")
+      if(isCompileTimeCtx) q"rx.Ctx.Owner.Unsafe"
       else ctx
 
     enclosingCtx
   }
 
-  def buildMacro[T: c.WeakTypeTag](c: Context)(func: c.Expr[T])(curCtx: c.Expr[RxCtx]): c.Expr[Rx[T]] = {
+  def buildMacro[T: c.WeakTypeTag](c: Context)
+                                  (func: c.Tree)
+                                  (curCtx: c.Tree)
+                                  : c.Tree = {
     import c.universe._
 
     val newCtx =  c.fresh[TermName]("rxctx")
 
-    val isCompileTimeCtx = curCtx.tree.tpe =:= c.weakTypeOf[RxCtx.CompileTime.type]
+    val isCompileTimeCtx = curCtx.tpe =:= c.weakTypeOf[rx.Ctx.Owner.CompileTime.type]
 
     if(isCompileTimeCtx)
       ensureStaticEnclosingOwners(c)(c.internal.enclosingOwner, abortOnFail = true)
 
     val enclosingCtx =
-      if(isCompileTimeCtx) c.Expr[RxCtx](q"rx.RxCtx.Unsafe")
+      if(isCompileTimeCtx) q"rx.Ctx.Owner.Unsafe"
       else curCtx
 
-    val res = q"rx.Rx.build{$newCtx: rx.RxCtx => ${injectRxCtx(c)(func.tree, newCtx, curCtx.tree)}}($enclosingCtx)"
-    c.Expr[Rx[T]](c.resetLocalAttrs(res))
+    val injected = injectRxCtx(c)(func, newCtx, curCtx)
+
+    val res = q"rx.Rx.build{$newCtx: rx.Ctx.Owner => $injected($enclosingCtx)}"
+    c.resetLocalAttrs(res)
   }
 
-  def buildUnsafe[T: c.WeakTypeTag](c: Context)(func: c.Expr[T]): c.Expr[Rx[T]] = {
+  def buildUnsafe[T: c.WeakTypeTag](c: Context)(func: c.Tree): c.Tree = {
     import c.universe._
 
-    val inferredCtx = c.inferImplicitValue(c.weakTypeOf[RxCtx])
+    val inferredCtx = c.inferImplicitValue(c.weakTypeOf[rx.Ctx.Owner])
 
     require(!inferredCtx.isEmpty)
 
     val newCtx = c.fresh[TermName]("rxctx")
 
     val enclosingCtx =
-      if(inferredCtx.tpe =:= c.weakTypeOf[RxCtx.CompileTime.type]) c.Expr[RxCtx](q"rx.RxCtx.Unsafe")
-      else if(inferredCtx.isEmpty) c.Expr[RxCtx](q"rx.RxCtx.Unsafe")
-      else c.Expr[RxCtx](q"$inferredCtx")
+      if(inferredCtx.tpe =:= c.weakTypeOf[rx.Ctx.Owner.CompileTime.type]) c.Expr[rx.Ctx.Owner](q"rx.RxCtx.Unsafe")
+      else if(inferredCtx.isEmpty) c.Expr[rx.Ctx.Owner](q"rx.Ctx.Owner.Unsafe")
+      else c.Expr[rx.Ctx.Owner](q"$inferredCtx")
 
-    val res = q"rx.Rx.build{$newCtx: rx.RxCtx => ${injectRxCtx(c)(func.tree, newCtx, inferredCtx)}}($enclosingCtx)"
-    c.Expr[Rx[T]](c.resetLocalAttrs(res))
+    val res = q"rx.Rx.build{$newCtx: rx.Ctx.Owner => ${injectRxCtx(c)(func, newCtx, inferredCtx)}}($enclosingCtx)"
+    c.resetLocalAttrs(res)
   }
 
-  def buildImplicitRxCtx(c: Context): c.Expr[RxCtx] = {
+  def buildImplicitRxCtx(c: Context): c.Tree = {
     import c.universe._
-    val inferredCtx = c.inferImplicitValue(c.weakTypeOf[RxCtx], withMacrosDisabled = true)
+    val inferredCtx = c.inferImplicitValue(c.weakTypeOf[rx.Ctx.Owner], withMacrosDisabled = true)
     val isCompileTime = inferredCtx.isEmpty
     val staticContext = ensureStaticEnclosingOwners(c)(c.internal.enclosingOwner, abortOnFail = false)
     val implicitCtx =
-      if(isCompileTime && staticContext) q"rx.RxCtx.Unsafe"
-      else if(isCompileTime && !staticContext) q"rx.RxCtx.CompileTime"
+      if(isCompileTime && staticContext) q"rx.Ctx.Owner.Unsafe"
+      else if(isCompileTime && !staticContext) q"rx.Ctx.Owner.CompileTime"
       else q"$inferredCtx"
-    c.Expr[RxCtx](c.resetLocalAttrs(implicitCtx))
+    c.resetLocalAttrs(implicitCtx)
   }
 }

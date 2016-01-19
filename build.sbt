@@ -59,6 +59,7 @@ val scalarx = crossProject.settings(
     "com.typesafe.akka" %% "akka-actor" % "2.3.12" % "provided"
   )
 )
+
 lazy val js = scalarx.js
 
 lazy val jvm = scalarx.jvm

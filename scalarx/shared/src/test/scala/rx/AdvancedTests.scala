@@ -23,12 +23,12 @@ object AdvancedTests extends TestSuite{
     val top = Var(List(1,2,3))
     val other = Var(1)
 
-    def inner1(num: Int)(implicit topCtx: RxCtx) = Rx.build { newCtx =>
+    def inner1(num: Int)(implicit topCtx: Ctx.Data) = Rx.build { newCtx =>
       inner1Count += 1
       other()(newCtx)
     }(topCtx)
 
-    def inner2(num: Int)(implicit topCtx: RxCtx) = Rx {
+    def inner2(num: Int)(implicit topCtx: Ctx.Data) = Rx {
       inner2Count += 1
       other()
     }
@@ -46,31 +46,31 @@ object AdvancedTests extends TestSuite{
 
   object SafeTrait {
     trait RxTrait {
-      implicit def ctx: RxCtx // leave ctx abstract
+      implicit def ctx: Ctx.Data // leave ctx abstract
       val aa = Var(1)
       lazy val meh = Rx { aa() }
     }
 
     object RxObj extends RxTrait {
       //override implicit val ctx = RxCtx.Unsafe
-      override implicit val ctx = RxCtx.safe()
+      override implicit val ctx = Ctx.Data.safe()
       val objRx = Rx { meh() }
     }
 
     class RxClass extends RxTrait {
       //compile time error:
       //override implicit val ctx = RxCtx.safe()
-      override implicit val ctx = RxCtx.Unsafe
+      override implicit val ctx = Ctx.Data.Unsafe
       val classRx = Rx { meh() }
     }
 
     //One other way RxCtx.safe() can be used
-    class RxClass2()(implicit ZZZ: RxCtx) extends RxTrait {
-      override val ctx = RxCtx.safe()
+    class RxClass2()(implicit ZZZ: Ctx.Data) extends RxTrait {
+      override val ctx = Ctx.Data.safe()
     }
 
     //Although this would be more normal
-    class RxClass3()(implicit override val ctx: RxCtx) extends RxTrait {
+    class RxClass3()(implicit override val ctx: Ctx.Data) extends RxTrait {
     }
   }
 

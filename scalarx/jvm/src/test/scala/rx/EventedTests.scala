@@ -9,7 +9,7 @@ import rx.async._
 object EventedTests extends TestSuite {
 
   implicit val todo = new AsyncScheduler(Executors.newSingleThreadScheduledExecutor(),ExecutionContext.Implicits.global)
-  implicit val testctx = RxCtx.safe()
+  implicit val testctx: Ctx.Owner = Ctx.Owner.safe()
 
 
   def tests = TestSuite {

@@ -26,7 +26,7 @@ sealed trait Node[+T] { self =>
 
     def clearDownstream() = Internal.downStream.clear()
     def depth: Int
-    def addDownstream(ctx: RxCtx) = {
+    def addDownstream(ctx: Ctx.Data) = {
       downStream.add(ctx.rx)
       ctx.rx.Internal.upStream.add(self)
       ctx.rx.Internal.depth = ctx.rx.Internal.depth max (Internal.depth + 1)
@@ -38,10 +38,10 @@ sealed trait Node[+T] { self =>
   /**
     * Get the current value of this [[Node]] and listen for updates. Only
     * callable with an `Rx{...}` block (or equivalently when an implicit
-    * [[RxCtx]] is available), and the contextual/implicit [[Rx]] is the
+    * [[Ctx.Data]] is available), and the contextual/implicit [[Rx]] is the
     * one that will update when the value of this [[Node]] changes.
     */
-  def apply()(implicit ctx: RxCtx) = {
+  def apply()(implicit ctx: Ctx.Data) = {
     Internal.addDownstream(ctx)
     now
   }
@@ -79,7 +79,7 @@ sealed trait Node[+T] { self =>
     o
   }
 
-  def toRx(implicit ctx: RxCtx): Rx[T]
+  def toRx(implicit ctx: Ctx.Owner): Rx[T]
 
   def toTry: Try[T]
 
@@ -176,7 +176,9 @@ class Var[T](initialValue: T) extends Node[T]{
     }
   }
 
-  override def toRx(implicit ctx: RxCtx): Rx[T] = Rx.build { inner => apply()(inner) }(ctx)
+  override def toRx(implicit ctx: Ctx.Owner): Rx[T] = Rx.build{
+    (ownerCtx: Ctx.Owner, dataCtx: Ctx.Data) => apply()(dataCtx)
+  }(ctx)
 
   override def kill() = {
     Internal.clearDownstream()
@@ -188,21 +190,21 @@ object Rx{
     * Constructs a new [[Rx]] from an expression, that will be re-run any time
     * an upstream [[Node]] changes to re-calculate the value of this [[Rx]].
     *
-    * Also injects an implicit [[RxCtx]] into that block, which serves to keep
+    * Also injects an implicit [[Ctx.Owner]] into that block, which serves to keep
     * track of which other [[Node]]s are used within that block (via their
     * `apply` methods) so this [[Rx]] can recalculate when upstream changes.
     */
-  def apply[T](func: => T)(implicit curCtx: RxCtx): Rx[T] = macro Utils.buildMacro[T]
+  def apply[T](func: => T)(implicit curCtx: Ctx.Owner): Rx[T] = macro Utils.buildMacro[T]
 
   def unsafe[T](func: => T): Rx[T] = macro Utils.buildUnsafe[T]
 
   /**
     * Constructs a new [[Rx]] from an expression (which explicitly takes an
-    * [[RxCtx]]) and an optional `owner` [[RxCtx]].
+    * [[Ctx.Owner]]) and an optional `owner` [[Ctx.Owner]].
     */
-  def build[T](func: RxCtx => T)(implicit owner: RxCtx): Rx[T] = {
+  def build[T](func: (Ctx.Owner, Ctx.Data) => T)(implicit owner: Ctx.Owner): Rx[T] = {
     require(owner != null, "owning RxCtx was null! Perhaps mark the caller lazy?")
-    new Rx(func, if(owner == RxCtx.Unsafe) None else Some(owner))
+    new Rx(func, if(owner == Ctx.Owner.Unsafe) None else Some(owner))
   }
 }
 
@@ -213,11 +215,11 @@ object Rx{
   * automatically when the [[owner]] recalculates, in order to avoid
   * memory leaks from un-used [[Rx]]s hanging around.
   */
-class Rx[+T](func: RxCtx => T, owner: Option[RxCtx]) extends Node[T] { self =>
+class Rx[+T](func: (Ctx.Owner, Ctx.Data) => T, owner: Option[Ctx.Owner]) extends Node[T] { self =>
 
   owner.foreach { o =>
     o.rx.Internal.owned.add(self)
-    o.rx.Internal.addDownstream(new RxCtx(self))
+    o.rx.Internal.addDownstream(new Ctx.Data(self))
   }
 
   private [this] var cached: Try[T] = null
@@ -245,7 +247,7 @@ class Rx[+T](func: RxCtx => T, owner: Option[RxCtx]) extends Node[T] { self =>
       Internal.clearUpstream()
       Internal.owned.foreach(_.ownerKilled())
       Internal.owned.clear()
-      Try(func(new RxCtx(self)))
+      Try(func(new Ctx.Owner(self), new Ctx.Data(self)))
     }
 
     def update() = {
@@ -270,7 +272,9 @@ class Rx[+T](func: RxCtx => T, owner: Option[RxCtx]) extends Node[T] { self =>
     Internal.owned.clear()
   }
 
-  override def toRx(implicit ctx: RxCtx): Rx[T] = Rx.build { inner => this.apply()(inner) }(ctx)
+  override def toRx(implicit ctx: Ctx.Owner): Rx[T] = Rx.build {
+    (ownerCtx: Ctx.Owner, dataCtx: Ctx.Data) => this.apply()(dataCtx)
+  }(ctx)
 
   override def kill(): Unit = {
     owner.foreach(_.rx.Internal.owned.remove(this))
@@ -290,35 +294,50 @@ class Rx[+T](func: RxCtx => T, owner: Option[RxCtx]) extends Node[T] { self =>
   }
 }
 
-object RxCtx {
-//  @compileTimeOnly("No implicit RxCtx is available here!")
-  object Unsafe extends RxCtx(throw new Exception(
-    "Invalid RxCtx: you can only call `Rx.apply` within an " +
-      "`Rx{...}` block or where an implicit `RxCtx` is available"
-  ))
+object Ctx{
 
-  def safe(): RxCtx = macro Utils.buildSafeCtx
+  object Data extends Generic[Data]{
+    @compileTimeOnly("No implicit RxCtx is available here!")
+    object CompileTime extends Data(throw new Exception())
 
-  @compileTimeOnly("No implicit RxCtx is available here!")
-  object CompileTime extends RxCtx(throw new Exception())
+    object Unsafe extends Data(throw new Exception(
+      "Invalid RxCtx: you can only call `Rx.apply` within an " +
+        "`Rx{...}` block or where an implicit `RxCtx` is available"
+    ))
+  }
+  class Data(rx0: => Rx[_]) extends Ctx(rx0)
+  object Owner extends Generic[Owner]{
+    @compileTimeOnly("No implicit RxCtx is available here!")
+    object CompileTime extends Owner(throw new Exception())
 
-  /**
-    * Dark magic. End result is the implicit ctx will be one of
-    *  1) The enclosing RxCtx, if it exists
-    *  2) RxCtx.Unsafe, if in a "static context"
-    *  3) RxCtx.CompileTime, if in a "dynamic context" (other macros will rewrite CompileTime away)
-    */
-  @compileTimeOnly("@}}>---: A rose by any other name.")
-  implicit def voodoo: RxCtx = macro Utils.buildImplicitRxCtx
+    object Unsafe extends Owner(throw new Exception(
+      "Invalid RxCtx: you can only call `Rx.apply` within an " +
+        "`Rx{...}` block or where an implicit `RxCtx` is available"
+    ))
+  }
+  class Owner(rx0: => Rx[_]) extends Ctx(rx0)
+
+  class Generic[T] {
+
+    def safe(): T = macro Utils.buildSafeCtx
+    /**
+      * Dark magic. End result is the implicit ctx will be one of
+      *  1) The enclosing RxCtx, if it exists
+      *  2) RxCtx.Unsafe, if in a "static context"
+      *  3) RxCtx.CompileTime, if in a "dynamic context" (other macros will rewrite CompileTime away)
+      */
+    @compileTimeOnly("@}}>---: A rose by any other name.")
+    implicit def voodoo: T = macro Utils.buildImplicitRxCtx
+  }
 }
-
 /**
   * An implicit scope representing a "currently evaluating" [[Rx]]. Used to keep
   * track of dependencies or ownership.
   */
-class RxCtx(rx0: => Rx[_]){
+class Ctx(rx0: => Rx[_]){
   lazy val rx = rx0
 }
+
 
 /**
   * Wraps a simple callback, created by `trigger`, that fires when that
