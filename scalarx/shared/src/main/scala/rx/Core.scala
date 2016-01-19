@@ -1,5 +1,7 @@
 package rx
 
+import rx.opmacros.Utils
+
 import scala.annotation.compileTimeOnly
 import scala.language.experimental.macros
 import scala.collection.mutable
@@ -190,9 +192,9 @@ object Rx{
     * track of which other [[Node]]s are used within that block (via their
     * `apply` methods) so this [[Rx]] can recalculate when upstream changes.
     */
-  def apply[T](func: => T)(implicit curCtx: RxCtx): Rx[T] = macro Util.buildMacro[T]
+  def apply[T](func: => T)(implicit curCtx: RxCtx): Rx[T] = macro Utils.buildMacro[T]
 
-  def unsafe[T](func: => T): Rx[T] = macro Util.buildUnsafe[T]
+  def unsafe[T](func: => T): Rx[T] = macro Utils.buildUnsafe[T]
 
   /**
     * Constructs a new [[Rx]] from an expression (which explicitly takes an
@@ -294,7 +296,7 @@ object RxCtx {
       "`Rx{...}` block or where an implicit `RxCtx` is available"
   ))
 
-  def safe(): RxCtx = macro Util.buildSafeCtx
+  def safe(): RxCtx = macro Utils.buildSafeCtx
 
   @compileTimeOnly("No implicit RxCtx is available here!")
   object CompileTime extends RxCtx(throw new Exception())
@@ -306,7 +308,7 @@ object RxCtx {
     *  3) RxCtx.CompileTime, if in a "dynamic context" (other macros will rewrite CompileTime away)
     */
   @compileTimeOnly("@}}>---: A rose by any other name.")
-  implicit def voodoo: RxCtx = macro Util.buildImplicitRxCtx
+  implicit def voodoo: RxCtx = macro Utils.buildImplicitRxCtx
 }
 
 /**

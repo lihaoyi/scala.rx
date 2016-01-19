@@ -1,6 +1,6 @@
-import rx.Operators
+import rx.opmacros.Operators
 import Operators.Id
-import rx.Operators
+import rx.opmacros.Operators
 import scala.util.Try
 
 /**
@@ -17,9 +17,9 @@ package object rx {
     import scala.language.experimental.macros
 
     def macroImpls = new Operators[T, Id] {
-      def get[T](t: Node[T]) = t.now
-      def unwrap[T](t: T) = t
-      def map[T, V](t: T)(f: T => V) = f(t)
+      def prefix = node
+      def get[V](t: Node[V]) = t.now
+      def unwrap[V](t: V) = t
     }
     def map[V](f: Id[T] => Id[V])(implicit ctx: RxCtx): Rx[V] = macro Operators.mapped[T, V, Id]
 
@@ -37,9 +37,9 @@ package object rx {
   abstract class SafeOps[T](val node: Rx[T]) {
     import scala.language.experimental.macros
     def macroImpls = new Operators[T, util.Try] {
-      def get[T](t: Node[T]) = t.toTry
-      def unwrap[T](t: Try[T]) = t.get
-      def map[T, V](t: Try[T])(f: T => V) = t.map(f)
+      def prefix = node
+      def get[V](t: Node[V]) = t.toTry
+      def unwrap[V](t: Try[V]) = t.get
     }
     def map[V](f: Try[T] => Try[V])(implicit ctx: RxCtx): Rx[V] = macro Operators.mapped[T, V, Try]
 

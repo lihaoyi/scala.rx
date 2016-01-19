@@ -1,6 +1,7 @@
 package rx
 //
 import acyclic.file
+import rx.opmacros.Utils
 
 import scala.util.{Try, Success, Failure}
 
