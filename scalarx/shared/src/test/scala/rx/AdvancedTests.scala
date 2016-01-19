@@ -304,5 +304,23 @@ object AdvancedTests extends TestSuite{
       assert(testY == 500)
       assert(testZ == 1500)
     }
+    'separateOwnerData - {
+      // This test doesn't work because `compileError` isn't smart enough
+      // to detect failures due to @compileTimeOnly
+
+//      compileError("""
+//        def foo()(implicit ctx: rx.Ctx.Owner) = {
+//          val a = rx.Var(1)
+//          val b = rx.Rx(a() + 1)
+//          println(b())
+//          a
+//        }
+//
+//
+//        val x = rx.Rx.unsafe{
+//          val y = foo(); y() = y() + 1; println("done!")
+//        }
+//      """)
+    }
   }
 }
