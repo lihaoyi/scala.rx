@@ -170,7 +170,6 @@ object Utils {
 
   def buildImplicitRxCtx[T: c.WeakTypeTag](c: Context): c.Tree = {
     import c.universe._
-    println("buildImplicitRxCtx\t"+c.weakTypeOf[T])
     val inferredCtx = c.inferImplicitValue(c.weakTypeOf[T], withMacrosDisabled = true)
     val isCompileTime = inferredCtx.isEmpty
     val staticContext = ensureStaticEnclosingOwners(c)(c.internal.enclosingOwner, abortOnFail = false)
