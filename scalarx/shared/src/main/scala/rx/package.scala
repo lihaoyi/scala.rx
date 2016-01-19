@@ -1,3 +1,6 @@
+import rx.opmacros.Operators
+import Operators.Id
+import rx.opmacros.Operators
 import scala.util.Try
 
 /**
@@ -5,9 +8,7 @@ import scala.util.Try
  */
 package object rx {
 
-  private [rx] sealed trait OpsContext
-  private [rx] case object GenericContext extends OpsContext
-  private [rx] case object SafeContext extends OpsContext
+
 
   /**
    * All [[Node]]s have a set of operations you can perform on them, e.g. `map` or `filter`
@@ -15,31 +16,40 @@ package object rx {
   implicit class GenericOps[T](val node: Node[T]) extends AnyVal {
     import scala.language.experimental.macros
 
-    def map[V](f: T => V)(implicit ctx: RxCtx): Rx[V] = macro Macros.mapped[T, V, V]
+    def macroImpls = new Operators[T, Id] {
+      def prefix = node
+      def get[V](t: Node[V]) = t.now
+      def unwrap[V](t: V) = t
+    }
+    def map[V](f: Id[T] => Id[V])(implicit ctx: RxCtx): Rx[V] = macro Operators.mapped[T, V, Id]
 
-    def flatMap[V](f: T => Rx[V])(implicit ctx: RxCtx): Rx[V] = macro Macros.flatMapped[T,V]
+    def flatMap[V](f: Id[T] => Id[Rx[V]])(implicit ctx: RxCtx): Rx[V] = macro Operators.flatMapped[T, V, Id]
 
-    def filter(f: T => Boolean)(implicit ctx: RxCtx): Rx[T] = macro Macros.filtered[T,T,rx.GenericContext.type]
+    def filter(f: T => Boolean)(implicit ctx: RxCtx): Rx[T] = macro Operators.filtered[T,T]
 
-    def fold[V](start: V)(f: ((V, T) => V))(implicit ctx: RxCtx): Rx[V] = macro Macros.folded[T,V,V,rx.GenericContext.type]
+    def fold[V](start: V)(f: ((Id[V], Id[T]) => Id[V]))(implicit ctx: RxCtx): Rx[V] = macro Operators.folded[T, V, Id]
 
-    def reduce(f: (T, T) => T)(implicit ctx: RxCtx): Rx[T] = macro Macros.reduced[T,T,rx.GenericContext.type]
+    def reduce(f: (Id[T], Id[T]) => Id[T])(implicit ctx: RxCtx): Rx[T] = macro Operators.reduced[T, Id]
 
     def foreach(f: T => Unit) = node.trigger(f(node.now))
   }
 
   abstract class SafeOps[T](val node: Rx[T]) {
     import scala.language.experimental.macros
+    def macroImpls = new Operators[T, util.Try] {
+      def prefix = node
+      def get[V](t: Node[V]) = t.toTry
+      def unwrap[V](t: Try[V]) = t.get
+    }
+    def map[V](f: Try[T] => Try[V])(implicit ctx: RxCtx): Rx[V] = macro Operators.mapped[T, V, Try]
 
-    def map[V](f: Try[T] => Try[V])(implicit ctx: RxCtx): Rx[V] = macro Macros.mapped[Try[T],Try[V], V]
+    def flatMap[V](f: Try[T] => Try[Rx[V]])(implicit ctx: RxCtx): Rx[V] = macro Operators.flatMapped[T, V, Try]
 
-    def flatMap[V](f: Try[T] => Rx[V])(implicit ctx: RxCtx): Rx[V] = macro Macros.flatMapped[Try[T],V]
+    def filter(f: Try[T] => Boolean)(implicit ctx: RxCtx): Rx[T] = macro Operators.filtered[Try[T],T]
 
-    def filter(f: Try[T] => Boolean)(implicit ctx: RxCtx): Rx[T] = macro Macros.filtered[Try[T],T,rx.SafeContext.type]
+    def fold[V](start: Try[V])(f: (Try[V], Try[T]) => Try[V])(implicit ctx: RxCtx): Rx[V] = macro Operators.folded[T, V, Try]
 
-    def fold[V](start: Try[V])(f: ((Try[V], Try[T]) => Try[V]))(implicit ctx: RxCtx): Rx[V] = macro Macros.folded[Try[T],Try[V],V,rx.SafeContext.type]
-
-    def reduce(f: (Try[T], Try[T]) => Try[T])(implicit ctx: RxCtx): Rx[T] = macro Macros.reduced[Try[T],T,rx.SafeContext.type]
+    def reduce(f: (Try[T], Try[T]) => Try[T])(implicit ctx: RxCtx): Rx[T] = macro Operators.reduced[T, Try]
 
     def foreach(f: T => Unit) = node.trigger(node.toTry.foreach(f))
   }

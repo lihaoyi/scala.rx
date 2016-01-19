@@ -1,9 +1,6 @@
-package rx
-
-import rx.async.{Scheduler, Cancelable}
+package rx.async
 
 import scala.concurrent.duration._
-
 import scala.scalajs.js
 
 class AsyncScheduler extends Scheduler {

@@ -1,6 +1,4 @@
-package rx
-
-import rx.async.Scheduler
+package rx.async
 
 object Platform  {
   implicit lazy val DefaultScheduler: Scheduler = new AsyncScheduler

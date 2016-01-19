@@ -1,8 +1,6 @@
-package rx
+package rx.async
 
 import java.util.concurrent.{FutureTask, ScheduledExecutorService, TimeUnit}
-
-import rx.async.{Scheduler, Cancelable}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._

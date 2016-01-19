@@ -6,7 +6,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.{Deadline, FiniteDuration}
 
 package object async {
-
+  import acyclic.pkg
   implicit class FutureCombinators[T](val f: Future[T]) extends AnyVal {
     def toRx(initial: T)(implicit ec: ExecutionContext, ctx: RxCtx): Rx[T] = {
       @volatile var completed: T = initial
