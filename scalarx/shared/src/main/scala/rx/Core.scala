@@ -291,6 +291,7 @@ class Rx[+T](func: RxCtx => T, owner: Option[RxCtx]) extends Node[T] { self =>
 }
 
 object RxCtx {
+//  @compileTimeOnly("No implicit RxCtx is available here!")
   object Unsafe extends RxCtx(throw new Exception(
     "Invalid RxCtx: you can only call `Rx.apply` within an " +
       "`Rx{...}` block or where an implicit `RxCtx` is available"

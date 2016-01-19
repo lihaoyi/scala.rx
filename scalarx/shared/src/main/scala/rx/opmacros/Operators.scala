@@ -12,7 +12,7 @@ object Operators {
     val newCtx =  c.fresh[TermName]("rxctx")
     val newFunc = injectRxCtx(c)(f, newCtx, ctx.tree)
     val enclosingCtx = encCtx(c)(ctx)
-    (q"($newCtx: RxCtx) => $newFunc", newCtx, enclosingCtx)
+    (q"($newCtx: rx.RxCtx) => $newFunc", newCtx, enclosingCtx)
   }
   def filtered[In: c.WeakTypeTag, T: c.WeakTypeTag]
               (c: Context)
