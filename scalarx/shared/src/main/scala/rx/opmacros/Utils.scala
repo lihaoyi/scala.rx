@@ -25,6 +25,7 @@ object Utils {
     object transformer extends c.universe.Transformer {
       override def transform(tree: c.Tree): c.Tree = {
         if (curCtxTree.isEmpty) q"$newCtx"
+        else if (tree.tpe == null) tree
         else if (tree.tpe =:= compileTime) q"$newCtx"
         else if (tree.equalsStructure(curCtxTree)) q"$newCtx"
         else if (tree.tpe =:= unsafe) q"$newCtx"
@@ -125,33 +126,45 @@ object Utils {
     val res = q"""rx.Rx.build{
       ($newOwnerCtx: rx.Ctx.Owner, $newDataCtx: rx.Ctx.Data) => $injected2
     }"""
-    println("buildMacro")
-    println(res)
     c.resetLocalAttrs(res)
   }
 
   def buildUnsafe[T: c.WeakTypeTag](c: Context)(func: c.Tree): c.Tree = {
     import c.universe._
 
-    val inferredCtx = c.inferImplicitValue(c.weakTypeOf[rx.Ctx.Owner])
+    val inferredOwner = c.inferImplicitValue(c.weakTypeOf[rx.Ctx.Owner])
+    val inferredData = c.inferImplicitValue(c.weakTypeOf[rx.Ctx.Data])
 
-    require(!inferredCtx.isEmpty)
+    require(!inferredOwner.isEmpty)
 
-    val newCtx = c.fresh[TermName]("rxctx")
+    val newDataCtx =  c.fresh[TermName]("rxDataCtx")
+    val newOwnerCtx =  c.fresh[TermName]("rxOwnerCtx")
 
-    val enclosingCtx =
-      if(inferredCtx.tpe =:= c.weakTypeOf[rx.Ctx.Owner.CompileTime.type]) c.Expr[rx.Ctx.Owner](q"rx.RxCtx.Unsafe")
-      else if(inferredCtx.isEmpty) c.Expr[rx.Ctx.Owner](q"rx.Ctx.Owner.Unsafe")
-      else c.Expr[rx.Ctx.Owner](q"$inferredCtx")
+    val unsafeOwner =
+      if(inferredOwner.tpe =:= c.weakTypeOf[rx.Ctx.Owner.CompileTime.type])
+        q"rx.Ctx.Owner.Unsafe"
+      else if(inferredOwner.isEmpty)
+        q"rx.Ctx.Owner.Unsafe"
+      else
+        inferredOwner
 
     val injected = injectRxCtx(c)(
       func,
-      newCtx,
-      inferredCtx,
+      newOwnerCtx,
+      inferredOwner,
       c.weakTypeOf[rx.Ctx.Owner.CompileTime.type],
       c.weakTypeOf[rx.Ctx.Owner.Unsafe.type]
     )
-    val res = q"rx.Rx.build{$newCtx: rx.Ctx.Owner => $injected($enclosingCtx)}"
+    val injected2 = injectRxCtx(c)(
+      injected,
+      newDataCtx,
+      inferredData,
+      c.weakTypeOf[rx.Ctx.Data.CompileTime.type],
+      c.weakTypeOf[rx.Ctx.Data.Unsafe.type]
+    )
+    val res = q"""rx.Rx.build{
+      ($newOwnerCtx: rx.Ctx.Owner, $newDataCtx: rx.Ctx.Data) => $injected2
+    }($unsafeOwner)"""
     c.resetLocalAttrs(res)
   }
 
