@@ -236,6 +236,5 @@ object BasicTests extends TestSuite{
         r.endsWith("(1)")
       )
     }
-
   }
 }
