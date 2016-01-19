@@ -8,8 +8,13 @@ import scala.reflect.macros._
   * Created by haoyi on 1/18/16.
   */
 object Utils {
-
-  def transform[T](c: Context)(src: c.Tree, newCtx: c.universe.TermName, curCtxTree: c.Tree): c.Tree = {
+  /**
+    * Walks a tree and injects in an implicit `RxCtx` over any `RxCtx` that
+    * was previously inferred. This is done because by the time the macro runs,
+    * implicits have already been resolved, so we cannot rely on implicit
+    * resolution to do this for us
+    */
+  def injectRxCtx[T](c: Context)(src: c.Tree, newCtx: c.universe.TermName, curCtxTree: c.Tree): c.Tree = {
     import c.universe._
     object transformer extends c.universe.Transformer {
       override def transform(tree: c.Tree): c.Tree = {
@@ -90,7 +95,7 @@ object Utils {
       if(isCompileTimeCtx) c.Expr[RxCtx](q"rx.RxCtx.Unsafe")
       else curCtx
 
-    val res = q"rx.Rx.build{$newCtx: rx.RxCtx => ${transform(c)(func.tree, newCtx, curCtx.tree)}}($enclosingCtx)"
+    val res = q"rx.Rx.build{$newCtx: rx.RxCtx => ${injectRxCtx(c)(func.tree, newCtx, curCtx.tree)}}($enclosingCtx)"
     c.Expr[Rx[T]](c.resetLocalAttrs(res))
   }
 
@@ -108,7 +113,7 @@ object Utils {
       else if(inferredCtx.isEmpty) c.Expr[RxCtx](q"rx.RxCtx.Unsafe")
       else c.Expr[RxCtx](q"$inferredCtx")
 
-    val res = q"rx.Rx.build{$newCtx: rx.RxCtx => ${transform(c)(func.tree, newCtx, inferredCtx)}}($enclosingCtx)"
+    val res = q"rx.Rx.build{$newCtx: rx.RxCtx => ${injectRxCtx(c)(func.tree, newCtx, inferredCtx)}}($enclosingCtx)"
     c.Expr[Rx[T]](c.resetLocalAttrs(res))
   }
 

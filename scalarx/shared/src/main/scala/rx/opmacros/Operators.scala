@@ -10,7 +10,7 @@ object Operators {
   def initialize(c: Context)(f: c.Tree, ctx: c.Expr[RxCtx]) = {
     import c.universe._
     val newCtx =  c.fresh[TermName]("rxctx")
-    val newFunc = transform(c)(f, newCtx, ctx.tree)
+    val newFunc = injectRxCtx(c)(f, newCtx, ctx.tree)
     val enclosingCtx = encCtx(c)(ctx)
     (q"($newCtx: RxCtx) => $newFunc", newCtx, enclosingCtx)
   }
