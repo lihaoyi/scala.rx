@@ -6,14 +6,14 @@ import acyclic.file
 object BasicTests extends TestSuite{
 
   //We dont care about potential Rx leaks in BasicTest
-  implicit val testctx = RxCtx.Unsafe
+  implicit val testctx = Ctx.Owner.Unsafe
 
   def tests = TestSuite{
     "sigTests" - {
       "basic" - {
         "rxHelloWorld" - {
           val a = Var(1); val b = Var(2)
-          val c = Rx.build{i: RxCtx=> a()(i) + b()(i) }
+          val c = Rx.build{(o: Ctx.Owner, d: Ctx.Data) => a()(d) + b()(d) }
           assert(c.now == 3)
           a() = 4
           assert(c.now == 6)
@@ -27,7 +27,7 @@ object BasicTests extends TestSuite{
         "ordering" - {
           var changes = ""
           val a = Var(1)
-          val b = Rx{ changes += "b"; a() + 1 }
+          val b = Rx{ changes += "b"; a()(Ctx.Data.voodoo) + 1 }
           val c = Rx{ changes += "c"; a() + b() }
           assert(changes == "bc")
           a() = 4

@@ -9,10 +9,18 @@ import scala.reflect.macros._
 object Operators {
   def initialize(c: Context)(f: c.Tree, owner: c.Tree) = {
     import c.universe._
-    val newCtx =  c.fresh[TermName]("rxctx")
-    val newFunc = injectRxCtx(c)(f, newCtx, owner)
+    val newDataCtx =  c.fresh[TermName]("rxDataCtx")
+    val newOwnerCtx =  c.fresh[TermName]("rxOwnerCtx")
+    val newFunc = injectRxCtx(c)(
+      f,
+      newOwnerCtx,
+      owner,
+      c.weakTypeOf[rx.Ctx.Owner.CompileTime.type],
+      c.weakTypeOf[rx.Ctx.Owner.Unsafe.type]
+    )
     val enclosingCtx = encCtx(c)(owner)
-    (q"($newCtx: rx.Ctx.Owner) => $newFunc", newCtx, enclosingCtx)
+    val newTree = q"($newOwnerCtx: rx.Ctx.Owner, $newDataCtx: rx.Ctx.Data) => $newFunc"
+    (newTree, newOwnerCtx, enclosingCtx)
   }
   def filtered[In: c.WeakTypeTag, T: c.WeakTypeTag]
               (c: Context)

@@ -17,15 +17,17 @@ object Utils {
   def injectRxCtx[T](c: Context)
                     (src: c.Tree,
                      newCtx: c.universe.TermName,
-                     curCtxTree: c.Tree)
+                     curCtxTree: c.Tree,
+                     compileTime: c.Type,
+                     unsafe: c.Type)
                     : c.Tree = {
     import c.universe._
     object transformer extends c.universe.Transformer {
       override def transform(tree: c.Tree): c.Tree = {
         if (curCtxTree.isEmpty) q"$newCtx"
-        else if (tree.tpe =:= c.weakTypeOf[rx.Ctx.Owner.CompileTime.type]) q"$newCtx"
+        else if (tree.tpe =:= compileTime) q"$newCtx"
         else if (tree.equalsStructure(curCtxTree)) q"$newCtx"
-        else if (tree.tpe =:= c.weakTypeOf[rx.Ctx.Owner.Unsafe.type]) q"$newCtx"
+        else if (tree.tpe =:= unsafe) q"$newCtx"
         else super.transform(tree)
       }
     }
@@ -85,26 +87,46 @@ object Utils {
     enclosingCtx
   }
 
-  def buildMacro[T: c.WeakTypeTag](c: Context)
-                                  (func: c.Tree)
-                                  (curCtx: c.Tree)
-                                  : c.Tree = {
+  def buildMacro[T: c.WeakTypeTag]
+                (c: Context)
+                (func: c.Tree)
+                (ownerCtx: c.Tree, dataCtx: c.Tree)
+                : c.Tree = {
     import c.universe._
 
-    val newCtx =  c.fresh[TermName]("rxctx")
+    val newDataCtx =  c.fresh[TermName]("rxDataCtx")
+    val newOwnerCtx =  c.fresh[TermName]("rxOwnerCtx")
 
-    val isCompileTimeCtx = curCtx.tpe =:= c.weakTypeOf[rx.Ctx.Owner.CompileTime.type]
+    val isCompileTimeCtx = ownerCtx.tpe =:= c.weakTypeOf[rx.Ctx.Owner.CompileTime.type]
 
     if(isCompileTimeCtx)
       ensureStaticEnclosingOwners(c)(c.internal.enclosingOwner, abortOnFail = true)
 
     val enclosingCtx =
       if(isCompileTimeCtx) q"rx.Ctx.Owner.Unsafe"
-      else curCtx
+      else ownerCtx
 
-    val injected = injectRxCtx(c)(func, newCtx, curCtx)
+    val injected1 = injectRxCtx(c)(
+      func,
+      newOwnerCtx,
+      ownerCtx,
+      c.weakTypeOf[rx.Ctx.Owner.CompileTime.type],
+      c.weakTypeOf[rx.Ctx.Owner.Unsafe.type]
+    )
 
-    val res = q"rx.Rx.build{$newCtx: rx.Ctx.Owner => $injected($enclosingCtx)}"
+    val injected2 = injectRxCtx(c)(
+      injected1,
+      newDataCtx,
+      dataCtx,
+      c.weakTypeOf[rx.Ctx.Data.CompileTime.type],
+      c.weakTypeOf[rx.Ctx.Data.Unsafe.type]
+    )
+
+    val res = q"""rx.Rx.build{
+      ($newOwnerCtx: rx.Ctx.Owner, $newDataCtx: rx.Ctx.Data) => $injected2
+    }"""
+    println("buildMacro")
+    println(res)
     c.resetLocalAttrs(res)
   }
 
@@ -122,18 +144,26 @@ object Utils {
       else if(inferredCtx.isEmpty) c.Expr[rx.Ctx.Owner](q"rx.Ctx.Owner.Unsafe")
       else c.Expr[rx.Ctx.Owner](q"$inferredCtx")
 
-    val res = q"rx.Rx.build{$newCtx: rx.Ctx.Owner => ${injectRxCtx(c)(func, newCtx, inferredCtx)}}($enclosingCtx)"
+    val injected = injectRxCtx(c)(
+      func,
+      newCtx,
+      inferredCtx,
+      c.weakTypeOf[rx.Ctx.Owner.CompileTime.type],
+      c.weakTypeOf[rx.Ctx.Owner.Unsafe.type]
+    )
+    val res = q"rx.Rx.build{$newCtx: rx.Ctx.Owner => $injected($enclosingCtx)}"
     c.resetLocalAttrs(res)
   }
 
-  def buildImplicitRxCtx(c: Context): c.Tree = {
+  def buildImplicitRxCtx[T: c.WeakTypeTag](c: Context): c.Tree = {
     import c.universe._
-    val inferredCtx = c.inferImplicitValue(c.weakTypeOf[rx.Ctx.Owner], withMacrosDisabled = true)
+    println("buildImplicitRxCtx\t"+c.weakTypeOf[T])
+    val inferredCtx = c.inferImplicitValue(c.weakTypeOf[T], withMacrosDisabled = true)
     val isCompileTime = inferredCtx.isEmpty
     val staticContext = ensureStaticEnclosingOwners(c)(c.internal.enclosingOwner, abortOnFail = false)
     val implicitCtx =
-      if(isCompileTime && staticContext) q"rx.Ctx.Owner.Unsafe"
-      else if(isCompileTime && !staticContext) q"rx.Ctx.Owner.CompileTime"
+      if(isCompileTime && staticContext) q"${c.prefix}.Unsafe"
+      else if(isCompileTime && !staticContext) q"${c.prefix}.CompileTime"
       else q"$inferredCtx"
     c.resetLocalAttrs(implicitCtx)
   }

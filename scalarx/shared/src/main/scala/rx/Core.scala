@@ -194,7 +194,7 @@ object Rx{
     * track of which other [[Node]]s are used within that block (via their
     * `apply` methods) so this [[Rx]] can recalculate when upstream changes.
     */
-  def apply[T](func: => T)(implicit curCtx: Ctx.Owner): Rx[T] = macro Utils.buildMacro[T]
+  def apply[T](func: => T)(implicit ownerCtx: Ctx.Owner, dataCtx: Ctx.Data): Rx[T] = macro Utils.buildMacro[T]
 
   def unsafe[T](func: => T): Rx[T] = macro Utils.buildUnsafe[T]
 
@@ -297,23 +297,27 @@ class Rx[+T](func: (Ctx.Owner, Ctx.Data) => T, owner: Option[Ctx.Owner]) extends
 object Ctx{
 
   object Data extends Generic[Data]{
-    @compileTimeOnly("No implicit RxCtx is available here!")
+    @compileTimeOnly("No implicit Ctx.Data is available here!")
     object CompileTime extends Data(throw new Exception())
 
     object Unsafe extends Data(throw new Exception(
-      "Invalid RxCtx: you can only call `Rx.apply` within an " +
+      "Invalid Ctx.Data: you can only call `Rx.apply` within an " +
         "`Rx{...}` block or where an implicit `RxCtx` is available"
     ))
+    @compileTimeOnly("@}}>---: A rose by any other name.")
+    implicit def voodoo: Data = macro Utils.buildImplicitRxCtx[rx.Ctx.Data]
   }
   class Data(rx0: => Rx[_]) extends Ctx(rx0)
   object Owner extends Generic[Owner]{
-    @compileTimeOnly("No implicit RxCtx is available here!")
+    @compileTimeOnly("No implicit Ctx.Owner is available here!")
     object CompileTime extends Owner(throw new Exception())
 
     object Unsafe extends Owner(throw new Exception(
-      "Invalid RxCtx: you can only call `Rx.apply` within an " +
+      "Invalid Ctx.Owner: you can only call `Rx.apply` within an " +
         "`Rx{...}` block or where an implicit `RxCtx` is available"
     ))
+    @compileTimeOnly("@}}>---: A rose by any other name.")
+    implicit def voodoo: Owner = macro Utils.buildImplicitRxCtx[rx.Ctx.Owner]
   }
   class Owner(rx0: => Rx[_]) extends Ctx(rx0)
 
@@ -326,8 +330,7 @@ object Ctx{
       *  2) RxCtx.Unsafe, if in a "static context"
       *  3) RxCtx.CompileTime, if in a "dynamic context" (other macros will rewrite CompileTime away)
       */
-    @compileTimeOnly("@}}>---: A rose by any other name.")
-    implicit def voodoo: T = macro Utils.buildImplicitRxCtx
+
   }
 }
 /**
