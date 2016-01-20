@@ -207,7 +207,7 @@ object CombinatorTests extends TestSuite{
       }
 
       "killRx" - {
-        val (a, b, c, d, e, f) = Utils.initGraph()
+        val (a, b, c, d, e, f) = Utils.initGraph
 
         assert(c.now == 3)
         assert(e.now == 7)

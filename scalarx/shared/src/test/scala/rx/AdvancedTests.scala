@@ -75,18 +75,18 @@ object AdvancedTests extends TestSuite{
   }
 
   def tests = TestSuite {
-//    'perf{
+    'perf{
 //      'init{
 //        val start = System.currentTimeMillis()
 //        var n = 0
 //        while(System.currentTimeMillis() < start + 10000){
-//          val (a, b, c, d, e, f) = Util.initGraph
+//          val (a, b, c, d, e, f) = Utils.initGraph
 //          n += 1
 //        }
 //        n
 //      }
 //      'propagations{
-//        val (a, b, c, d, e, f) = Util.initGraph
+//        val (a, b, c, d, e, f) = Utils.initGraph
 //        val start = System.currentTimeMillis()
 //        var n = 0
 //
@@ -96,7 +96,7 @@ object AdvancedTests extends TestSuite{
 //        }
 //        n
 //      }
-//    }
+    }
     "nesting" - {
       "nestedRxs" - {
         implicit val testctx = Ctx.Owner.Unsafe
@@ -266,24 +266,7 @@ object AdvancedTests extends TestSuite{
         c.now._2 == -1
       )
     }
-    "compileTimeChecks" - {
-      "simpleDef" - {
-        compileError("def fail() = Rx { }")
-      }
-      "nestedDef" - {
-        compileError("object Fail { def fail() = Rx { } }")
-      }
-      "nestedSafeCtx" - {
-        compileError("object Fail { def fail() = { implicit val ctx = RxCtx.safe() ; Rx { } } }")
-      }
-      "simpleUnsafeDef" - {
-        //heh
-        compileError("""compileError("def ok() = Rx.unsafe { }")""")
-      }
-      "nestedUnsafeCtx" - {
-        compileError("""compileError("object Fail { def fail() = { implicit val ctx = Ctx.Owner.Unsafe ; Rx { } } }")""")
-      }
-    }
+
     "leakyRxCtx" - {
       var testY = 0
       var testZ = 0
@@ -304,23 +287,6 @@ object AdvancedTests extends TestSuite{
       assert(testY == 500)
       assert(testZ == 1500)
     }
-    'separateOwnerData - {
-      // This test doesn't work because `compileError` isn't smart enough
-      // to detect failures due to @compileTimeOnly
 
-//      compileError("""
-//        def foo()(implicit ctx: rx.Ctx.Owner) = {
-//          val a = rx.Var(1)
-//          val b = rx.Rx(a() + 1)
-//          println(b())
-//          a
-//        }
-//
-//
-//        val x = rx.Rx.unsafe{
-//          val y = foo(); y() = y() + 1; println("done!")
-//        }
-//      """)
-    }
   }
 }

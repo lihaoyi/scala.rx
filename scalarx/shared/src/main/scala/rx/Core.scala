@@ -2,7 +2,7 @@ package rx
 
 import rx.opmacros.Utils
 
-import scala.annotation.compileTimeOnly
+import scala.reflect.internal.annotations.compileTimeOnly
 import scala.language.experimental.macros
 import scala.collection.mutable
 import scala.reflect.macros.Context
@@ -304,8 +304,14 @@ object Ctx{
       "Invalid Ctx.Data: you can only call `Rx.apply` within an " +
         "`Rx{...}` block or where an implicit `RxCtx` is available"
     ))
+    /**
+      * Dark magic. End result is the implicit ctx will be one of
+      *  1) The enclosing RxCtx, if it exists
+      *  2) RxCtx.Unsafe, if in a "static context"
+      *  3) RxCtx.CompileTime, if in a "dynamic context" (other macros will rewrite CompileTime away)
+      */
     @compileTimeOnly("@}}>---: A rose by any other name.")
-    implicit def voodoo: Data = macro Utils.buildImplicitRxCtx[rx.Ctx.Data]
+    implicit def voodoo: Data = macro Utils.voodooRxCtx[rx.Ctx.Data]
   }
   class Data(rx0: => Rx[_]) extends Ctx(rx0)
   object Owner extends Generic[Owner]{
@@ -316,21 +322,19 @@ object Ctx{
       "Invalid Ctx.Owner: you can only call `Rx.apply` within an " +
         "`Rx{...}` block or where an implicit `RxCtx` is available"
     ))
-    @compileTimeOnly("@}}>---: A rose by any other name.")
-    implicit def voodoo: Owner = macro Utils.buildImplicitRxCtx[rx.Ctx.Owner]
-  }
-  class Owner(rx0: => Rx[_]) extends Ctx(rx0)
-
-  class Generic[T] {
-
-    def safe(): T = macro Utils.buildSafeCtx
     /**
       * Dark magic. End result is the implicit ctx will be one of
       *  1) The enclosing RxCtx, if it exists
       *  2) RxCtx.Unsafe, if in a "static context"
       *  3) RxCtx.CompileTime, if in a "dynamic context" (other macros will rewrite CompileTime away)
       */
+    @compileTimeOnly("@}}>---: A rose by any other name.")
+    implicit def voodoo: Owner = macro Utils.voodooRxCtx[rx.Ctx.Owner]
+  }
+  class Owner(rx0: => Rx[_]) extends Ctx(rx0)
 
+  class Generic[T] {
+    def safe(): T = macro Utils.buildSafeCtx[T]
   }
 }
 /**
