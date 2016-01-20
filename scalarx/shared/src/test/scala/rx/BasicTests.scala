@@ -230,11 +230,12 @@ object BasicTests extends TestSuite{
       val v = Var(1).toString
       val r = Rx(1).toString
       assert(
-        v.startsWith("rx.Var@"),
+        v.startsWith("Var@"),
         v.endsWith("(1)"),
-        r.startsWith("rx.Rx@"),
+        r.startsWith("Rx@"),
         r.endsWith("(1)")
       )
+      (r.toString, v.toString)
     }
   }
 }

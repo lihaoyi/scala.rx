@@ -1,4 +1,4 @@
-package rx
+package rx.opmacros
 object Compat{
   type Context = scala.reflect.macros.Context
   def enclosingName(c: Context) = {

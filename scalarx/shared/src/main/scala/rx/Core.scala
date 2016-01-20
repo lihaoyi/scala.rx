@@ -1,6 +1,6 @@
 package rx
 
-import rx.opmacros.Utils
+import rx.opmacros.{Factories, Utils}
 
 import scala.reflect.internal.annotations.compileTimeOnly
 import scala.language.experimental.macros
@@ -10,18 +10,18 @@ import scala.util.Try
 
 /**
   * A reactive value of type [[T]]. Keeps track of triggers and
-  * other [[Node]]s that depend on it, running any triggers and notifying
-  * downstream [[Node]]s when its value changes.
+  * other [[Rx]]s that depend on it, running any triggers and notifying
+  * downstream [[Rx]]s when its value changes.
   */
-sealed trait Node[+T] { self =>
+sealed trait Rx[+T] { self =>
   /**
-    * Get the current value of this [[Node]] at this very moment,
+    * Get the current value of this [[Rx]] at this very moment,
     * without listening for updates
     */
   def now: T
 
   trait Internal {
-    val downStream = mutable.Set.empty[Rx[_]]
+    val downStream = mutable.Set.empty[Rx.Dynamic[_]]
     val observers = mutable.Set.empty[Obs]
 
     def clearDownstream() = Internal.downStream.clear()
@@ -36,10 +36,10 @@ sealed trait Node[+T] { self =>
   def Internal: Internal
 
   /**
-    * Get the current value of this [[Node]] and listen for updates. Only
+    * Get the current value of this [[Rx]] and listen for updates. Only
     * callable with an `Rx{...}` block (or equivalently when an implicit
     * [[Ctx.Data]] is available), and the contextual/implicit [[Rx]] is the
-    * one that will update when the value of this [[Node]] changes.
+    * one that will update when the value of this [[Rx]] changes.
     */
   def apply()(implicit ctx: Ctx.Data) = {
     Internal.addDownstream(ctx)
@@ -47,20 +47,20 @@ sealed trait Node[+T] { self =>
   }
 
   /**
-    * Kills this [[Node]]; stop listening for updates, and release all references
-    * to other [[Node]]s. This lets the [[Node]] be garbage-collected, since otherwise
-    * even when not-in-use it will continue to be referenced by the other [[Node]]s
+    * Kills this [[Rx]]; stop listening for updates, and release all references
+    * to other [[Rx]]s. This lets the [[Rx]] be garbage-collected, since otherwise
+    * even when not-in-use it will continue to be referenced by the other [[Rx]]s
     * it depends on.
     */
   def kill(): Unit
 
   /**
-    * Force trigger/notifications of any downstream [[Node]]s, without changing the current value
+    * Force trigger/notifications of any downstream [[Rx]]s, without changing the current value
     */
-  def propagate(): Unit = Node.doRecalc(Internal.downStream.toSet, Internal.observers)
+  def propagate(): Unit = Rx.doRecalc(Internal.downStream.toSet, Internal.observers)
 
   /**
-    * Run the given function immediately, and again whenever this [[Node]]s value
+    * Run the given function immediately, and again whenever this [[Rx]]s value
     * changes. Returns an [[Obs]] if you want to keep track of this trigger or
     * kill it later.
     */
@@ -69,7 +69,7 @@ sealed trait Node[+T] { self =>
     triggerLater(thunk)
   }
   /**
-    * Run the given function whenever this [[Node]]s value changes, but
+    * Run the given function whenever this [[Rx]]s value changes, but
     * not immediately. Returns an [[Obs]] if you want to keep track of this trigger or
     * kill it later.
     */
@@ -82,14 +82,36 @@ sealed trait Node[+T] { self =>
   def toRx(implicit ctx: Ctx.Owner): Rx[T]
 
   def toTry: Try[T]
-
-  override def toString() = s"${super.toString}($now)"
 }
-object Node{
-  def doRecalc(rxs: Iterable[Rx[_]], obs: Iterable[Obs]): Unit = {
-    implicit val ordering = Ordering.by[Rx[_], Int](-_.Internal.depth)
+
+
+
+object Rx{
+  /**
+    * Constructs a new [[Rx]] from an expression, that will be re-run any time
+    * an upstream [[Rx]] changes to re-calculate the value of this [[Rx]].
+    *
+    * Also injects an implicit [[Ctx.Owner]] into that block, which serves to keep
+    * track of which other [[Rx]]s are used within that block (via their
+    * `apply` methods) so this [[Rx]] can recalculate when upstream changes.
+    */
+  def apply[T](func: => T)(implicit ownerCtx: rx.Ctx.Owner): Rx.Dynamic[T] = macro Factories.rxApplyMacro[T]
+
+  def unsafe[T](func: => T): Rx[T] = macro Factories.buildUnsafe[T]
+
+  /**
+    * Constructs a new [[Rx]] from an expression (which explicitly takes an
+    * [[Ctx.Owner]]) and an optional `owner` [[Ctx.Owner]].
+    */
+  def build[T](func: (Ctx.Owner, Ctx.Data) => T)(implicit owner: Ctx.Owner): Rx.Dynamic[T] = {
+    require(owner != null, "owning RxCtx was null! Perhaps mark the caller lazy?")
+    new Rx.Dynamic(func, if(owner == Ctx.Owner.Unsafe) None else Some(owner))
+  }
+
+  def doRecalc(rxs: Iterable[Rx.Dynamic[_]], obs: Iterable[Obs]): Unit = {
+    implicit val ordering = Ordering.by[Rx.Dynamic[_], Int](-_.Internal.depth)
     val queue = rxs.to[mutable.PriorityQueue]
-    val seen = mutable.Set.empty[Node[_]]
+    val seen = mutable.Set.empty[Rx.Dynamic[_]]
     val observers = obs.to[mutable.Set]
     var currentDepth = 0
     while(queue.nonEmpty){
@@ -110,6 +132,93 @@ object Node{
     }
     observers.foreach(_.thunk())
   }
+
+  /**
+    * A [[Rx]] that depends on other [[Rx]]s, updating automatically
+    * when their value changes. Optionally has an [[owner]], which is
+    * another [[Rx]] this one was defined within. The [[Rx]] gets killed
+    * automatically when the [[owner]] recalculates, in order to avoid
+    * memory leaks from un-used [[Rx]]s hanging around.
+    */
+  class Dynamic[+T](func: (Ctx.Owner, Ctx.Data) => T, owner: Option[Ctx.Owner]) extends Rx[T] { self =>
+
+    owner.foreach { o =>
+      o.contextualRx.Internal.owned.add(self)
+      o.contextualRx.Internal.addDownstream(new Ctx.Data(self))
+    }
+
+    private [this] var cached: Try[T] = null
+
+    object Internal extends Internal{
+
+      def owner = self.owner
+
+      var depth = 0
+      var dead = false
+      val upStream = mutable.Set.empty[Rx[_]]
+      val owned = mutable.Set.empty[Rx.Dynamic[_]]
+
+      override def clearDownstream() = {
+        Internal.downStream.foreach(_.Internal.upStream.remove(self))
+        Internal.downStream.clear()
+      }
+
+      def clearUpstream() = {
+        Internal.upStream.foreach(_.Internal.downStream.remove(self))
+        Internal.upStream.clear()
+      }
+
+      def calc(): Try[T] = {
+        Internal.clearUpstream()
+        Internal.owned.foreach(_.ownerKilled())
+        Internal.owned.clear()
+        Try(func(new Ctx.Owner(self), new Ctx.Data(self)))
+      }
+
+      def update() = {
+        cached = calc()
+      }
+    }
+
+    Internal.update()
+
+    override def now = cached.get
+
+    /**
+      * @return the current value of this [[Rx]] as a `Try`
+      */
+    def toTry = cached
+
+    def ownerKilled(): Unit = {
+      Internal.dead = true
+      Internal.clearDownstream()
+      Internal.clearUpstream()
+      Internal.owned.foreach(_.ownerKilled())
+      Internal.owned.clear()
+    }
+
+    override def toRx(implicit ctx: Ctx.Owner): Rx[T] = Rx.build {
+      (ownerCtx: Ctx.Owner, dataCtx: Ctx.Data) => this.apply()(dataCtx)
+    }(ctx)
+
+    override def kill(): Unit = {
+      owner.foreach(_.contextualRx.Internal.owned.remove(this))
+      ownerKilled()
+    }
+
+    /**
+      * Force this [[Rx]] to recompute (whether or not any upstream [[Rx]]s
+      * changed) and propagate changes downstream. Does nothing if the [[Rx]]
+      * has been [[kill]]ed
+      */
+    def recalc(): Unit = if (!Internal.dead) {
+      val oldValue = toTry
+      Internal.update()
+      if (oldValue != toTry)
+        Rx.doRecalc(Internal.downStream, Internal.observers)
+    }
+    override def toString() = s"Rx@${Integer.toHexString(hashCode()).take(2)}($now)"
+  }
 }
 
 /**
@@ -129,7 +238,6 @@ case class VarTuple[T](v: Var[T], value: T){
   def set() = v.Internal.value = value
 }
 
-
 object Var{
   /**
     * Create a [[Var]] from an initial value
@@ -143,7 +251,7 @@ object Var{
     */
   def set(args: VarTuple[_]*) = {
     args.foreach(_.set())
-    Node.doRecalc(
+    Rx.doRecalc(
       args.flatMap(_.v.Internal.downStream),
       args.flatMap(_.v.Internal.observers)
     )
@@ -152,9 +260,9 @@ object Var{
 }
 /**
   * A smart variable that can be set manually, and will notify downstream
-  * [[Node]]s and run any triggers whenever its value changes.
+  * [[Rx]]s and run any triggers whenever its value changes.
   */
-class Var[T](initialValue: T) extends Node[T]{
+class Var[T](initialValue: T) extends Rx[T]{
 
   object Internal extends Internal{
     def depth = 0
@@ -167,12 +275,12 @@ class Var[T](initialValue: T) extends Node[T]{
 
   /**
     * Sets the value of this [[Var]] and runs any triggers/notifies
-    * any downstream [[Node]]s to update
+    * any downstream [[Rx]]s to update
     */
   def update(newValue: T): Unit = {
     if (Internal.value != newValue) {
       Internal.value = newValue
-      Node.doRecalc(Internal.downStream.toSet, Internal.observers)
+      Rx.doRecalc(Internal.downStream.toSet, Internal.observers)
     }
   }
 
@@ -183,115 +291,8 @@ class Var[T](initialValue: T) extends Node[T]{
   override def kill() = {
     Internal.clearDownstream()
   }
-}
 
-object Rx{
-  /**
-    * Constructs a new [[Rx]] from an expression, that will be re-run any time
-    * an upstream [[Node]] changes to re-calculate the value of this [[Rx]].
-    *
-    * Also injects an implicit [[Ctx.Owner]] into that block, which serves to keep
-    * track of which other [[Node]]s are used within that block (via their
-    * `apply` methods) so this [[Rx]] can recalculate when upstream changes.
-    */
-  def apply[T](func: => T)(implicit ownerCtx: Ctx.Owner): Rx[T] = macro Utils.rxApplyMacro[T]
-
-  def unsafe[T](func: => T): Rx[T] = macro Utils.buildUnsafe[T]
-
-  /**
-    * Constructs a new [[Rx]] from an expression (which explicitly takes an
-    * [[Ctx.Owner]]) and an optional `owner` [[Ctx.Owner]].
-    */
-  def build[T](func: (Ctx.Owner, Ctx.Data) => T)(implicit owner: Ctx.Owner): Rx[T] = {
-    require(owner != null, "owning RxCtx was null! Perhaps mark the caller lazy?")
-    new Rx(func, if(owner == Ctx.Owner.Unsafe) None else Some(owner))
-  }
-}
-
-/**
-  * A [[Node]] that depends on other [[Node]]s, updating automatically
-  * when their value changes. Optionally has an [[owner]], which is
-  * another [[Rx]] this one was defined within. The [[Rx]] gets killed
-  * automatically when the [[owner]] recalculates, in order to avoid
-  * memory leaks from un-used [[Rx]]s hanging around.
-  */
-class Rx[+T](func: (Ctx.Owner, Ctx.Data) => T, owner: Option[Ctx.Owner]) extends Node[T] { self =>
-
-  owner.foreach { o =>
-    o.contextualRx.Internal.owned.add(self)
-    o.contextualRx.Internal.addDownstream(new Ctx.Data(self))
-  }
-
-  private [this] var cached: Try[T] = null
-
-  object Internal extends Internal{
-
-    def owner = self.owner
-
-    var depth = 0
-    var dead = false
-    val upStream = mutable.Set.empty[Node[_]]
-    val owned = mutable.Set.empty[Rx[_]]
-
-    override def clearDownstream() = {
-      Internal.downStream.foreach(_.Internal.upStream.remove(self))
-      Internal.downStream.clear()
-    }
-
-    def clearUpstream() = {
-      Internal.upStream.foreach(_.Internal.downStream.remove(self))
-      Internal.upStream.clear()
-    }
-
-    def calc(): Try[T] = {
-      Internal.clearUpstream()
-      Internal.owned.foreach(_.ownerKilled())
-      Internal.owned.clear()
-      Try(func(new Ctx.Owner(self), new Ctx.Data(self)))
-    }
-
-    def update() = {
-      cached = calc()
-    }
-  }
-
-  Internal.update()
-
-  override def now = cached.get
-
-  /**
-    * @return the current value of this [[Rx]] as a `Try`
-    */
-  def toTry = cached
-
-  def ownerKilled(): Unit = {
-    Internal.dead = true
-    Internal.clearDownstream()
-    Internal.clearUpstream()
-    Internal.owned.foreach(_.ownerKilled())
-    Internal.owned.clear()
-  }
-
-  override def toRx(implicit ctx: Ctx.Owner): Rx[T] = Rx.build {
-    (ownerCtx: Ctx.Owner, dataCtx: Ctx.Data) => this.apply()(dataCtx)
-  }(ctx)
-
-  override def kill(): Unit = {
-    owner.foreach(_.contextualRx.Internal.owned.remove(this))
-    ownerKilled()
-  }
-
-  /**
-    * Force this [[Rx]] to recompute (whether or not any upstream [[Node]]s
-    * changed) and propagate changes downstream. Does nothing if the [[Rx]]
-    * has been [[kill]]ed
-    */
-  def recalc(): Unit = if (!Internal.dead) {
-    val oldValue = toTry
-    Internal.update()
-    if (oldValue != toTry)
-      Node.doRecalc(Internal.downStream, Internal.observers)
-  }
+  override def toString() = s"Var@${Integer.toHexString(hashCode()).take(2)}($now)"
 }
 
 object Ctx{
@@ -300,7 +301,7 @@ object Ctx{
     @compileTimeOnly("No implicit Ctx.Data is available here!")
     implicit object CompileTime extends Data(???)
   }
-  class Data(rx0: => Rx[_]) extends Ctx(rx0)
+  class Data(rx0: => Rx.Dynamic[_]) extends Ctx(rx0)
 
   object Owner extends Generic[Owner]{
     @compileTimeOnly("No implicit Ctx.Owner is available here!")
@@ -316,29 +317,29 @@ object Ctx{
       *  3) RxCtx.CompileTime, if in a "dynamic context" (other macros will rewrite CompileTime away)
       */
     @compileTimeOnly("@}}>---: A rose by any other name.")
-    implicit def voodoo: Owner = macro Utils.voodooRxCtx[rx.Ctx.Owner]
+    implicit def voodoo: Owner = macro Factories.automaticOwnerContext[rx.Ctx.Owner]
   }
 
-  class Owner(rx0: => Rx[_]) extends Ctx(rx0)
+  class Owner(rx0: => Rx.Dynamic[_]) extends Ctx(rx0)
 
   class Generic[T] {
-    def safe(): T = macro Utils.buildSafeCtx[T]
+    def safe(): T = macro Factories.buildSafeCtx[T]
   }
 }
 /**
   * An implicit scope representing a "currently evaluating" [[Rx]]. Used to keep
   * track of dependencies or ownership.
   */
-class Ctx(rx0: => Rx[_]){
+class Ctx(rx0: => Rx.Dynamic[_]){
   lazy val contextualRx = rx0
 }
 
 
 /**
   * Wraps a simple callback, created by `trigger`, that fires when that
-  * [[Node]] changes.
+  * [[Rx]] changes.
   */
-class Obs(val thunk: () => Unit, upstream: Node[_]){
+class Obs(val thunk: () => Unit, upstream: Rx[_]){
   object Internal{
     var dead = false
   }

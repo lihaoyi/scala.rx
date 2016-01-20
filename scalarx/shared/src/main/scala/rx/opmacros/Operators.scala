@@ -1,11 +1,14 @@
 package rx.opmacros
 
 import rx.opmacros.Utils._
-import rx.{Node, Rx}
+import rx.Rx
 
 import scala.language.experimental.macros
 import scala.reflect.macros._
 
+/**
+  * Implementations for the various macros that Scala.rx defines for its operators.
+  */
 object Operators {
   def initialize(c: Context)(f: c.Tree, owner: c.Tree) = {
     import c.universe._
@@ -13,93 +16,99 @@ object Operators {
     val newDataCtx =  c.fresh[TermName]("rxDataCtx")
     val newOwnerCtx =  c.fresh[TermName]("rxOwnerCtx")
     val newFunc2 = doubleInject(c)(f, newOwnerCtx, owner, newDataCtx, data)
-    val enclosingCtx = encCtx(c)(owner)
-    val newTree = q"($newOwnerCtx: rx.Ctx.Owner, $newDataCtx: rx.Ctx.Data) => $newFunc2"
+    val enclosingCtx = Utils.enclosingCtx(c)(owner)
+    val newTree = q"($newOwnerCtx: _root_.rx.Ctx.Owner, $newDataCtx: _root_.rx.Ctx.Data) => $newFunc2"
     (newTree, newOwnerCtx, enclosingCtx)
   }
-  def filtered[In: c.WeakTypeTag, T: c.WeakTypeTag]
+
+  def filter[In: c.WeakTypeTag, T: c.WeakTypeTag]
               (c: Context)
               (f: c.Expr[In => Boolean])
               (ownerCtx: c.Expr[rx.Ctx.Owner]): c.Expr[Rx[T]] = {
     import c.universe._
     val (checkFunc, newCtx, enclosingCtx) = initialize(c)(f.tree, ownerCtx.tree)
     val initValue = q"${c.prefix}.macroImpls.get(${c.prefix}.node)"
-
-    val res = c.Expr[rx.Rx[T]](q"""
+    resetExpr[Rx[T]](c)(q"""
       ${c.prefix}.macroImpls.filterImpl($initValue, $checkFunc, $enclosingCtx)
     """)
-    c.Expr[Rx[T]](c.resetLocalAttrs(res.tree))
   }
 
-  type Id[T] = T
-
-  def folded[T: c.WeakTypeTag, V: c.WeakTypeTag, Wrap[_]]
-            (c: Context)
-            (start: c.Expr[Wrap[V]])
-            (f: c.Expr[(Wrap[V], Wrap[T]) => Wrap[V]])
-            (ownerCtx: c.Expr[rx.Ctx.Owner])
-            (implicit w: c.WeakTypeTag[Wrap[_]]): c.Expr[Rx[V]] = {
+  def fold[T: c.WeakTypeTag, V: c.WeakTypeTag, Wrap[_]]
+          (c: Context)
+          (start: c.Expr[Wrap[V]])
+          (f: c.Expr[(Wrap[V], Wrap[T]) => Wrap[V]])
+          (ownerCtx: c.Expr[rx.Ctx.Owner])
+          (implicit w: c.WeakTypeTag[Wrap[_]]): c.Expr[Rx[V]] = {
 
     import c.universe._
     val (foldFunc, newCtx, enclosingCtx) = initialize(c)(f.tree, ownerCtx.tree)
-    c.Expr[Rx[V]](c.resetLocalAttrs(q"""
+    resetExpr[Rx[V]](c)(q"""
       ${c.prefix}.macroImpls.foldImpl($start, $foldFunc, $enclosingCtx)
-    """))
+    """)
   }
 
-  def mapped[T: c.WeakTypeTag, V: c.WeakTypeTag, Wrap[_]]
-            (c: Context)
-            (f: c.Expr[Wrap[T] => Wrap[V]])
-            (ownerCtx: c.Expr[rx.Ctx.Owner])
-            (implicit w: c.WeakTypeTag[Wrap[_]])
-            : c.Expr[Rx[V]] = {
+  def map[T: c.WeakTypeTag, V: c.WeakTypeTag, Wrap[_]]
+         (c: Context)
+         (f: c.Expr[Wrap[T] => Wrap[V]])
+         (ownerCtx: c.Expr[rx.Ctx.Owner])
+         (implicit w: c.WeakTypeTag[Wrap[_]])
+         : c.Expr[Rx[V]] = {
 
     import c.universe._
     val (call, newCtx, enclosingCtx) = initialize(c)(f.tree, ownerCtx.tree)
 
-    c.Expr[Rx[V]](c.resetLocalAttrs(q"""
+    Utils.resetExpr[Rx[V]](c)(q"""
       ${c.prefix}.macroImpls.mappedImpl($call, $enclosingCtx)
-    """))
+    """)
   }
 
-  def flatMapped[T: c.WeakTypeTag, V: c.WeakTypeTag, Wrap[_]]
-                (c: Context)
-                (f: c.Expr[Wrap[T] => Wrap[Rx[V]]])
-                (ownerCtx: c.Expr[rx.Ctx.Owner])
-                (implicit w: c.WeakTypeTag[Wrap[_]])
-                : c.Expr[Rx[V]] = {
+  def flatMap[T: c.WeakTypeTag, V: c.WeakTypeTag, Wrap[_]]
+             (c: Context)
+             (f: c.Expr[Wrap[T] => Wrap[Rx[V]]])
+             (ownerCtx: c.Expr[rx.Ctx.Owner])
+             (implicit w: c.WeakTypeTag[Wrap[_]])
+             : c.Expr[Rx[V]] = {
 
     import c.universe._
     val (call, newCtx, enclosingCtx) = initialize(c)(f.tree, ownerCtx.tree)
 
-    c.Expr[Rx[V]](c.resetLocalAttrs(q"""
+    resetExpr[Rx[V]](c)(q"""
       ${c.prefix}.macroImpls.flatMappedImpl($call, $enclosingCtx)
-    """))
+    """)
   }
 
 
-  def reduced[T: c.WeakTypeTag, Wrap[_]]
-             (c: Context)
-             (f: c.Expr[(Wrap[T], Wrap[T]) => Wrap[T]])
-             (ownerCtx: c.Expr[rx.Ctx.Owner])
-             (implicit w: c.WeakTypeTag[Wrap[_]]): c.Expr[Rx[T]] = {
+  def reduce[T: c.WeakTypeTag, Wrap[_]]
+            (c: Context)
+            (f: c.Expr[(Wrap[T], Wrap[T]) => Wrap[T]])
+            (ownerCtx: c.Expr[rx.Ctx.Owner])
+            (implicit w: c.WeakTypeTag[Wrap[_]]): c.Expr[Rx[T]] = {
     import c.universe._
     val (reduceFunc, newCtx, enclosingCtx) = initialize(c)(f.tree, ownerCtx.tree)
 
     val initValue = q"${c.prefix}.macroImpls.get(${c.prefix}.node)"
 
-    c.Expr[Rx[T]](c.resetLocalAttrs(q"""
+    resetExpr[Rx[T]](c)(q"""
       ${c.prefix}.macroImpls.reducedImpl($initValue, $reduceFunc, $enclosingCtx)
-    """))
+    """)
 
   }
-
-
 }
+
+/**
+  * Non-macro runtime implementations for the functions that Scala.rx's macros
+  * forward to. This is parametrized on a [[Wrap]]per type, to be re-usable for
+  * both operators dealing with `T` and `Try[T]`.
+  *
+  * Provides a small number of helpers to deal with generically dealing with
+  * `Wrap[T]`s
+  */
 trait Operators[T, Wrap[_]]{
-  def get[V](t: Node[V]): Wrap[V]
+
+  def get[V](t: Rx[V]): Wrap[V]
   def unwrap[V](t: Wrap[V]): V
-  def prefix: Node[T]
+  def prefix: Rx[T]
+
   def flatMappedImpl[V](call: (rx.Ctx.Owner, rx.Ctx.Data) => Wrap[T] => Wrap[Rx[V]],
                         enclosing: rx.Ctx.Owner): Rx[V] = {
 

@@ -14,7 +14,7 @@ val scalarx = crossProject.settings(
   ) ++ (
     if (scalaVersion.value startsWith "2.11.") Nil
     else Seq(
-      compilerPlugin("org.scalamacros" % s"paradise" % "2.0.0" cross CrossVersion.full),
+      compilerPlugin("org.scalamacros" % "paradise" % "2.0.1" cross CrossVersion.full),
       "org.scalamacros" %% s"quasiquotes" % "2.0.0"
     )
   ),
