@@ -9,47 +9,52 @@ import scala.util.Try
 package object rx {
 
 
+  object GenericOps{
 
+    class Macros[T](node: Node[T]) extends Operators[T, Id] {
+      def prefix = node
+      def get[V](t: Node[V]) = t.now
+      def unwrap[V](t: V) = t
+    }
+  }
   /**
    * All [[Node]]s have a set of operations you can perform on them, e.g. `map` or `filter`
    */
   implicit class GenericOps[T](val node: Node[T]) extends AnyVal {
     import scala.language.experimental.macros
 
-    def macroImpls = new Operators[T, Id] {
-      def prefix = node
-      def get[V](t: Node[V]) = t.now
-      def unwrap[V](t: V) = t
-    }
-    def map[V](f: Id[T] => Id[V])(implicit ctx: RxCtx): Rx[V] = macro Operators.mapped[T, V, Id]
+    def macroImpls = new GenericOps.Macros(node)
+    def map[V](f: Id[T] => Id[V])(implicit ownerCtx: Ctx.Owner): Rx[V] = macro Operators.mapped[T, V, Id]
 
-    def flatMap[V](f: Id[T] => Id[Rx[V]])(implicit ctx: RxCtx): Rx[V] = macro Operators.flatMapped[T, V, Id]
+    def flatMap[V](f: Id[T] => Id[Rx[V]])(implicit ownerCtx: Ctx.Owner): Rx[V] = macro Operators.flatMapped[T, V, Id]
 
-    def filter(f: T => Boolean)(implicit ctx: RxCtx): Rx[T] = macro Operators.filtered[T,T]
+    def filter(f: Id[T] => Boolean)(implicit ownerCtx: Ctx.Owner): Rx[T] = macro Operators.filtered[T,T]
 
-    def fold[V](start: V)(f: ((Id[V], Id[T]) => Id[V]))(implicit ctx: RxCtx): Rx[V] = macro Operators.folded[T, V, Id]
+    def fold[V](start: Id[V])(f: ((Id[V], Id[T]) => Id[V]))(implicit ownerCtx: Ctx.Owner): Rx[V] = macro Operators.folded[T, V, Id]
 
-    def reduce(f: (Id[T], Id[T]) => Id[T])(implicit ctx: RxCtx): Rx[T] = macro Operators.reduced[T, Id]
+    def reduce(f: (Id[T], Id[T]) => Id[T])(implicit ownerCtx: Ctx.Owner): Rx[T] = macro Operators.reduced[T, Id]
 
     def foreach(f: T => Unit) = node.trigger(f(node.now))
   }
-
-  abstract class SafeOps[T](val node: Rx[T]) {
-    import scala.language.experimental.macros
-    def macroImpls = new Operators[T, util.Try] {
+  object SafeOps{
+    class Macros[T](node: Node[T]) extends Operators[T, util.Try] {
       def prefix = node
       def get[V](t: Node[V]) = t.toTry
       def unwrap[V](t: Try[V]) = t.get
     }
-    def map[V](f: Try[T] => Try[V])(implicit ctx: RxCtx): Rx[V] = macro Operators.mapped[T, V, Try]
+  }
+  abstract class SafeOps[T](val node: Rx[T]) {
+    import scala.language.experimental.macros
+    def macroImpls = new SafeOps.Macros(node)
+    def map[V](f: Try[T] => Try[V])(implicit ownerCtx: Ctx.Owner): Rx[V] = macro Operators.mapped[T, V, Try]
 
-    def flatMap[V](f: Try[T] => Try[Rx[V]])(implicit ctx: RxCtx): Rx[V] = macro Operators.flatMapped[T, V, Try]
+    def flatMap[V](f: Try[T] => Try[Rx[V]])(implicit ownerCtx: Ctx.Owner): Rx[V] = macro Operators.flatMapped[T, V, Try]
 
-    def filter(f: Try[T] => Boolean)(implicit ctx: RxCtx): Rx[T] = macro Operators.filtered[Try[T],T]
+    def filter(f: Try[T] => Boolean)(implicit ownerCtx: Ctx.Owner): Rx[T] = macro Operators.filtered[Try[T],T]
 
-    def fold[V](start: Try[V])(f: (Try[V], Try[T]) => Try[V])(implicit ctx: RxCtx): Rx[V] = macro Operators.folded[T, V, Try]
+    def fold[V](start: Try[V])(f: (Try[V], Try[T]) => Try[V])(implicit ownerCtx: Ctx.Owner): Rx[V] = macro Operators.folded[T, V, Try]
 
-    def reduce(f: (Try[T], Try[T]) => Try[T])(implicit ctx: RxCtx): Rx[T] = macro Operators.reduced[T, Try]
+    def reduce(f: (Try[T], Try[T]) => Try[T])(implicit ownerCtx: Ctx.Owner): Rx[T] = macro Operators.reduced[T, Try]
 
     def foreach(f: T => Unit) = node.trigger(node.toTry.foreach(f))
   }

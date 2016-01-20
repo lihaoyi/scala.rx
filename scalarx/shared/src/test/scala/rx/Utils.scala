@@ -1,11 +1,11 @@
 package rx
 import acyclic.file
 
-object Util {
+object Utils {
   /**
    * Generates a short dataflow graph for testing
    */
-  def initGraph()(implicit ctx: RxCtx) = {
+  def initGraph(implicit ctx: Ctx.Owner) = {
     val a = Var(1) // 3
 
     val b = Var(2) // 2

@@ -7,7 +7,8 @@ val scalarx = crossProject.settings(
   version := "0.3.0-SNAPSHOT",
 
   libraryDependencies ++= Seq(
-    "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+    "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
+    "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
     "com.lihaoyi" %%% "utest" % "0.3.1" % "test",
     "com.lihaoyi" %% "acyclic" % "0.1.3" % "provided"
   ) ++ (
@@ -42,8 +43,15 @@ val scalarx = crossProject.settings(
           <name>Li Haoyi</name>
           <url>https://github.com/lihaoyi</url>
         </developer>
-      </developers>
-
+      </developers>,
+  unmanagedSourceDirectories in Compile ++= {
+    if (scalaVersion.value startsWith "2.10.") Seq(baseDirectory.value / ".."/"shared"/"src"/ "main" / "scala-2.10")
+    else Seq(baseDirectory.value / ".."/"shared" / "src"/"main" / "scala-2.11")
+  },
+  unmanagedSourceDirectories in Test ++= {
+    if (scalaVersion.value startsWith "2.10.") Seq(baseDirectory.value / ".."/"shared"/"src"/ "test" / "scala-2.10")
+    else Seq(baseDirectory.value / ".."/"shared" / "src" / "test" / "scala-2.11")
+  }
 ).jsSettings(
   libraryDependencies ++= Seq(
     "org.scala-js" %%% "scalajs-dom" % "0.8.2" % "provided"
@@ -59,6 +67,7 @@ val scalarx = crossProject.settings(
     "com.typesafe.akka" %% "akka-actor" % "2.3.12" % "provided"
   )
 )
+
 lazy val js = scalarx.js
 
 lazy val jvm = scalarx.jvm

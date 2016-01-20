@@ -9,23 +9,23 @@ import rx.async._
 object EventedTests extends TestSuite {
 
   implicit val todo = new AsyncScheduler(Executors.newSingleThreadScheduledExecutor(),ExecutionContext.Implicits.global)
-  implicit val testctx = RxCtx.safe()
+  import Ctx.Owner.Unsafe._
 
 
   def tests = TestSuite {
     "debounce" - {
       "simple" - {
         val a = Var(10)
-        val b = a.debounce(200.millis)
+        val b = a.debounce(1000.millis)
         a() = 5
         assert(b.now == 10)
 
         eventually {
           b.now == 5
         }
-
+        val curr = b.now
         a() = 2
-        assert(b.now == 5)
+        assert(b.now == curr)
 
         eventually {
           b.now == 2
@@ -43,8 +43,8 @@ object EventedTests extends TestSuite {
       }
       "longer" - {
         val a = Var(10)
-        val b = a.debounce(200.millis)
-        val c = Rx( a() * 2 ).debounce(200.millis)
+        val b = a.debounce(1000.millis)
+        val c = Rx( a() * 2 ).debounce(1000.millis)
         var count = 0
         val o = b.triggerLater { count += 1 }
         a() = 5
@@ -95,7 +95,7 @@ object EventedTests extends TestSuite {
     "delayed" - {
       "simple" - {
         val a = Var(10)
-        val b = a.delay(100.millis)
+        val b = a.delay(1000.millis)
         a() = 5
         assert(b.now == 10)
         eventually(
@@ -114,8 +114,8 @@ object EventedTests extends TestSuite {
       }
       "longer" - {
         val a = Var(10)
-        val b = a.delay(100 millis)
-        val c = Rx( a() * 2 ).delay(100 millis)
+        val b = a.delay(1000 millis)
+        val c = Rx( a() * 2 ).delay(1000 millis)
         var count = 0
         c.trigger(count += 1)
         a() = 5
