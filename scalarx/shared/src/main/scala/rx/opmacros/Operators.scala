@@ -24,11 +24,11 @@ object Operators {
   def filter[In: c.WeakTypeTag, T: c.WeakTypeTag]
               (c: Context)
               (f: c.Expr[In => Boolean])
-              (ownerCtx: c.Expr[rx.Ctx.Owner]): c.Expr[Rx[T]] = {
+              (ownerCtx: c.Expr[rx.Ctx.Owner]): c.Expr[Rx.Dynamic[T]] = {
     import c.universe._
     val (checkFunc, newCtx, enclosingCtx) = initialize(c)(f.tree, ownerCtx.tree)
     val initValue = q"${c.prefix}.macroImpls.get(${c.prefix}.node)"
-    resetExpr[Rx[T]](c)(q"""
+    resetExpr[Rx.Dynamic[T]](c)(q"""
       ${c.prefix}.macroImpls.filterImpl($initValue, $checkFunc, $enclosingCtx)
     """)
   }
@@ -38,11 +38,11 @@ object Operators {
           (start: c.Expr[Wrap[V]])
           (f: c.Expr[(Wrap[V], Wrap[T]) => Wrap[V]])
           (ownerCtx: c.Expr[rx.Ctx.Owner])
-          (implicit w: c.WeakTypeTag[Wrap[_]]): c.Expr[Rx[V]] = {
+          (implicit w: c.WeakTypeTag[Wrap[_]]): c.Expr[Rx.Dynamic[V]] = {
 
     import c.universe._
     val (foldFunc, newCtx, enclosingCtx) = initialize(c)(f.tree, ownerCtx.tree)
-    resetExpr[Rx[V]](c)(q"""
+    resetExpr[Rx.Dynamic[V]](c)(q"""
       ${c.prefix}.macroImpls.foldImpl($start, $foldFunc, $enclosingCtx)
     """)
   }
@@ -51,13 +51,12 @@ object Operators {
          (c: Context)
          (f: c.Expr[Wrap[T] => Wrap[V]])
          (ownerCtx: c.Expr[rx.Ctx.Owner])
-         (implicit w: c.WeakTypeTag[Wrap[_]])
-         : c.Expr[Rx[V]] = {
+         (implicit w: c.WeakTypeTag[Wrap[_]]): c.Expr[Rx.Dynamic[V]] = {
 
     import c.universe._
     val (call, newCtx, enclosingCtx) = initialize(c)(f.tree, ownerCtx.tree)
 
-    Utils.resetExpr[Rx[V]](c)(q"""
+    Utils.resetExpr[Rx.Dynamic[V]](c)(q"""
       ${c.prefix}.macroImpls.mappedImpl($call, $enclosingCtx)
     """)
   }
@@ -67,12 +66,12 @@ object Operators {
              (f: c.Expr[Wrap[T] => Wrap[Rx[V]]])
              (ownerCtx: c.Expr[rx.Ctx.Owner])
              (implicit w: c.WeakTypeTag[Wrap[_]])
-             : c.Expr[Rx[V]] = {
+             : c.Expr[Rx.Dynamic[V]] = {
 
     import c.universe._
     val (call, newCtx, enclosingCtx) = initialize(c)(f.tree, ownerCtx.tree)
 
-    resetExpr[Rx[V]](c)(q"""
+    resetExpr[Rx.Dynamic[V]](c)(q"""
       ${c.prefix}.macroImpls.flatMappedImpl($call, $enclosingCtx)
     """)
   }
@@ -82,13 +81,13 @@ object Operators {
             (c: Context)
             (f: c.Expr[(Wrap[T], Wrap[T]) => Wrap[T]])
             (ownerCtx: c.Expr[rx.Ctx.Owner])
-            (implicit w: c.WeakTypeTag[Wrap[_]]): c.Expr[Rx[T]] = {
+            (implicit w: c.WeakTypeTag[Wrap[_]]): c.Expr[Rx.Dynamic[T]] = {
     import c.universe._
     val (reduceFunc, newCtx, enclosingCtx) = initialize(c)(f.tree, ownerCtx.tree)
 
     val initValue = q"${c.prefix}.macroImpls.get(${c.prefix}.node)"
 
-    resetExpr[Rx[T]](c)(q"""
+    resetExpr[Rx.Dynamic[T]](c)(q"""
       ${c.prefix}.macroImpls.reducedImpl($initValue, $reduceFunc, $enclosingCtx)
     """)
 
@@ -109,8 +108,8 @@ trait Operators[T, Wrap[_]]{
   def unwrap[V](t: Wrap[V]): V
   def prefix: Rx[T]
 
-  def flatMappedImpl[V](call: (rx.Ctx.Owner, rx.Ctx.Data) => Wrap[T] => Wrap[Rx[V]],
-                        enclosing: rx.Ctx.Owner): Rx[V] = {
+  def flatMappedImpl[V](call: (rx.Ctx.Owner, rx.Ctx.Data) => Wrap[T] => Wrap[Rx.Dynamic[V]],
+                        enclosing: rx.Ctx.Owner): Rx.Dynamic[V] = {
 
     Rx.build { (ownerCtx, dataCtx) =>
       prefix.Internal.addDownstream(dataCtx)
@@ -118,7 +117,7 @@ trait Operators[T, Wrap[_]]{
     }(enclosing)
   }
   def mappedImpl[V](call: (rx.Ctx.Owner, rx.Ctx.Data) => Wrap[T] => Wrap[V],
-                    enclosing: rx.Ctx.Owner): Rx[V] = {
+                    enclosing: rx.Ctx.Owner): Rx.Dynamic[V] = {
 
     Rx.build { (ownerCtx, dataCtx) =>
       prefix.Internal.addDownstream(dataCtx)
@@ -128,7 +127,7 @@ trait Operators[T, Wrap[_]]{
 
   def foldImpl[V](start: Wrap[V],
                   f: (rx.Ctx.Owner, rx.Ctx.Data) => (Wrap[V], Wrap[T]) => Wrap[V],
-                  enclosing: rx.Ctx.Owner): Rx[V] = {
+                  enclosing: rx.Ctx.Owner): Rx.Dynamic[V] = {
 
     var prev: Wrap[V] = start
     Rx.build { (ownerCtx, dataCtx) =>
@@ -143,7 +142,7 @@ trait Operators[T, Wrap[_]]{
     */
   def reducedImpl(initValue: Wrap[T],
                   reduceFunc: (rx.Ctx.Owner, rx.Ctx.Data) => (Wrap[T], Wrap[T]) => Wrap[T],
-                  enclosing: rx.Ctx.Owner): Rx[T] = {
+                  enclosing: rx.Ctx.Owner): Rx.Dynamic[T] = {
     var init = true
     def getPrev = this.get(prefix)
 

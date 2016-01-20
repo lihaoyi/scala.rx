@@ -60,6 +60,13 @@ sealed trait Rx[+T] { self =>
   def propagate(): Unit = Rx.doRecalc(Internal.downStream.toSet, Internal.observers)
 
   /**
+    * Force this [[Rx]] to recompute (whether or not any upstream [[Rx]]s
+    * changed) and propagate changes downstream. Does nothing if the [[Rx]]
+    * has been [[kill]]ed
+    */
+  def recalc(): Unit
+
+  /**
     * Run the given function immediately, and again whenever this [[Rx]]s value
     * changes. Returns an [[Obs]] if you want to keep track of this trigger or
     * kill it later.
@@ -78,8 +85,6 @@ sealed trait Rx[+T] { self =>
     Internal.observers.add(o)
     o
   }
-
-  def toRx(implicit ctx: Ctx.Owner): Rx[T]
 
   def toTry: Try[T]
 }
@@ -197,26 +202,18 @@ object Rx{
       Internal.owned.clear()
     }
 
-    override def toRx(implicit ctx: Ctx.Owner): Rx[T] = Rx.build {
-      (ownerCtx: Ctx.Owner, dataCtx: Ctx.Data) => this.apply()(dataCtx)
-    }(ctx)
-
     override def kill(): Unit = {
       owner.foreach(_.contextualRx.Internal.owned.remove(this))
       ownerKilled()
     }
 
-    /**
-      * Force this [[Rx]] to recompute (whether or not any upstream [[Rx]]s
-      * changed) and propagate changes downstream. Does nothing if the [[Rx]]
-      * has been [[kill]]ed
-      */
-    def recalc(): Unit = if (!Internal.dead) {
+    override def recalc(): Unit = if (!Internal.dead) {
       val oldValue = toTry
       Internal.update()
       if (oldValue != toTry)
         Rx.doRecalc(Internal.downStream, Internal.observers)
     }
+
     override def toString() = s"Rx@${Integer.toHexString(hashCode()).take(2)}($now)"
   }
 }
@@ -284,9 +281,7 @@ class Var[T](initialValue: T) extends Rx[T]{
     }
   }
 
-  override def toRx(implicit ctx: Ctx.Owner): Rx[T] = Rx.build{
-    (ownerCtx: Ctx.Owner, dataCtx: Ctx.Data) => apply()(dataCtx)
-  }(ctx)
+  override def recalc(): Unit = propagate()
 
   override def kill() = {
     Internal.clearDownstream()

@@ -18,12 +18,6 @@ object BasicTests extends TestSuite{
           a() = 4
           assert(c.now == 6)
         }
-        "toRx" - {
-          val a = Var(1)
-          val b = a.toRx
-          a() = 2
-          assert(b.now == 2)
-        }
         "ordering" - {
           var changes = ""
           val a = Var(1)
