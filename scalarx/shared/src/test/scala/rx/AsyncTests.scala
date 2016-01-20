@@ -11,7 +11,7 @@ object AsyncTests extends TestSuite {
     def execute(runnable: Runnable) {runnable.run()}
   }
 
-  implicit val testctx = Ctx.Owner.safe()
+  import Ctx.Owner.Unsafe._
 
   def tests = TestSuite {
     "async" - {

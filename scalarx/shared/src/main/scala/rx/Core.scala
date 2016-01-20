@@ -27,9 +27,9 @@ sealed trait Node[+T] { self =>
     def clearDownstream() = Internal.downStream.clear()
     def depth: Int
     def addDownstream(ctx: Ctx.Data) = {
-      downStream.add(ctx.rx)
-      ctx.rx.Internal.upStream.add(self)
-      ctx.rx.Internal.depth = ctx.rx.Internal.depth max (Internal.depth + 1)
+      downStream.add(ctx.contextualRx)
+      ctx.contextualRx.Internal.upStream.add(self)
+      ctx.contextualRx.Internal.depth = ctx.contextualRx.Internal.depth max (Internal.depth + 1)
     }
   }
 
@@ -194,7 +194,7 @@ object Rx{
     * track of which other [[Node]]s are used within that block (via their
     * `apply` methods) so this [[Rx]] can recalculate when upstream changes.
     */
-  def apply[T](func: => T)(implicit ownerCtx: Ctx.Owner, dataCtx: Ctx.Data): Rx[T] = macro Utils.buildMacro[T]
+  def apply[T](func: => T)(implicit ownerCtx: Ctx.Owner, dataCtx: Ctx.Data): Rx[T] = macro Utils.rxApplyMacro[T]
 
   def unsafe[T](func: => T): Rx[T] = macro Utils.buildUnsafe[T]
 
@@ -218,8 +218,8 @@ object Rx{
 class Rx[+T](func: (Ctx.Owner, Ctx.Data) => T, owner: Option[Ctx.Owner]) extends Node[T] { self =>
 
   owner.foreach { o =>
-    o.rx.Internal.owned.add(self)
-    o.rx.Internal.addDownstream(new Ctx.Data(self))
+    o.contextualRx.Internal.owned.add(self)
+    o.contextualRx.Internal.addDownstream(new Ctx.Data(self))
   }
 
   private [this] var cached: Try[T] = null
@@ -277,7 +277,7 @@ class Rx[+T](func: (Ctx.Owner, Ctx.Data) => T, owner: Option[Ctx.Owner]) extends
   }(ctx)
 
   override def kill(): Unit = {
-    owner.foreach(_.rx.Internal.owned.remove(this))
+    owner.foreach(_.contextualRx.Internal.owned.remove(this))
     ownerKilled()
   }
 
@@ -298,18 +298,17 @@ object Ctx{
 
   object Data extends Generic[Data]{
     @compileTimeOnly("No implicit Ctx.Data is available here!")
-    implicit object CompileTime extends Data(throw new Exception())
+    implicit object CompileTime extends Data(???)
   }
   class Data(rx0: => Rx[_]) extends Ctx(rx0)
 
   object Owner extends Generic[Owner]{
     @compileTimeOnly("No implicit Ctx.Owner is available here!")
-    object CompileTime extends Owner(throw new Exception())
+    object CompileTime extends Owner(???)
 
-    object Unsafe extends Owner(throw new Exception(
-      "Invalid Ctx.Owner: you can only call `Rx.apply` within an " +
-        "`Rx{...}` block or where an implicit `RxCtx` is available"
-    ))
+    object Unsafe extends Owner(???){
+      implicit val Unsafe: Ctx.Owner.Unsafe.type = this
+    }
     /**
       * Dark magic. End result is the implicit ctx will be one of
       *  1) The enclosing RxCtx, if it exists
@@ -319,6 +318,7 @@ object Ctx{
     @compileTimeOnly("@}}>---: A rose by any other name.")
     implicit def voodoo: Owner = macro Utils.voodooRxCtx[rx.Ctx.Owner]
   }
+
   class Owner(rx0: => Rx[_]) extends Ctx(rx0)
 
   class Generic[T] {
@@ -330,7 +330,7 @@ object Ctx{
   * track of dependencies or ownership.
   */
 class Ctx(rx0: => Rx[_]){
-  lazy val rx = rx0
+  lazy val contextualRx = rx0
 }
 
 

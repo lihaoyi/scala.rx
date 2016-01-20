@@ -46,7 +46,7 @@ object CombinatorTests extends TestSuite{
 
   def tests = TestSuite {
     "combinators" - {
-      implicit val testctx = Ctx.Owner.Unsafe
+      import Ctx.Owner.Unsafe._
       "foreach" - {
         val a = Var(1)
         var count = 0
@@ -239,7 +239,7 @@ object CombinatorTests extends TestSuite{
       }
     }
     'higherOrder - {
-      implicit val testctx = Ctx.Owner.Unsafe
+      import Ctx.Owner.Unsafe._
       "map" - {
         val v = Var(Var(1))
         val a = v.map(_() + 42)

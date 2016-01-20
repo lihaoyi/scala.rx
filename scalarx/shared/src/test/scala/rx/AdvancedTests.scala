@@ -99,7 +99,7 @@ object AdvancedTests extends TestSuite{
     }
     "nesting" - {
       "nestedRxs" - {
-        implicit val testctx = Ctx.Owner.Unsafe
+        import Ctx.Owner.Unsafe._
 
         val a = Var(1)
         val b = Rx{
@@ -138,7 +138,7 @@ object AdvancedTests extends TestSuite{
         assert(instance3.meh.now == 42)
       }
       "recalc" - {
-        implicit val testctx = Ctx.Owner.Unsafe
+        import Ctx.Owner.Unsafe._
 
         var source = 0
         val a = Rx{
@@ -157,7 +157,7 @@ object AdvancedTests extends TestSuite{
         assert(i == 2)
       }
       "multiset" - {
-        implicit val testctx = Ctx.Owner.Unsafe
+        import Ctx.Owner.Unsafe._
 
         val a = Var(1)
         val b = Var(1)
@@ -196,7 +196,7 @@ object AdvancedTests extends TestSuite{
         assert(i == 6)
       }
       "webPage" - {
-        implicit val testctx = Ctx.Owner.Unsafe
+        import Ctx.Owner.Unsafe._
 
         var fakeTime = 123
         trait WebPage{
@@ -235,7 +235,7 @@ object AdvancedTests extends TestSuite{
       }
     }
     "higherOrderRxs" - {
-      implicit val testctx = Ctx.Owner.Unsafe
+      import Ctx.Owner.Unsafe._
 
       val a = Var(1)
       val b = Var(2)

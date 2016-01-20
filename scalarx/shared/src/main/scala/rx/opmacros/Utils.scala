@@ -117,7 +117,7 @@ object Utils {
     enclosingCtx
   }
 
-  def buildMacro[T: c.WeakTypeTag]
+  def rxApplyMacro[T: c.WeakTypeTag]
                 (c: Context)
                 (func: c.Expr[T])
                 (ownerCtx: c.Expr[rx.Ctx.Owner], dataCtx: c.Expr[rx.Ctx.Data])

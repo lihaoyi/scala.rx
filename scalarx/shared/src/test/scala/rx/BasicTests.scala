@@ -6,7 +6,7 @@ import acyclic.file
 object BasicTests extends TestSuite{
 
   //We dont care about potential Rx leaks in BasicTest
-  implicit val testctx = Ctx.Owner.Unsafe
+  import Ctx.Owner.Unsafe._
 
   def tests = TestSuite{
     "sigTests" - {
