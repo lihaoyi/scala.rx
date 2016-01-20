@@ -298,22 +298,10 @@ object Ctx{
 
   object Data extends Generic[Data]{
     @compileTimeOnly("No implicit Ctx.Data is available here!")
-    object CompileTime extends Data(throw new Exception())
-
-    object Unsafe extends Data(throw new Exception(
-      "Invalid Ctx.Data: you can only call `Rx.apply` within an " +
-        "`Rx{...}` block or where an implicit `RxCtx` is available"
-    ))
-    /**
-      * Dark magic. End result is the implicit ctx will be one of
-      *  1) The enclosing RxCtx, if it exists
-      *  2) RxCtx.Unsafe, if in a "static context"
-      *  3) RxCtx.CompileTime, if in a "dynamic context" (other macros will rewrite CompileTime away)
-      */
-    @compileTimeOnly("@}}>---: A rose by any other name.")
-    implicit def voodoo: Data = macro Utils.voodooRxCtx[rx.Ctx.Data]
+    implicit object CompileTime extends Data(throw new Exception())
   }
   class Data(rx0: => Rx[_]) extends Ctx(rx0)
+
   object Owner extends Generic[Owner]{
     @compileTimeOnly("No implicit Ctx.Owner is available here!")
     object CompileTime extends Owner(throw new Exception())

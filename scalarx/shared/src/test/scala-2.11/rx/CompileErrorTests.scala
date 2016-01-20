@@ -38,5 +38,14 @@ object CompileErrorTests extends TestSuite{
       //        }
       //      """)
     }
+    'noTopLevelApply - {
+      // This one fails to have a compileError too for the same reason
+//      compileError("""
+//        object foo{
+//          val a = Var(1)
+//          a()
+//        }
+//      """)
+    }
   }
 }

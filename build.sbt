@@ -47,6 +47,10 @@ val scalarx = crossProject.settings(
   unmanagedSourceDirectories in Compile ++= {
     if (scalaVersion.value startsWith "2.10.") Seq(baseDirectory.value / ".."/"shared"/"src"/ "main" / "scala-2.10")
     else Seq(baseDirectory.value / ".."/"shared" / "src"/"main" / "scala-2.11")
+  },
+  unmanagedSourceDirectories in Test ++= {
+    if (scalaVersion.value startsWith "2.10.") Seq(baseDirectory.value / ".."/"shared"/"src"/ "test" / "scala-2.10")
+    else Seq(baseDirectory.value / ".."/"shared" / "src" / "test" / "scala-2.11")
   }
 ).jsSettings(
   libraryDependencies ++= Seq(

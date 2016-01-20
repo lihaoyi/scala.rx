@@ -19,7 +19,7 @@ object Utils {
                      newCtx: c.universe.TermName,
                      curCtxTree: c.Tree,
                      compileTime: c.Type,
-                     unsafe: c.Type)
+                     unsafe: Option[c.Type])
                     : c.Tree = {
     import c.universe._
     object transformer extends c.universe.Transformer {
@@ -28,7 +28,7 @@ object Utils {
         else if (tree.tpe == null) tree
         else if (tree.tpe =:= compileTime) q"$newCtx"
         else if (tree.equalsStructure(curCtxTree)) q"$newCtx"
-        else if (tree.tpe =:= unsafe) q"$newCtx"
+        else if (unsafe.exists(tree.tpe =:= _)) q"$newCtx"
         else super.transform(tree)
       }
     }
@@ -49,14 +49,14 @@ object Utils {
       newOwner,
       owner,
       c.weakTypeOf[rx.Ctx.Owner.CompileTime.type],
-      c.weakTypeOf[rx.Ctx.Owner.Unsafe.type]
+      Some(c.weakTypeOf[rx.Ctx.Owner.Unsafe.type])
     )
     val newFunc2 = injectRxCtx(c)(
       newFunc,
       newData,
       data,
       c.weakTypeOf[rx.Ctx.Data.CompileTime.type],
-      c.weakTypeOf[rx.Ctx.Data.Unsafe.type]
+      None
     )
     newFunc2
   }

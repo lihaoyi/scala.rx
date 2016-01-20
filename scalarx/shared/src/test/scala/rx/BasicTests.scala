@@ -27,7 +27,7 @@ object BasicTests extends TestSuite{
         "ordering" - {
           var changes = ""
           val a = Var(1)
-          val b = Rx{ changes += "b"; a()(Ctx.Data.voodoo) + 1 }
+          val b = Rx{ changes += "b"; a() + 1 }
           val c = Rx{ changes += "c"; a() + b() }
           assert(changes == "bc")
           a() = 4
@@ -236,10 +236,5 @@ object BasicTests extends TestSuite{
         r.endsWith("(1)")
       )
     }
-
-  }
-  object foo{
-    val a = Var(1)
-    a()
   }
 }
