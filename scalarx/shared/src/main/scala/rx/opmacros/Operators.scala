@@ -11,20 +11,7 @@ object Operators {
     import c.universe._
     val newDataCtx =  c.fresh[TermName]("rxDataCtx")
     val newOwnerCtx =  c.fresh[TermName]("rxOwnerCtx")
-    val newFunc = injectRxCtx(c)(
-      f,
-      newOwnerCtx,
-      owner,
-      c.weakTypeOf[rx.Ctx.Owner.CompileTime.type],
-      c.weakTypeOf[rx.Ctx.Owner.Unsafe.type]
-    )
-    val newFunc2 = injectRxCtx(c)(
-      newFunc,
-      newDataCtx,
-      data,
-      c.weakTypeOf[rx.Ctx.Data.CompileTime.type],
-      c.weakTypeOf[rx.Ctx.Data.Unsafe.type]
-    )
+    val newFunc2 = doubleInject(c)(f, newOwnerCtx, owner, newDataCtx, data)
     val enclosingCtx = encCtx(c)(owner)
     val newTree = q"($newOwnerCtx: rx.Ctx.Owner, $newDataCtx: rx.Ctx.Data) => $newFunc2"
     (newTree, newOwnerCtx, enclosingCtx)

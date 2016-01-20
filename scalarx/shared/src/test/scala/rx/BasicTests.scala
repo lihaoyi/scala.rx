@@ -236,5 +236,10 @@ object BasicTests extends TestSuite{
         r.endsWith("(1)")
       )
     }
+
+  }
+  object foo{
+    val a = Var(1)
+    a()
   }
 }

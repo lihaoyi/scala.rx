@@ -35,6 +35,31 @@ object Utils {
     transformer.transform(src)
   }
 
+  /**
+    * Injects both the Owner and Data contexts into the given snippet
+    */
+  def doubleInject(c: Context)
+                  (src: c.Tree,
+                   newOwner: c.TermName,
+                   owner: c.Tree,
+                   newData: c.TermName,
+                   data: c.Tree) = {
+    val newFunc = injectRxCtx(c)(
+      src,
+      newOwner,
+      owner,
+      c.weakTypeOf[rx.Ctx.Owner.CompileTime.type],
+      c.weakTypeOf[rx.Ctx.Owner.Unsafe.type]
+    )
+    val newFunc2 = injectRxCtx(c)(
+      newFunc,
+      newData,
+      data,
+      c.weakTypeOf[rx.Ctx.Data.CompileTime.type],
+      c.weakTypeOf[rx.Ctx.Data.Unsafe.type]
+    )
+    newFunc2
+  }
   def ensureStaticEnclosingOwners(c: Context)(chk: c.Symbol, abortOnFail: Boolean): Boolean = {
     import c.universe._
     //Failed due to an enclosing trait or abstract class
@@ -107,25 +132,7 @@ object Utils {
     if(isCompileTimeCtx)
       ensureStaticEnclosingOwners(c)(rx.Compat.enclosingName(c), abortOnFail = true)
 
-    val enclosingCtx =
-      if(isCompileTimeCtx) q"rx.Ctx.Owner.Unsafe"
-      else ownerCtx
-
-    val injected1 = injectRxCtx(c)(
-      func.tree,
-      newOwnerCtx,
-      ownerCtx.tree,
-      c.weakTypeOf[rx.Ctx.Owner.CompileTime.type],
-      c.weakTypeOf[rx.Ctx.Owner.Unsafe.type]
-    )
-
-    val injected2 = injectRxCtx(c)(
-      injected1,
-      newDataCtx,
-      dataCtx.tree,
-      c.weakTypeOf[rx.Ctx.Data.CompileTime.type],
-      c.weakTypeOf[rx.Ctx.Data.Unsafe.type]
-    )
+    val injected2 = doubleInject(c)(func.tree, newOwnerCtx, ownerCtx.tree, newDataCtx, dataCtx.tree)
 
     val res = q"""rx.Rx.build{
       ($newOwnerCtx: rx.Ctx.Owner, $newDataCtx: rx.Ctx.Data) => $injected2
@@ -152,23 +159,12 @@ object Utils {
       else
         inferredOwner
 
-    val injected = injectRxCtx(c)(
-      func.tree,
-      newOwnerCtx,
-      inferredOwner,
-      c.weakTypeOf[rx.Ctx.Owner.CompileTime.type],
-      c.weakTypeOf[rx.Ctx.Owner.Unsafe.type]
-    )
-    val injected2 = injectRxCtx(c)(
-      injected,
-      newDataCtx,
-      inferredData,
-      c.weakTypeOf[rx.Ctx.Data.CompileTime.type],
-      c.weakTypeOf[rx.Ctx.Data.Unsafe.type]
-    )
+    val injected2 = doubleInject(c)(func.tree, newOwnerCtx, inferredOwner, newDataCtx, inferredData)
+
     val res = q"""rx.Rx.build{
       ($newOwnerCtx: rx.Ctx.Owner, $newDataCtx: rx.Ctx.Data) => $injected2
     }($unsafeOwner)"""
+
     c.Expr[Rx[T]](c.resetLocalAttrs(res))
   }
 
