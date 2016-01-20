@@ -7,8 +7,9 @@ import scala.language.experimental.macros
 import scala.reflect.macros._
 
 object Operators {
-  def initialize(c: Context)(f: c.Tree, owner: c.Tree, data: c.Tree) = {
+  def initialize(c: Context)(f: c.Tree, owner: c.Tree) = {
     import c.universe._
+    val data = c.inferImplicitValue(c.weakTypeOf[rx.Ctx.Data])
     val newDataCtx =  c.fresh[TermName]("rxDataCtx")
     val newOwnerCtx =  c.fresh[TermName]("rxOwnerCtx")
     val newFunc2 = doubleInject(c)(f, newOwnerCtx, owner, newDataCtx, data)
@@ -19,9 +20,9 @@ object Operators {
   def filtered[In: c.WeakTypeTag, T: c.WeakTypeTag]
               (c: Context)
               (f: c.Expr[In => Boolean])
-              (ownerCtx: c.Expr[rx.Ctx.Owner], dataCtx: c.Expr[rx.Ctx.Data]): c.Expr[Rx[T]] = {
+              (ownerCtx: c.Expr[rx.Ctx.Owner]): c.Expr[Rx[T]] = {
     import c.universe._
-    val (checkFunc, newCtx, enclosingCtx) = initialize(c)(f.tree, ownerCtx.tree, dataCtx.tree)
+    val (checkFunc, newCtx, enclosingCtx) = initialize(c)(f.tree, ownerCtx.tree)
     val initValue = q"${c.prefix}.macroImpls.get(${c.prefix}.node)"
 
     val res = c.Expr[rx.Rx[T]](q"""
@@ -36,11 +37,11 @@ object Operators {
             (c: Context)
             (start: c.Expr[Wrap[V]])
             (f: c.Expr[(Wrap[V], Wrap[T]) => Wrap[V]])
-            (ownerCtx: c.Expr[rx.Ctx.Owner], dataCtx: c.Expr[rx.Ctx.Data])
+            (ownerCtx: c.Expr[rx.Ctx.Owner])
             (implicit w: c.WeakTypeTag[Wrap[_]]): c.Expr[Rx[V]] = {
 
     import c.universe._
-    val (foldFunc, newCtx, enclosingCtx) = initialize(c)(f.tree, ownerCtx.tree, dataCtx.tree)
+    val (foldFunc, newCtx, enclosingCtx) = initialize(c)(f.tree, ownerCtx.tree)
     c.Expr[Rx[V]](c.resetLocalAttrs(q"""
       ${c.prefix}.macroImpls.foldImpl($start, $foldFunc, $enclosingCtx)
     """))
@@ -49,12 +50,12 @@ object Operators {
   def mapped[T: c.WeakTypeTag, V: c.WeakTypeTag, Wrap[_]]
             (c: Context)
             (f: c.Expr[Wrap[T] => Wrap[V]])
-            (ownerCtx: c.Expr[rx.Ctx.Owner], dataCtx: c.Expr[rx.Ctx.Data])
+            (ownerCtx: c.Expr[rx.Ctx.Owner])
             (implicit w: c.WeakTypeTag[Wrap[_]])
             : c.Expr[Rx[V]] = {
 
     import c.universe._
-    val (call, newCtx, enclosingCtx) = initialize(c)(f.tree, ownerCtx.tree, dataCtx.tree)
+    val (call, newCtx, enclosingCtx) = initialize(c)(f.tree, ownerCtx.tree)
 
     c.Expr[Rx[V]](c.resetLocalAttrs(q"""
       ${c.prefix}.macroImpls.mappedImpl($call, $enclosingCtx)
@@ -64,12 +65,12 @@ object Operators {
   def flatMapped[T: c.WeakTypeTag, V: c.WeakTypeTag, Wrap[_]]
                 (c: Context)
                 (f: c.Expr[Wrap[T] => Wrap[Rx[V]]])
-                (ownerCtx: c.Expr[rx.Ctx.Owner], dataCtx: c.Expr[rx.Ctx.Data])
+                (ownerCtx: c.Expr[rx.Ctx.Owner])
                 (implicit w: c.WeakTypeTag[Wrap[_]])
                 : c.Expr[Rx[V]] = {
 
     import c.universe._
-    val (call, newCtx, enclosingCtx) = initialize(c)(f.tree, ownerCtx.tree, dataCtx.tree)
+    val (call, newCtx, enclosingCtx) = initialize(c)(f.tree, ownerCtx.tree)
 
     c.Expr[Rx[V]](c.resetLocalAttrs(q"""
       ${c.prefix}.macroImpls.flatMappedImpl($call, $enclosingCtx)
@@ -80,10 +81,10 @@ object Operators {
   def reduced[T: c.WeakTypeTag, Wrap[_]]
              (c: Context)
              (f: c.Expr[(Wrap[T], Wrap[T]) => Wrap[T]])
-             (ownerCtx: c.Expr[rx.Ctx.Owner], dataCtx: c.Expr[rx.Ctx.Data])
+             (ownerCtx: c.Expr[rx.Ctx.Owner])
              (implicit w: c.WeakTypeTag[Wrap[_]]): c.Expr[Rx[T]] = {
     import c.universe._
-    val (reduceFunc, newCtx, enclosingCtx) = initialize(c)(f.tree, ownerCtx.tree, dataCtx.tree)
+    val (reduceFunc, newCtx, enclosingCtx) = initialize(c)(f.tree, ownerCtx.tree)
 
     val initValue = q"${c.prefix}.macroImpls.get(${c.prefix}.node)"
 

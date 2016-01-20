@@ -194,7 +194,7 @@ object Rx{
     * track of which other [[Node]]s are used within that block (via their
     * `apply` methods) so this [[Rx]] can recalculate when upstream changes.
     */
-  def apply[T](func: => T)(implicit ownerCtx: Ctx.Owner, dataCtx: Ctx.Data): Rx[T] = macro Utils.rxApplyMacro[T]
+  def apply[T](func: => T)(implicit ownerCtx: Ctx.Owner): Rx[T] = macro Utils.rxApplyMacro[T]
 
   def unsafe[T](func: => T): Rx[T] = macro Utils.buildUnsafe[T]
 

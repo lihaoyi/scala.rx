@@ -120,10 +120,11 @@ object Utils {
   def rxApplyMacro[T: c.WeakTypeTag]
                 (c: Context)
                 (func: c.Expr[T])
-                (ownerCtx: c.Expr[rx.Ctx.Owner], dataCtx: c.Expr[rx.Ctx.Data])
+                (ownerCtx: c.Expr[rx.Ctx.Owner])
                 : c.Expr[Rx[T]] = {
     import c.universe._
 
+    val dataCtx = c.inferImplicitValue(c.weakTypeOf[rx.Ctx.Data])
     val newDataCtx =  c.fresh[TermName]("rxDataCtx")
     val newOwnerCtx =  c.fresh[TermName]("rxOwnerCtx")
 
@@ -132,7 +133,7 @@ object Utils {
     if(isCompileTimeCtx)
       ensureStaticEnclosingOwners(c)(rx.Compat.enclosingName(c), abortOnFail = true)
 
-    val injected2 = doubleInject(c)(func.tree, newOwnerCtx, ownerCtx.tree, newDataCtx, dataCtx.tree)
+    val injected2 = doubleInject(c)(func.tree, newOwnerCtx, ownerCtx.tree, newDataCtx, dataCtx)
 
     val res = q"""rx.Rx.build{
       ($newOwnerCtx: rx.Ctx.Owner, $newDataCtx: rx.Ctx.Data) => $injected2
