@@ -343,7 +343,7 @@ Most of the examples here are taken from the [unit tests](shared/test/scala/rx/B
 Ownership Context
 -----------------
 
-In the last example above, we had to introduce the concept of [Ownership](#context-ownership) when `Ctx.Owner` was used. In fact, if we leave out `(implicit ctx: Ctx.Owner)`, we would get the following compile time error:
+In the last example above, we had to introduce the concept of [Ownership](#context-ownership) where `Ctx.Owner` is used. In fact, if we leave out `(implicit ctx: Ctx.Owner)`, we would get the following compile time error:
 
 ```scala
 error: This Rx might leak! Either explicitly mark it unsafe (Rx.unsafe) or ensure an implicit RxCtx is in scope!
@@ -408,7 +408,7 @@ def mkRx(i: Int) = Rx.unsafe { count += 1; i + b() } //explicitly allow the leak
 
 Data Context
 ------------
-In every version of scala.rx the syntax to add a downstream data dependency has been the normal scala `apply` syntax. Given either a [Rx][1] or a [Var][3] using `()` unwraps the current value and adds itself as a dependency to whatever `Rx` that is currently evaluating. Alternatively, `.now` can be used to simply unwrap the value and skips over becoming a data dependency:
+In every version of scala.rx, the syntax to add a downstream data dependency has been the scala's normal `apply` syntax. Given either a [Rx][1] or a [Var][3] using `()` unwraps the current value and adds itself as a dependency to whatever `Rx` that is currently evaluating. Alternatively, `.now` can be used to simply unwrap the value and skips over becoming a data dependency:
 
 ```scala
 val a = Var(1); val b = Var(2)
@@ -473,7 +473,8 @@ However, it is very likely the case that it will be rare for a function that exp
 ```scala
 def f(...)(implicit ctx: Ctx.Owner, data: Ctx.Data) = ...
 ```
-And if there is a need for such a function, then it introduces the possiblity of the above infinite recursion.
+
+With the introduction of `Ctx.Data`, the use of `apply` can now only be within some `Rx` context. This limits the problem of accidentally introducing unintentional data dependencies as well as the possiblity of infinite recursion as outlined above. 
 
 Additional Operations
 ---------------------
@@ -769,136 +770,6 @@ f.ancestors
 ```
 
 This ability to query the dataflow graph is useful when debugging why things are going wrong and values are not what you think they are.
-
-Execution Model
-===============
-
-Scala.Rx is a library, and apart from a single `DynamicVariable`, maintains no global state. This means that if you use Scala.Rx to build dataflow graphs at different parts of your program, these dataflow graphs will be completely independent and there's no chance of cross-talk or interference between them.
-
-Dependency Tracking
--------------------
-Scala.Rx tracks the dependency graph between different [Var][3]s and [Rx][1]s without any explicit annotation by the programmer. This means that in (almost) all cases, you can just write your code as if it wasn't being tracked, and Scala.Rx would build up the dependency graph automatically.
-
-Every time the body of an `Rx{...}` is evaluated (or re-evaluated), it is put into a `DynamicVariable`. Any calls to the `.apply()` methods of other [Rx][1]s then inspect this `DynamicVariable` to determine who (if any) is the [Rx][1] being evaluated. This is linked up with the [Rx][1] whose `.apply()` is being called, creating a dependency between them. Thus a dependency graph is implicitly created without any action on the part of the programmer.
-
-The dependency-tracking strategy of Scala.Rx is based of a subset of the ideas in [Deprecating the Observer Pattern](http://infoscience.epfl.ch/record/176887/files/DeprecatingObservers2012.pdf), in particular their definition of "Opaque Signals". The implementation follows it reasonably closely.
-
-Propagation
------------
-
-###Weak Forward References
-Once we have evaluated our [Var][3]s and [Rx][1]s once and have a dependency graph, how do we keep track of our children (the [Rx][1]s who depend on us) and tell them to update? Simply keeping a `List()` of all children will cause memory leaks, as the `List()` will prevent any child from being garbage collected even if all other references to the child have been lost and the child is otherwise unaccessible.
-
-Instead, Scala.Rx using a list of [WeakReferences](http://en.wikipedia.org/wiki/Weak_reference). These allow the [Rx][1] to keep track of its children while still letting them get garbage collected when all other references to them are lost. When a child becomes unreachable and gets garbage collected, the WeakReference becomes `null`, and these null references get cleared from the list every time it is updated.
-
-###Propagation Strategies
-The default propagation of changes is done in a breadth-first, topologically-sorted order, similar to that described in the paper. Each propagation run occurs when a [Var][3] is set, e.g. in
-
-```scala
-val x = Var(0)
-val y = Rx(x * 2)
-println(y) // 2
-
-x() = 2
-println(y) // 4
-```
-
-The propagation begins when `x` is modified via `x() = 2`, in this case ending at `y` which updates to the new value `4`.
-
-Nodes earlier in the dependency graph are evaluated before those down the line. However, due to the fact that the dependencies of a [Rx][1] are not known until it is evaluated, it is impossible to strictly maintain this invariant at all times, since the underlying graph could change unpredictably.
-
-In general, Scala.Rx keeps track of the topological order dynamically, such that after initialization, if the dependency graph does not change too radically, most nodes *should* be evaluated only once per propagation, but this is not a hard guarantee.
-
-Hence, it is possible that an [Rx][1] will get evaluated more than once, even if only a single [Var][3] is updated. You should ensure that the body of any [Rx][1]s can tolerate being run more than once without harm. If you need to perform side effects, use an [Obs][2], which only executes its side effects once per propagation run after the values for all [Rx][1]s have stabilized.
-
-The default propagator ([Propagator.Immediate][7]) does this all synchronously: it performs each update one at a time, in the roughly-topological-order described above, and the `update` function
-
-```scala
-x() = 2
-```
-
-only returns after all updates have completed. This can be changed by creating a new [Propagator.ExecContext][6] with a custom `ExecutionContext`. e.g.:
-
-```scala
-implicit val propagator = new BreadthFirstPropagator(ExecutionContext.global)
-
-x() = 2
-```
-
-In this case, the updating of nodes is farmed out to the given `ExecutionContext`. Nodes which do not depend on each other may be updated in parallel, if the given `ExecutionContext` provides parallelism. When using a [Propagator.ExecContext][6], the update method does not block but instead returns a `Future[Unit]` which can be waited upon for the operation to complete asynchronously.
-
-Even with a custom `ExecutionContext`, all updates still occur in (roughly) topologically sorted order. If for some reason you do not want this, it is possible to customize this by creating a completely custom `Propagator` who is responsible for performing these updates. Custom `Propagator`s can also allow you to customize what the update method (e.g. in `x() = 2`) returns, e.g. if you want to collect additional data related to that propagation.
-
-Note that asynchronous [Rx][1]s like those from [.async](#async), [.delay](#delay) or [.debounce](#debounce) swallow incoming pings and begin a fresh propagation cycle when their asynchronous action triggers.
-
-Concurrency and Parallelism
---------------------------
-By default, everything happens on a single-threaded execution context and there is no parallelism. By using a custom [Propagator.ExecContext](), it is possible to have the updates in each propagation run happen in parallel (though not on [ScalaJS](#parallelism-and-scalajs). For more information on ExecutionContexts, see the [Akka Documentation](http://doc.akka.io/docs/akka/2.1.2/scala/futures.html#futures-scala). The [unit tests](src/test/scala/rx/ParallelTests.scala) also contain an example of a dependency graph whose evaluation is spread over multiple threads in this way to provide a performance increase.
-
-Even without using an explicitly parallelizing ExecutionContext, parallelism could creep into your code in subtle ways: a delayed [Rx][1], for example may happen to fire and continue its propagation just as you update a [Var][3] somewhere on the same dependency graph, resulting in two propagations proceeding in parallel.
-
-In general, the rules for parallel execution of an individual node in the dependency graph is as follows:
-
-- A [Rx][1] can up updated by an arbitrarily high number of parallel threads: *make sure your code can handle this!*. I will refer to each of these as a *parallel update*.
-- A parallel update **U** gets committed (i.e. its result becomes the value of the [Rx][1] after completion) *if and only if* the time at which **U**'s computation began (its *start time*) is greater than the start time of the last-committed parallel update. If another parallel update **U'** was started in the interim, the result of **U** is discarded
-- The state of the dataflow graph may be temporarily inconsistent as a propagation is happening. This is even more true when multiple propagations are happening simultaneously. However, after all propagations complete and the system stabilizes (*quiescience*), it is guaranteed that the value of every [Rx][1] will be correct, with regard to the most up-to-date values of its dependencies.
-- When a single propagation happens, Scala.Rx guarantees that although the dataflow graph may be transiently inconsistent, the [Obs][2] which produce side effects will only fire once everything has stabilized.
-- In the presence of multiple propagations happening in parallel, Scala.Rx guarantees that each [Obs][2] will fire *at most* once per propagation that occurs. Furthermore, by the time the propagations have completed and the system has stabilized, each [Obs][2] will have fired *at least once* after the [Rx][1] it is observing has reached its final value.
-
-This policy is implemented using the __java.util.concurrent.AtomicXXX__ classes. The final compare-start-times-and-replace-if-timestamp-is-greater action is implemented as a STM-style retry-loop on an __AtomicReference__. This approach is [lock free](http://en.wikipedia.org/wiki/Non-blocking_algorithm#Lock-freedom), and since the time required to compute the result is probably far greater than the time spent trying to commit it, the number of retries should in practice be minimal.
-
-Apart from the main update loop, peripheral methods like `children`, `parents`, `ancestors` and `descendents` are also affected by parallelism. In these cases, if the system is quiescent you're guaranteed to get the correct value. If there are parallel updates and modifications going on, you're guaranteed to get a set of nodes which were part of the list some time during the duration it takes for the method to run, and any node which was part of the list for the entire duration.
-
-###Weak Forward References
-The weak-forward-references to an [Rx][1] from its dependencies is unusual in that unlike the rest of the state regarding the [Rx][1], it is not kept within the [Rx][1] itself! Rather, it is kept within its parents. Hence updates to these weak references cannot conveniently be serialized by encapsulating the state within that [Rx][1]'s state.
-
-###Parallelism and ScalaJS
-
-Since ScalaJS runs on single threaded Javascript VMs, all these guarantees around parallel update semantics is moot since only one [Rx][1] will be updating at a time.
-
-Memory Model
-------------
-
-As described earlier, the dataflow graph built by Scala.Rx is maintained by a network of `WeakReference`s. These allow the nodes to send updates to their children while still allowing their children to be garbage collected if necessary. Hence in this example:
-
-```scala
-val a = Var(0)
-for (i <- 0 until 10){
-  val b = Rx{ a() + 1 }
-  ...
-}
-```
-
-After `b` falls out of scope, it is eventually automatically cleaned up by the garbage collector. The exact timing of this is non-deterministic (since it depends on the GC) so in general, you should write code that is not affected by this non-determinism. For example, if the only data structures that `b` can affect (by triggering [Obs][2]s, or via side-effects in the body of its [Rx][1]) become unreachable together with `b` (e.g. they're kept on the same object) then it doesn't matter exactly *when* `b` stops triggering, since the effect of its triggering will not be visible by that point anyway.
-
-### Memory and ScalaJS
-
-In ScalaJS, `WeakReference`s are not weak, since Javascript does not have weak references. This means that the [Rx][1]s generated in the loop will not get cleaned up, since `a` must hold a strong reference to them in order to notify them of updates. However, in cases such as this, it may be necessary to manually `.kill()` the individual [Rx][1]s once you're done with them:
-
-```scala
-val a = Var(0)
-for (i <- 0 until 10){
-  val b = Rx{ a() + 1 }
-  ...
-  b.kill()
-}
-```
-
-Alternatively, if you're done with `a` as well, you can perform a `.killAll()` on it, which will kill it as well as all of its children and descendents at one go:
-
-```scala
-val a = Var(0)
-for (i <- 0 until 10){
-  val b = Rx{ a() + 1 }
-  ...
-}
-a.killAll()
-```
-
-On the other hand, often leaking memory is acceptable: often the dataflow graph is relatively static, so even if some memory is kept around unnecessarily, the amount leaked won't grow unbounded. Furthermore, even when you are generating dataflow graphs dynamically (e.g. one for each section of a web page, which may vary) if these dataflow graphs are completely independent, then even if nodes within each graph can't be GCed, each graph can and will be GCed as a whole when all its nodes become unreachable.
-
-It is only when you have a dynamically changing sections of a single dataflow graph where the forward-references prevent GC and nodes need to be killed manually.
-
 
 Internals
 ---------
