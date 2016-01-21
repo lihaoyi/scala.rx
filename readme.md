@@ -25,6 +25,8 @@ Contents
 - [ScalaJS](#scalajs)
 - [Using Scala.Rx](#using-scalarx)
   - [Basic Usage](#basic-usage)
+  - [Ownership](#context-ownership)
+  - [Data Dependency](#context-data)
   - [Additional Operations](#additional-operations)
   - [Asynchronous Combinators](#asynchronous-combinators)
   - [Graph Inspection](#graph-inspection)
@@ -55,12 +57,12 @@ ScalaJS
 In addition to running on the JVM, Scala.Rx also compiles to [Scala-Js](http://www.scala-js.org/)! This artifact is currently on [Maven Central](http://search.maven.org/#artifactdetails%7Ccom.scalarx%7Cscalarx_2.10%7C0.2.2-JS%7Cjar) and an be used via the following SBT snippet:
 
 ```scala
-libraryDependencies += "com.scalarx" %%% "scalarx" % "0.2.6"
+libraryDependencies += "com.scalarx" %%% "scalarx" % "0.3.0"
 ```
 
 There are some minor differences between running Scala.Rx on the JVM and in Javascript particularly around [asynchronous operations](#timer), the [parallelism model](#parralelism-and-scalajs) and [memory model](#memory-and-scalajs). In general, though, all the examples given in the documentation below will work perfectly when cross-compiled to javascript and run in the browser!
 
-Scala.rx 0.2.6 is only compatible with ScalaJS 0.5.3+.
+Scala.rx 0.3.0 is only compatible with ScalaJS 0.6.5+.
 
 Using Scala.Rx
 ==============
@@ -337,6 +339,71 @@ Having a `Rx[WebPage]`, where the `WebPage` has an `Rx[String]` inside, seems na
 
 Most of the examples here are taken from the [unit tests](shared/test/scala/rx/BasicTests.scala), which provide more examples on guidance on how to use this library.
 
+
+Contexts: Ownership
+-------------------
+
+In the last example above, we had to introduce the concept of [Ownership](#context-ownership) when `Ctx.Owner` was used. In fact, if we leave out `(implicit ctx: Ctx.Owner)`, we would get the following compile time error:
+
+```scala
+error: This Rx might leak! Either explicitly mark it unsafe (Rx.unsafe) or ensure an implicit RxCtx is in scope!
+           val html = Rx{"Home Page! time: " + time()}
+```
+
+In earlier versions of this library, the possiblity of 'leaking' an Rx was actually a signficant problem that had to be carefully thought about. As an example, consider this slight modification to the first example: 
+```scala
+//Note: this won't compile in 0.3.0, but would in earlier versions
+var count = 0
+val a = Var(1); val b = Var(2)
+def mkRx(i: Int) = Rx { count += 1; i + b() }
+val c = Rx{ 
+  val newRx = mkRx(a()) 
+  newRx() 
+}
+println(c.now,count) //(3,1)
+```
+In this version, the function `mkRx` was added, but otherwise the computed value of `c` remains unchanged. And modfying `a` appears to behave as expected:
+```scala
+a() = 4
+println(c.now,count) //(6,2)
+```
+But if we modify `b` we might start to notice something not quite right:
+```scala
+b() = 3 
+println(c.now,count) //(7,5) -- 5??
+
+(0 to 100).foreach { i => a() = i }
+println(c.now,count) //(103,106)
+
+b() = 4
+println(c.now,count) //(104,211) -- 211!!!
+```
+
+In this example, even though `b` is only updated a few times, the count value starts to soar as `a` is modified. This is `mkRx` leaking! That is, every time `c` is recomputed, it builds a whole new `Rx` that sticks around and keeps on evaluating, even after it is no longer reachable as a data dependency and forgotten. So after running that `(0 to 100).foreach` statment, there are over 100 `Rx`s that all fire every time `b` is changed. This clearly is not desirable. 
+In 0.3.0 however, this situation now generates a compile time error instead of leaking at runtime, and a much better result can be had by passing along the owning context:
+```scala
+var count = 0
+val a = Var(1); val b = Var(2)
+def mkRx(i: Int)(implicit ctx: Ctx.Owner) = Rx { count += 1; i + b() }
+val c = Rx{ 
+  val newRx = mkRx(a()) 
+  newRx() 
+}
+println(c.now,count) // (3,1)
+a() = 4
+println(c.now,count) // (6,2)
+b() = 3
+println(c.now,count) // (7,4)
+(0 to 100).foreach { i => a() = i }
+println(c.now,count) //(103,105)
+b() = 4
+println(c.now,count) //(104,107)
+```
+The difference is as of `0.3.0` the concept of ownership has been made explicit and the rules of `Rx` propagation have been changed such that whenever an Rx recaculates, it first kills all of its owned dependencies, ensuring they don't leak. In this example, `c` becomes the owner of the `Rx` created in `mkRx` and kills it automatically every time `c` recalculates. We can, however, decide to mark mkRx explicitly unsafe and recreate the behavior of earlier versions of scala.rx:
+
+```scala
+def mkRx(i: Int) = Rx.unsafe { count += 1; i + b() }
+```
 
 Additional Operations
 ---------------------
