@@ -31,12 +31,7 @@ Contents
   - [Asynchronous Combinators](#asynchronous-combinators)
   - [Graph Inspection](#graph-inspection)
   - [Logging and Debugging](#logging-and-debugging)
-- [Execution Model](#execution-model)
-  - [Dependency Tracking](#dependency-tracking)
-  - [Propagation](#propagation)
-  - [Concurrency and Asynchrony](#concurrency-and-asynchrony)
-  - [Garbage Collection](#garbage-collection)
-  - [Internals](#internals)
+- [Design Considerations](#design-considerations)
 - [Related Work](#related-work)
 - [Scaladoc](https://lihaoyi.github.io/scala.rx)
 
@@ -770,9 +765,6 @@ f.ancestors
 ```
 
 This ability to query the dataflow graph is useful when debugging why things are going wrong and values are not what you think they are.
-
-Internals
----------
 
 Design Considerations
 =====================
