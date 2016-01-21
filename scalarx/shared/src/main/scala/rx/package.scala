@@ -29,7 +29,7 @@ package object rx {
 
     def filter(f: Id[T] => Boolean)(implicit ownerCtx: Ctx.Owner): Rx.Dynamic[T] = macro Operators.filter[T,T]
 
-    def fold[V](start: Id[V])(f: ((Id[V], Id[T]) => Id[V]))(implicit ownerCtx: Ctx.Owner): Rx[V] = macro Operators.fold[T, V, Id]
+    def fold[V](start: Id[V])(f: ((Id[V], Id[T]) => Id[V]))(implicit ownerCtx: Ctx.Owner): Rx.Dynamic[V] = macro Operators.fold[T, V, Id]
 
     def reduce(f: (Id[T], Id[T]) => Id[T])(implicit ownerCtx: Ctx.Owner): Rx.Dynamic[T] = macro Operators.reduce[T, Id]
 

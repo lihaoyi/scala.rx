@@ -1,4 +1,4 @@
-Scala.Rx 0.2.6 [![Build Status](https://travis-ci.org/lihaoyi/scala.rx.svg?branch=master)](https://travis-ci.org/lihaoyi/scala.rx) [![Join the chat at https://gitter.im/lihaoyi/scala.rx](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/lihaoyi/scala.rx?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+Scala.Rx 0.3.0 [![Build Status](https://travis-ci.org/lihaoyi/scala.rx.svg?branch=master)](https://travis-ci.org/lihaoyi/scala.rx) [![Join the chat at https://gitter.im/lihaoyi/scala.rx](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/lihaoyi/scala.rx?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 ==============
 
 Scala.Rx is an experimental change propagation library for [Scala](http://www.scala-lang.org/). Scala.Rx gives you Reactive variables ([Rx][1]s), which are smart variables who auto-update themselves when the values they depend on change. The underlying implementation is push-based [FRP](http://en.wikipedia.org/wiki/Functional_reactive_programming) based on the ideas in [Deprecating the Observer Pattern](http://infoscience.epfl.ch/record/176887/files/DeprecatingObservers2012.pdf).
@@ -16,7 +16,7 @@ println(c()) // 6
 
 The idea being that 99% of the time, when you re-calculate a variable, you re-calculate it the same way you initially calculated it. Furthermore, you only re-calculate it when one of the values it depends on changes. Scala.Rx does this for you automatically, and handles all the tedious update logic for you so you can focus on other, more interesting things!
 
-Apart from basic change-propagation, Scala.Rx provides a host of other functionality, such as a set of combinators for easily constructing the dataflow graph, automatic parallelization of updates, and seamless interop with existing Scala code. This means it can be easily embedded in an existing Scala application.
+Apart from basic change-propagation, Scala.Rx provides a host of other functionality, such as a set of combinators for easily constructing the dataflow graph, compile time checks for a high degree of correctness, and seamless interop with existing Scala code. This means it can be easily embedded in an existing Scala application.
 
 Contents
 ========
@@ -44,7 +44,7 @@ Getting Started
 Scala.Rx is available on [Maven Central](http://search.maven.org/#artifactdetails%7Ccom.scalarx%7Cscalarx_2.10%7C0.1%7Cjar). In order to get started, simply add the following to your `build.sbt`:
 
 ```scala
-libraryDependencies += "com.scalarx" %% "scalarx" % "0.2.6"
+libraryDependencies += "com.scalarx" %% "scalarx" % "0.3.0"
 ```
 
 After that, opening up the `sbt console` and pasting the above example into the console should work! You can proceed through the examples in the [Basic Usage](#basic-usage) page to get a feel for what Scala.Rx can do.
@@ -75,9 +75,9 @@ import rx._
 
 val a = Var(1); val b = Var(2)
 val c = Rx{ a() + b() }
-println(c()) // 3
+println(c.now) // 3
 a() = 4
-println(c()) // 6
+println(c.now) // 6
 ```
 
 The above example is an executable program. In general, `import rx._` is enough to get you started with Scala.Rx, and it will be assumed in all further examples. These examples are all taken from the [unit tests]().
@@ -100,9 +100,9 @@ val d = Rx{ c() * 5 } // 15
 val e = Rx{ c() + 4 } // 7
 val f = Rx{ d() + e() + 4 } // 26
 
-println(f()) // 26
+println(f.now) // 26
 a() = 3
-println(f()) // 38
+println(f.now) // 38
 ```
 
 The dataflow graph for this program looks like this:
@@ -121,13 +121,13 @@ The changes propagate through the dataflow graph in *waves*. Each update to a [V
 
 ###Observers
 
-As mentioned, [Obs][2] s can be used to observe [Rx][1] s and [Var][3] s and perform side effects when they change:
+As mentioned, [Obs][2] s can be created from [Rx][1] s or [Var][3] s and be used to perform side effects when they change:
 
 ```scala
 val a = Var(1)
 var count = 0
-val o = Obs(a){
-  count = a() + 1
+val o = a.trigger {
+  count = a.now + 1
 }
 println(count) // 2
 a() = 4
@@ -142,7 +142,7 @@ When `a` is modified, the observer `o` will perform the side effect:
 
 ![Dataflow Graph](media/Observer2.png?raw=true)
 
-The body of [Rx][1]s should be side effect free, as they may be run more than once per propagation. You should use [Obs][2]s to perform your side effects, as they are guaranteed to run only once per propagation after the values for all [Rx][1]s have stabilized.
+The body of [Rx][1]s should be side effect free, as they may be run more than once per propagation. You should use [Obs][2] s to perform your side effects, as they are guaranteed to run only once per propagation after the values for all [Rx][1]s have stabilized.
 
 Scala.Rx provides a convenient `.foreach()` combinator, which provides an alternate way of creating an [Obs][2] from an [Rx][1]:
 
@@ -159,12 +159,12 @@ println(count) // 5
 
 This example does the same thing as the code above.
 
-Note that the body of the [Obs][2] is run once initially when it is declared. This matches the way each [Rx][1] is calculated once when it is initially declared. but it is conceivable that you want an [Obs][2] which first for the first time only when the [Rx][1] it is listening to *changes*. You can do this by passing the `skipInitial` flag when creating it:
+Note that the body of the [Obs][2] is run once initially when it is declared. This matches the way each [Rx][1] is calculated once when it is initially declared. but it is conceivable that you want an [Obs][2] which fires for the first time only when the [Rx][1] it is listening to *changes*. You can do this by using the alternate `triggerLater` syntax:
 
 ```scala
 val a = Var(1)
 var count = 0
-val o = Obs(a, skipInitial=true){
+val o = a.triggerLater {
   count = count + 1
 }
 println(count) // 0
@@ -178,8 +178,8 @@ An [Obs][2] acts to encapsulate the callback that it runs. They can be passed ar
 val a = Var(1)
 val b = Rx{ 2 * a() }
 var target = 0
-val o = Obs(b){
-  target = b()
+val o = b.trigger {
+  target = b.now
 }
 println(target) // 2
 a() = 2
@@ -189,13 +189,13 @@ a() = 3
 println(target) // 4
 ```
 
-After manually setting `active = false`, the [Obs][2] no longer triggers. Apart from `.kill()`ing [Obs][2]s, you can also kill [Rx][1]s, which prevents further updates. [Rx][1]s also have a `.killAll()` method, which kills the [Rx][1] together with *all its descendents*, useful if you decide a whole section of the graph ought to be shut off.
+After manually calling `.kill()`, the [Obs][2] no longer triggers. Apart from `.kill()`ing [Obs][2]s, you can also kill [Rx][1]s, which prevents further updates.
 
 In general, Scala.Rx revolves around constructing dataflow graphs which automatically keep things in sync, which you can easily interact with from external, imperative code. This involves using:
 
 - [Var][3]s as inputs to the dataflow graph from the imperative world
 - [Rx][1]s as the intermediate nodes in the dataflow graphs
-- [Obs][2]s as the output from the dataflow graph to the imperative world
+- [Obs][2]s as the output from the dataflow graph back into the imperative world
 
 ###Complex Reactives
 
@@ -209,11 +209,11 @@ val d = Rx{ c().map("omg" * _) }
 val e = Var("wtf")
 val f = Rx{ (d() :+ e()).mkString }
 
-println(f()) // "omgomgomgomgomgomgomgomgomgwtf"
+println(f.now) // "omgomgomgomgomgomgomgomgomgwtf"
 a() = Nil
-println(f()) // "omgomgomgwtf"
+println(f.now) // "omgomgomgwtf"
 e() = "wtfbbq"
-println(f()) // "omgomgomgwtfbbq"
+println(f.now) // "omgomgomgwtfbbq"
 ```
 
 As shown, you can use Scala.Rx's reactive variables to model problems of arbitrary complexity, not just trivial ones which involve primitive numbers.
@@ -227,7 +227,7 @@ This can be seen in the following unit test:
 ```scala
 val a = Var(1)
 val b = Rx{ 1 / a() }
-println(b()) // 1
+println(b.now) // 1
 println(b.toTry) // Success(1)
 a() = 0
 intercept[ArithmeticException]{
@@ -275,7 +275,7 @@ In this example, initially all the values for `a`, `b`, `c`, `d`, `e`, `f` and `
 
 ![Dataflow Graph](media/Errors2.png?raw=true)
 
-`c` and `e` both result in exceptions, and the exception from `c` propagates to `g`. Attempting to extract the value from `g` using `g()`, for example, will re-throw the ArithmeticException. Again, using `toTry` works too.
+`c` and `e` both result in exceptions, and the exception from `c` propagates to `g`. Attempting to extract the value from `g` using `g.now`, for example, will re-throw the ArithmeticException. Again, using `toTry` works too.
 
 ###Nesting
 
@@ -286,9 +286,9 @@ val a = Var(1)
 val b = Rx{
     (Rx{ a() }, Rx{ math.random })
 }
-val r = b()._2()
+val r = b.now._2.now
 a() = 2
-println(b()._2()) // r
+println(b.now._2.now) // r
 ```
 
 In this example, we can see that although we modified `a`, this only affects the left-inner [Rx][1], neither the right-inner [Rx][1] (which takes on a different, random value each time it gets re-calculated) or the outer [Rx][1] (which would cause the whole thing to re-calculate) are affected. A slightly less contrived example may be:
@@ -301,10 +301,10 @@ trait WebPage{
     def update(): Unit  = time() = fTime
     val html: Rx[String]
 }
-class HomePage extends WebPage {
+class HomePage(implicit ctx: Ctx.Owner) extends WebPage {
     val html = Rx{"Home Page! time: " + time()}
 }
-class AboutPage extends WebPage {
+class AboutPage(implicit ctx: Ctx.Owner) extends WebPage {
     val html = Rx{"About Me, time: " + time()}
 }
 
@@ -316,19 +316,19 @@ val page = Rx{
     }
 }
 
-println(page().html()) // "Home Page! time: 123"
+println(page.now.html.now) // "Home Page! time: 123"
 
 fakeTime = 234
-page().update()
-println(page().html()) // "Home Page! time: 234"
+page.now.update()
+println(page.now.html.now) // "Home Page! time: 234"
 
 fakeTime = 345
 url() = "www.mysite.com/about"
-println(page().html()) // "About Me, time: 345"
+println(page.now.html.now) // "About Me, time: 345"
 
 fakeTime = 456
-page().update()
-println(page().html()) // "About Me, time: 456"
+page.now.update()
+println(page.now.html.now) // "About Me, time: 456"
 ```
 
 In this case, we define a web page which has a `html` value (a `Rx[String]`). However, depending on the `url`, it could be either a `HomePage` or an `AboutPage`, and so our `page` object is a `Rx[WebPage]`.
@@ -341,7 +341,7 @@ Most of the examples here are taken from the [unit tests](shared/test/scala/rx/B
 Additional Operations
 ---------------------
 
-Apart from the basic building blocks of [Var][3]/[Rx][1]/[Obs][2], Scala.Rx also provides a set of combinators which allow your to easily transform your [Rx][1]s; this allows the programmer to avoid constantly re-writing logic for the common ways of constructing the dataflow graph. The three basic combinators: `map()`, `filter()` and `reduce()` are modelled after the scala collections library, and provide an easy way of transforming the values coming out of a [Rx][1].
+Apart from the basic building blocks of [Var][3]/[Rx][1]/[Obs][2], Scala.Rx also provides a set of combinators which allow your to easily transform your [Rx][1]s; this allows the programmer to avoid constantly re-writing logic for the common ways of constructing the dataflow graph. The five basic combinators: `map()`, `flatMap`, `filter()`, `reduce()` and `fold` are all modelled after the scala collections library, and provide an easy way of transforming the values coming out of an [Rx][1].
 
 ###Map
 ```scala
@@ -349,27 +349,52 @@ val a = Var(10)
 val b = Rx{ a() + 2 }
 val c = a.map(_*2)
 val d = b.map(_+3)
-println(c()) // 20
-println(d()) // 15
+println(c.now) // 20
+println(d.now) // 15
 a() = 1
-println(c()) // 2
-println(d()) // 6
+println(c.now) // 2
+println(d.now) // 6
 ```
 
 `map` does what you would expect, creating a new [Rx][1] with the value of the old [Rx][1] transformed by some function. For example, `a.map(_*2)` is essentially equivalent to `Rx{ a() * 2 }`, but somewhat more convenient to write.
+
+###FlatMap
+```scala
+val a = Var(10)
+val b = Var(1)
+val c = a.flatMap(a => Rx { a*b() })
+println(c.now) // 10
+b() = 2
+println(c.now) // 20
+```
+
+`flatMap` is analogous to flatMap from the collections library in that it allows for merging nested [Rx][1] s of type `Rx[Rx[_]]` into a single `Rx[_]`.
+
+This in conjunction with the map combinator allow for scala's for comprehension syntax to work with [Rx][1] s and [Var][3] s:
+
+```scala
+val a = Var(10)
+val b = for {
+  aa <- a
+  bb <- Rx { a() + 5}
+  cc <- Var(1).map(_*2)
+} yield {
+  aa + bb + cc
+}
+```
 
 ###Filter
 ```scala
 val a = Var(10)
 val b = a.filter(_ > 5)
 a() = 1
-println(b()) // 10
+println(b.now) // 10
 a() = 6
-println(b()) // 6
+println(b.now) // 6
 a() = 2
-println(b()) // 6
+println(b.now) // 6
 a() = 19
-println(b()) // 19
+println(b.now) // 19
 ```
 
 `filter` ignores changes to the value of the [Rx][1] that fail the predicate.
@@ -379,7 +404,7 @@ Note that none of the `filter` methods is able to filter out the first, initial 
 ```scala
 val a = Var(2)
 val b = a.filter(_ > 5)
-println(b())
+println(b.now)
 ```
 
 will print out "2".
@@ -389,16 +414,30 @@ will print out "2".
 val a = Var(1)
 val b = a.reduce(_ * _)
 a() = 2
-println(b()) // 2
+println(b.now) // 2
 a() = 3
-println(b()) // 6
+println(b.now) // 6
 a() = 4
-println(b()) // 24
+println(b.now) // 24
 ```
 
 The `reduce` operator combines subsequent values of an [Rx][1] together, starting from the initial value. Every change to the original [Rx][1] is combined with the previously-stored value and becomes the new value of the reduced [Rx][1].
 
-Each of these three combinators has a counterpart in `mapAll()`, `filterAll()` and `reduceAll()` which operates on `Try[T]`s rather than `T`s, in the case where you need the added flexibility to handle `Failure`s in some special way.
+###Fold
+```scala
+val a = Var(1)
+val b = a.fold(List.empty[Int])((acc,elem) => elem :: acc)
+a() = 2
+println(b.now) // List(2,1)
+a() = 3
+println(b.now) // List(3,2,1)
+a() = 4
+println(b.now) // List(4,3,2,1)
+```
+
+Fold enables accumulation in a similar way to reduce, but can accumulate to some other type than that of the source [Rx][1].
+
+Each of these five combinators has a counterpart in the `.all` namespace which operates on `Try[T]`s rather than `T`s, in the case where you need the added flexibility to handle `Failure`s in some special way.
 
 Asynchronous Combinators
 ------------------------
@@ -406,64 +445,62 @@ These are combinators which do more than simply transforming a value from one to
 
 Note that none of these combinators are doing anything that cannot be done via a combination of [Obs][2]s and [Var][3]s; they simply encapsulate the common patterns, saving you manually writing them over and over, and reducing the potential for bugs.
 
-###Async
+###Future
 
 ```scala
 import scala.concurrent.Promise
 import scala.concurrent.ExecutionContext.Implicits.global
+import rx.async._
 
 val p = Promise[Int]()
-val a = Rx{
-  p.future
-}.async(10)
-println(a()) // 10
-
+val a = p.future.toRx(10)
+println(a.now) //10
 p.success(5)
-println(a()) // 5
+println(a.now) //5
 ```
 
-The `async` combinator only applies to `Rx[Future[_]]`s. It takes an initial value, which will be the value of the [Rx][1] until the `Future` completes, at which point the the value will become the value of the `Future`.
+The `toRx` combinator only applies to `Future[_]`s. It takes an initial value, which will be the value of the [Rx][1] until the `Future` completes, at which point the the value will become the value of the `Future`.
 
-`async` can create `Future`s as many times as necessary. This example shows it creating two distinct `Future`s:
+This `async` can create `Future`s as many times as necessary. This example shows it creating two distinct `Future`s:
 
 ```scala
 import scala.concurrent.Promise
 import scala.concurrent.ExecutionContext.Implicits.global
+import rx.async._
 
 var p = Promise[Int]()
 val a = Var(1)
-val b = Rx{
-  val A = a()
-  p.future.map{_ + A}
-}.async(10)
-println(b()) // 10
 
+val b: Rx[Int] = Rx {
+  val f =  p.future.toRx(10)
+  f() + a()
+}
+println(b.now) //11
 p.success(5)
-println(b()) // 6
+println(b.now) //6
 
 p = Promise[Int]()
 a() = 2
-println(b()) // 6
+println(b.now) //12
 
 p.success(7)
-println(b()) // 9
+println(b.now) //9
 ```
 
 The value of `b()` updates as you would expect as the series of `Future`s complete (in this case, manually using `Promise`s).
 
 This is handy if your dependency graph contains some asynchronous elements. For example, you could have a [Rx][1] which depends on another [Rx][1], but requires an asynchronous web request to calculate its final value. With `async`, the results from the asynchronous web request will be pushed back into the dataflow graph automatically when the `Future` completes, starting off another propagation run and conveniently updating the rest of the graph which depends on the new result.
 
-`async` optionally takes a second argument which causes out-of-order `Future`s to be dropped. This is useful if you always want to have the result of the most recently-created `Future` which completed, rather than the most-recently-completed `Future`.
-
 ###Timer
 
 ```scala
+import rx.async._
+import rx.async.Platform._
 import scala.concurrent.duration._
-implicit val scheduler = new AkkaScheduler(akka.actor.ActorSystem())
 
 val t = Timer(100 millis)
 var count = 0
-val o = Obs(t){
+val o = t.trigger {
     count = count + 1
 }
 
@@ -472,28 +509,29 @@ println(count) // 8
 println(count) // 13
 ```
 
-A [Timer][8] is a [Rx][1] that generates events on a regular basis. The events are based on the [AkkaScheduler][4] which wraps an `ActorSystem` when running on the JVM, or a `DomScheduler` which wraps `setTimeout` when running on ScalaJS. In the example above, the for-loop checks that the value of the timer `t()` increases over time from 0 to 5, and then checks that `count` has been incremented at least that many times.
+A [Timer][8] is a [Rx][1] that generates events on a regular basis. In the example above, the for-loop checks that the value of the timer `t()` increases over time from 0 to 5, and then checks that `count` has been incremented at least that many times.
 
 The scheduled task is cancelled automatically when the [Timer][8] object becomes unreachable, so it can be garbage collected. This means you do not have to worry about managing the life-cycle of the [Timer][8]. On the other hand, this means the programmer should ensure that the reference to the [Timer][8] is held by the same object as that holding any [Rx][1] listening to it. This will ensure that the exact moment at which the [Timer][8] is garbage collected will not matter, since by then the object holding it (and any [Rx][1] it could possibly affect) are both unreachable.
 
 ###Delay
 ```scala
+import rx.async._
+import rx.async.Platform._
 import scala.concurrent.duration._
-implicit val scheduler = new AkkaScheduler(akka.actor.ActorSystem())
 
 val a = Var(10)
 val b = a.delay(250 millis)
 
 a() = 5
-println(b()) // 10
+println(b.now) // 10
 eventually{
-  println(b()) // 5
+  println(b.now) // 5
 }
 
 a() = 4
-println(b()) // 5
+println(b.now) // 5
 eventually{
-  println(b()) // 4
+  println(b.now) // 4
 }
 ```
 
@@ -503,26 +541,27 @@ This example shows the delay being applied to a [Var][3], but it could easily be
 
 ###Debounce
 ```scala
+import rx.async._
+import rx.async.Platform._
 import scala.concurrent.duration._
-implicit val scheduler = new AkkaScheduler(akka.actor.ActorSystem())
 
 val a = Var(10)
 val b = a.debounce(200 millis)
 a() = 5
-println(b()) // 5
+println(b.now) // 5
 
 a() = 2
-println(b()) // 5
+println(b.now) // 5
 
 eventually{
-  println(b()) // 2
+  println(b.now) // 2
 }
 
 a() = 1
-println(b()) // 2
+println(b.now) // 2
 
 eventually{
-  println(b()) // 1
+  println(b.now) // 1
 }
 ```
 
@@ -548,13 +587,13 @@ val f = Rx{ d() + e() + 4 } // 26
 We know the value of `f` is 26:
 
 ```scala
-println(f()) // 26
+println(f.now) // 26
 ```
 
 But why is it 26? We can ask it for the value of its parents:
 
 ```scala
-println(f.parents)
+println(f.Internal)
 // List(rx.core.Dynamic@119e2f23, rx.core.Dynamic@506c0c49)
 println(f.parents.collect{case r: Rx[_] => r()})
 // List(7, 15)
