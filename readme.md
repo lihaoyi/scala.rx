@@ -25,7 +25,7 @@ Contents
 - [ScalaJS](#scalajs)
 - [Using Scala.Rx](#using-scalarx)
   - [Basic Usage](#basic-usage)
-  - [Ownership](#context-ownership)
+  - [Ownership Context](#context-ownership)
   - [Data Dependency](#context-data)
   - [Additional Operations](#additional-operations)
   - [Asynchronous Combinators](#asynchronous-combinators)
@@ -340,8 +340,8 @@ Having a `Rx[WebPage]`, where the `WebPage` has an `Rx[String]` inside, seems na
 Most of the examples here are taken from the [unit tests](shared/test/scala/rx/BasicTests.scala), which provide more examples on guidance on how to use this library.
 
 
-Contexts: Ownership
--------------------
+Ownership Context
+-----------------
 
 In the last example above, we had to introduce the concept of [Ownership](#context-ownership) when `Ctx.Owner` was used. In fact, if we leave out `(implicit ctx: Ctx.Owner)`, we would get the following compile time error:
 
@@ -380,6 +380,7 @@ println(c.now,count) //(104,211) -- 211!!!
 ```
 
 In this example, even though `b` is only updated a few times, the count value starts to soar as `a` is modified. This is `mkRx` leaking! That is, every time `c` is recomputed, it builds a whole new `Rx` that sticks around and keeps on evaluating, even after it is no longer reachable as a data dependency and forgotten. So after running that `(0 to 100).foreach` statment, there are over 100 `Rx`s that all fire every time `b` is changed. This clearly is not desirable. 
+
 In 0.3.0 however, this situation now generates a compile time error instead of leaking at runtime, and a much better result can be had by passing along the owning context:
 ```scala
 var count = 0
@@ -399,11 +400,80 @@ println(c.now,count) //(103,105)
 b() = 4
 println(c.now,count) //(104,107)
 ```
-The difference is as of `0.3.0` the concept of ownership has been made explicit and the rules of `Rx` propagation have been changed such that whenever an Rx recaculates, it first kills all of its owned dependencies, ensuring they don't leak. In this example, `c` becomes the owner of the `Rx` created in `mkRx` and kills it automatically every time `c` recalculates. We can, however, decide to mark mkRx explicitly unsafe and recreate the behavior of earlier versions of scala.rx:
+The difference is as of `0.3.0` the concept of ownership has been made explicit and the rules of `Rx` propagation have been changed such that whenever an `Rx` recaculates, it first kills all of its owned dependencies, ensuring they do not leak. In this example, `c` is the owner of the `Rx` created in `mkRx` and kills it automatically every time `c` recalculates. We can, however, decide to mark mkRx explicitly unsafe and recreate the behavior of earlier versions of scala.rx:
 
 ```scala
-def mkRx(i: Int) = Rx.unsafe { count += 1; i + b() }
+def mkRx(i: Int) = Rx.unsafe { count += 1; i + b() } //explicitly allow the leak, no compile time exception
 ```
+
+Data Context
+------------
+In every version of scala.rx the syntax to add a downstream data dependency has been the normal scala `apply` syntax. Given either a [Rx][1] or a [Var][3] using `()` unwraps the current value and adds itself as a dependency to whatever `Rx` that is currently evaluating. Alternatively, `.now` can be used to simply unwrap the value and skips over becoming a data dependency:
+
+```scala
+val a = Var(1); val b = Var(2)
+val c = Rx{ a.now + b.now } //not a very useful `Rx`
+println(c.now) // 3
+a() = 4
+println(c.now) // 3 
+b() = 5
+println(c.now) // 3 
+```
+
+In earlier versions of scala.rx, the programmer was free to choose whichever operator to get a value out of an [Rx][1] or [Var][3] at any time. While in most cases apply could be used safely, this did lead to situations of unexpected data dependencies where some [Rx][1] would end up with a dependency on some seemingly unrelated [Var][3]. For example, in code that dealt with implicit conversions of an [Rx][1], an errant `apply` could lead to very subtle and hard to debug bugs. 
+
+With the introduction of `Ctx.Owner` there was also room for another kind of data dependency bug, consider:
+
+```scala
+def foo()(implicit ctx: Ctx.Owner) = {
+ val a = rx.Var(1)
+ a()
+ a
+}
+
+val x = rx.Rx{val y = foo(); y() = y() + 1; println("done!") }
+```
+With the concept of ownership, if `a()` is allowed to create a data dependency on its owner, it would enter infinite recursion and blow up the stack! Instead, the above code gives this compile time error: 
+```scala
+<console>:17: error: No implicit Ctx.Data is available here!
+        a()
+```
+If we explicitly allow for data dependcies, we can force the stack to blow up:
+```scala
+def foo()(implicit ctx: Ctx.Owner, data: Ctx.Data) = {
+ val a = rx.Var(1)
+ a()
+ a
+}
+val x = rx.Rx{val y = foo(); y() = y() + 1; println("done!") }
+...
+at rx.Rx$Dynamic$Internal$$anonfun$calc$2.apply(Core.scala:180)
+  at scala.util.Try$.apply(Try.scala:192)
+  at rx.Rx$Dynamic$Internal$.calc(Core.scala:180)
+  at rx.Rx$Dynamic$Internal$.update(Core.scala:184)
+  at rx.Rx$.doRecalc(Core.scala:130)
+  at rx.Var.update(Core.scala:280)
+  at $anonfun$1.apply(<console>:15)
+  at $anonfun$1.apply(<console>:15)
+  at rx.Rx$Dynamic$Internal$$anonfun$calc$2.apply(Core.scala:180)
+  at scala.util.Try$.apply(Try.scala:192)
+...
+```
+When dealing with dynamic graphs, it is almost always the case that only the ownership context is needed, ie functions most often have the form:
+```scala
+def f(...)(implicit ctx: Ctx.Owner) = Rx { ... }
+```
+And in some cases where it might be desirable to DRY up some repeated `Rx` code, for example, it might be valuable to define a function of this form:
+```scala
+def f(...)(implicit data: Ctx.Data) = ...
+```
+Which would allow some shared data dependency to be pulled out of the body of each `Rx` and into the shared function.
+
+However, it is very likely the case that it will be rare for a function that explicitly would need to do both and have a function signature like
+```scala
+def f(...)(implicit ctx: Ctx.Owner, data: Ctx.Data) = ...
+```
+And if there is a need for such a function, then it introduces the possiblity of the above infinite recursion.
 
 Additional Operations
 ---------------------
