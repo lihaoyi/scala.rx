@@ -23,15 +23,15 @@ package object rx {
     import scala.language.experimental.macros
 
     def macroImpls = new GenericOps.Macros(node)
-    def map[V](f: Id[T] => Id[V])(implicit ownerCtx: Ctx.Owner): Rx[V] = macro Operators.map[T, V, Id]
+    def map[V](f: Id[T] => Id[V])(implicit ownerCtx: Ctx.Owner): Rx.Dynamic[V] = macro Operators.map[T, V, Id]
 
-    def flatMap[V](f: Id[T] => Id[Rx[V]])(implicit ownerCtx: Ctx.Owner): Rx[V] = macro Operators.flatMap[T, V, Id]
+    def flatMap[V](f: Id[T] => Id[Rx[V]])(implicit ownerCtx: Ctx.Owner): Rx.Dynamic[V] = macro Operators.flatMap[T, V, Id]
 
-    def filter(f: Id[T] => Boolean)(implicit ownerCtx: Ctx.Owner): Rx[T] = macro Operators.filter[T,T]
+    def filter(f: Id[T] => Boolean)(implicit ownerCtx: Ctx.Owner): Rx.Dynamic[T] = macro Operators.filter[T,T]
 
-    def fold[V](start: Id[V])(f: ((Id[V], Id[T]) => Id[V]))(implicit ownerCtx: Ctx.Owner): Rx[V] = macro Operators.fold[T, V, Id]
+    def fold[V](start: Id[V])(f: ((Id[V], Id[T]) => Id[V]))(implicit ownerCtx: Ctx.Owner): Rx.Dynamic[V] = macro Operators.fold[T, V, Id]
 
-    def reduce(f: (Id[T], Id[T]) => Id[T])(implicit ownerCtx: Ctx.Owner): Rx[T] = macro Operators.reduce[T, Id]
+    def reduce(f: (Id[T], Id[T]) => Id[T])(implicit ownerCtx: Ctx.Owner): Rx.Dynamic[T] = macro Operators.reduce[T, Id]
 
     def foreach(f: T => Unit) = node.trigger(f(node.now))
   }
@@ -45,15 +45,15 @@ package object rx {
   abstract class SafeOps[T](val node: Rx[T]) {
     import scala.language.experimental.macros
     def macroImpls = new SafeOps.Macros(node)
-    def map[V](f: Try[T] => Try[V])(implicit ownerCtx: Ctx.Owner): Rx[V] = macro Operators.map[T, V, Try]
+    def map[V](f: Try[T] => Try[V])(implicit ownerCtx: Ctx.Owner): Rx.Dynamic[V] = macro Operators.map[T, V, Try]
 
-    def flatMap[V](f: Try[T] => Try[Rx[V]])(implicit ownerCtx: Ctx.Owner): Rx[V] = macro Operators.flatMap[T, V, Try]
+    def flatMap[V](f: Try[T] => Try[Rx[V]])(implicit ownerCtx: Ctx.Owner): Rx.Dynamic[V] = macro Operators.flatMap[T, V, Try]
 
-    def filter(f: Try[T] => Boolean)(implicit ownerCtx: Ctx.Owner): Rx[T] = macro Operators.filter[Try[T],T]
+    def filter(f: Try[T] => Boolean)(implicit ownerCtx: Ctx.Owner): Rx.Dynamic[T] = macro Operators.filter[Try[T],T]
 
-    def fold[V](start: Try[V])(f: (Try[V], Try[T]) => Try[V])(implicit ownerCtx: Ctx.Owner): Rx[V] = macro Operators.fold[T, V, Try]
+    def fold[V](start: Try[V])(f: (Try[V], Try[T]) => Try[V])(implicit ownerCtx: Ctx.Owner): Rx.Dynamic[V] = macro Operators.fold[T, V, Try]
 
-    def reduce(f: (Try[T], Try[T]) => Try[T])(implicit ownerCtx: Ctx.Owner): Rx[T] = macro Operators.reduce[T, Try]
+    def reduce(f: (Try[T], Try[T]) => Try[T])(implicit ownerCtx: Ctx.Owner): Rx.Dynamic[T] = macro Operators.reduce[T, Try]
 
     def foreach(f: T => Unit) = node.trigger(node.toTry.foreach(f))
   }

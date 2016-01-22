@@ -369,7 +369,7 @@ object CombinatorTests extends TestSuite{
 
       "allFold" - {
         val rv = Var(Rx(Var(0)))
-        val folded = rv.toRx.all.fold(Try(List.empty[Int])) {
+        val folded = rv.map(a => a).all.fold(Try(List.empty[Int])) {
           case (Success(prev),Success(next)) =>
             if(next.now.now % 2 == 0) Success(next.now.now :: prev)
             else Success(prev)
