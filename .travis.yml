@@ -1,4 +1,5 @@
 language: scala
 scala:
   - 2.10.4
-  - 2.11.2
+  - 2.11.7
+sudo: false
