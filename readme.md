@@ -345,7 +345,8 @@ error: This Rx might leak! Either explicitly mark it unsafe (Rx.unsafe) or ensur
            val html = Rx{"Home Page! time: " + time()}
 ```
 
-In earlier versions of this library, the possiblity of 'leaking' an Rx was actually a signficant problem that had to be carefully thought about. As an example, consider this slight modification to the first example: 
+In earlier versions of this library, the possiblity of 'leaking' an Rx was actually a significant problem that had to be carefully thought about. As an example, consider this slight modification to the first example:
+
 ```scala
 //Note: this won't compile in 0.3.0, but would in earlier versions
 var count = 0
@@ -355,28 +356,33 @@ val c = Rx{
   val newRx = mkRx(a()) 
   newRx() 
 }
-println(c.now,count) //(3,1)
+println(c.now, count) //(3,1)
 ```
+
 In this version, the function `mkRx` was added, but otherwise the computed value of `c` remains unchanged. And modfying `a` appears to behave as expected:
+
 ```scala
 a() = 4
-println(c.now,count) //(6,2)
+println(c.now, count) //(6,2)
 ```
+
 But if we modify `b` we might start to notice something not quite right:
+
 ```scala
 b() = 3 
-println(c.now,count) //(7,5) -- 5??
+println(c.now, count) //(7,5) -- 5??
 
 (0 to 100).foreach { i => a() = i }
-println(c.now,count) //(103,106)
+println(c.now, count) //(103,106)
 
 b() = 4
-println(c.now,count) //(104,211) -- 211!!!
+println(c.now, count) //(104,211) -- 211!!!
 ```
 
 In this example, even though `b` is only updated a few times, the count value starts to soar as `a` is modified. This is `mkRx` leaking! That is, every time `c` is recomputed, it builds a whole new `Rx` that sticks around and keeps on evaluating, even after it is no longer reachable as a data dependency and forgotten. So after running that `(0 to 100).foreach` statment, there are over 100 `Rx`s that all fire every time `b` is changed. This clearly is not desirable. 
 
 In 0.3.0 however, this situation now generates a compile time error instead of leaking at runtime, and a much better result can be had by passing along the owning context:
+
 ```scala
 var count = 0
 val a = Var(1); val b = Var(2)
@@ -395,6 +401,7 @@ println(c.now,count) //(103,105)
 b() = 4
 println(c.now,count) //(104,107)
 ```
+
 The difference is as of `0.3.0` the concept of ownership has been made explicit and the rules of `Rx` propagation have been changed such that whenever an `Rx` recaculates, it first kills all of its owned dependencies, ensuring they do not leak. In this example, `c` is the owner of the `Rx` created in `mkRx` and kills it automatically every time `c` recalculates. We can, however, decide to mark mkRx explicitly unsafe and recreate the behavior of earlier versions of scala.rx:
 
 ```scala
@@ -403,7 +410,7 @@ def mkRx(i: Int) = Rx.unsafe { count += 1; i + b() } //explicitly allow the leak
 
 Data Context
 ------------
-In every version of scala.rx, the syntax to add a downstream data dependency has been the scala's normal `apply` syntax. Given either a [Rx][1] or a [Var][3] using `()` unwraps the current value and adds itself as a dependency to whatever `Rx` that is currently evaluating. Alternatively, `.now` can be used to simply unwrap the value and skips over becoming a data dependency:
+Given either a [Rx][1] or a [Var][3] using `()` unwraps the current value and adds itself as a dependency to whatever `Rx` that is currently evaluating. Alternatively, `.now` can be used to simply unwrap the value and skips over becoming a data dependency:
 
 ```scala
 val a = Var(1); val b = Var(2)
@@ -421,24 +428,27 @@ With the introduction of `Ctx.Owner` there was also room for another kind of dat
 
 ```scala
 def foo()(implicit ctx: Ctx.Owner) = {
- val a = rx.Var(1)
- a()
- a
+  val a = rx.Var(1)
+  a()
+  a
 }
 
 val x = rx.Rx{val y = foo(); y() = y() + 1; println("done!") }
 ```
+
 With the concept of ownership, if `a()` is allowed to create a data dependency on its owner, it would enter infinite recursion and blow up the stack! Instead, the above code gives this compile time error: 
 ```scala
 <console>:17: error: No implicit Ctx.Data is available here!
         a()
 ```
-If we explicitly allow for data dependcies, we can force the stack to blow up:
+
+If we explicitly allow for data dependencies, we can force the stack to blow up:
+
 ```scala
 def foo()(implicit ctx: Ctx.Owner, data: Ctx.Data) = {
- val a = rx.Var(1)
- a()
- a
+  val a = rx.Var(1)
+  a()
+  a
 }
 val x = rx.Rx{val y = foo(); y() = y() + 1; println("done!") }
 ...
@@ -454,17 +464,23 @@ at rx.Rx$Dynamic$Internal$$anonfun$calc$2.apply(Core.scala:180)
   at scala.util.Try$.apply(Try.scala:192)
 ...
 ```
+
 When dealing with dynamic graphs, it is almost always the case that only the ownership context is needed, ie functions most often have the form:
+
 ```scala
 def f(...)(implicit ctx: Ctx.Owner) = Rx { ... }
 ```
+
 And in some cases where it might be desirable to DRY up some repeated `Rx` code, for example, it might be valuable to define a function of this form:
+
 ```scala
 def f(...)(implicit data: Ctx.Data) = ...
 ```
+
 Which would allow some shared data dependency to be pulled out of the body of each `Rx` and into the shared function.
 
 However, it is very likely the case that it will be rare for a function that explicitly would need to do both and have a function signature like
+
 ```scala
 def f(...)(implicit ctx: Ctx.Owner, data: Ctx.Data) = ...
 ```
@@ -477,6 +493,7 @@ Additional Operations
 Apart from the basic building blocks of [Var][3]/[Rx][1]/[Obs][2], Scala.Rx also provides a set of combinators which allow your to easily transform your [Rx][1]s; this allows the programmer to avoid constantly re-writing logic for the common ways of constructing the dataflow graph. The five basic combinators: `map()`, `flatMap`, `filter()`, `reduce()` and `fold` are all modelled after the scala collections library, and provide an easy way of transforming the values coming out of an [Rx][1].
 
 ###Map
+
 ```scala
 val a = Var(10)
 val b = Rx{ a() + 2 }
@@ -492,6 +509,7 @@ println(d.now) // 6
 `map` does what you would expect, creating a new [Rx][1] with the value of the old [Rx][1] transformed by some function. For example, `a.map(_*2)` is essentially equivalent to `Rx{ a() * 2 }`, but somewhat more convenient to write.
 
 ###FlatMap
+
 ```scala
 val a = Var(10)
 val b = Var(1)
@@ -517,6 +535,7 @@ val b = for {
 ```
 
 ###Filter
+
 ```scala
 val a = Var(10)
 val b = a.filter(_ > 5)
@@ -543,6 +562,7 @@ println(b.now)
 will print out "2".
 
 ###Reduce
+
 ```scala
 val a = Var(1)
 val b = a.reduce(_ * _)
@@ -557,6 +577,7 @@ println(b.now) // 24
 The `reduce` operator combines subsequent values of an [Rx][1] together, starting from the initial value. Every change to the original [Rx][1] is combined with the previously-stored value and becomes the new value of the reduced [Rx][1].
 
 ###Fold
+
 ```scala
 val a = Var(1)
 val b = a.fold(List.empty[Int])((acc,elem) => elem :: acc)
@@ -647,6 +668,7 @@ A [Timer][8] is a [Rx][1] that generates events on a regular basis. In the examp
 The scheduled task is cancelled automatically when the [Timer][8] object becomes unreachable, so it can be garbage collected. This means you do not have to worry about managing the life-cycle of the [Timer][8]. On the other hand, this means the programmer should ensure that the reference to the [Timer][8] is held by the same object as that holding any [Rx][1] listening to it. This will ensure that the exact moment at which the [Timer][8] is garbage collected will not matter, since by then the object holding it (and any [Rx][1] it could possibly affect) are both unreachable.
 
 ###Delay
+
 ```scala
 import rx.async._
 import rx.async.Platform._
@@ -673,6 +695,7 @@ The `delay(t)` combinator creates a delayed version of an [Rx][1] whose value la
 This example shows the delay being applied to a [Var][3], but it could easily be applied to an [Rx][1] as well.
 
 ###Debounce
+
 ```scala
 import rx.async._
 import rx.async.Platform._
@@ -701,70 +724,6 @@ eventually{
 The `debounce(t)` combinator creates a version of an [Rx][1] which will not update more than once every time period `t`.
 
 If multiple updates happen with a short span of time (less than `t` apart), the first update will take place immediately, and a second update will take place only after the time `t` has passed. For example, this may be used to limit the rate at which an expensive result is re-calculated: you may be willing to let the calculated value be a few seconds stale if it lets you save on performing the expensive calculation more than once every few seconds.
-
-Graph Inspection
-----------------
-The fact that you can introspect the Scala.Rx dataflow graph means you can find out not just what the current value of any [Rx][1] is, but also *why* its that value. For example, if you take the following graph:
-
-```scala
-val a = Var(1)
-
-val b = Var(2)
-
-val c = Rx{ a() + b() } // 3
-val d = Rx{ c() * 5 } // 15
-val e = Rx{ c() + 4 } // 7
-val f = Rx{ d() + e() + 4 } // 26
-```
-
-We know the value of `f` is 26:
-
-```scala
-println(f.now) // 26
-```
-
-But why is it 26? We can ask it for the value of its parents:
-
-```scala
-println(f.Internal)
-// List(rx.core.Dynamic@119e2f23, rx.core.Dynamic@506c0c49)
-println(f.parents.collect{case r: Rx[_] => r()})
-// List(7, 15)
-```
-
-This is interesting, but not that helpful, since the hash of each parent is pretty opaque and the ordering of the parents is arbitrary. However, we can also assign names to these nodes:
-
-```scala
-val a = Var(1, name="a")
-
-val b = Var(2, name="b")
-
-val c = Rx(name="c"){ a() + b() }
-val d = Rx(name="d"){ c() * 5 }
-val e = Rx(name="e"){ c() + 4 }
-val f = Rx(name="f"){ d() + e() + 4 }
-```
-
-Now we can query the graph based on human-readable names, which is a great improvement! For example, here's all the descendents of `c`:
-
-```scala
-println(c.descendants.map(_.name)) // List(e, d, f, f)
-```
-
-Or the names and values of all the nodes (ancestors) that were used in the computation of `f`:
-
-```scala
-f.ancestors
- .map{ case r: Rx[_] => r.name + " " + r() }
- .foreach(println)
-// e 7
-// d 15
-// c 3
-// b 2
-// a 1
-```
-
-This ability to query the dataflow graph is useful when debugging why things are going wrong and values are not what you think they are.
 
 Design Considerations
 =====================
