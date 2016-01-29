@@ -33,7 +33,7 @@ package object rx {
 
     def reduce(f: (Id[T], Id[T]) => Id[T])(implicit ownerCtx: Ctx.Owner): Rx.Dynamic[T] = macro Operators.reduce[T, Id]
 
-    def foreach(f: T => Unit) = node.trigger(f(node.now))
+    def foreach(f: T => Unit)(implicit ownerCtx: Ctx.Owner): Obs = node.trigger(f(node.now))
   }
   object SafeOps{
     class Macros[T](node: Rx[T]) extends Operators[T, util.Try] {
@@ -55,7 +55,7 @@ package object rx {
 
     def reduce(f: (Try[T], Try[T]) => Try[T])(implicit ownerCtx: Ctx.Owner): Rx.Dynamic[T] = macro Operators.reduce[T, Try]
 
-    def foreach(f: T => Unit) = node.trigger(node.toTry.foreach(f))
+    def foreach(f: T => Unit)(implicit ownerCtx: Ctx.Owner): Obs = node.trigger(node.toTry.foreach(f))
   }
 
   /**

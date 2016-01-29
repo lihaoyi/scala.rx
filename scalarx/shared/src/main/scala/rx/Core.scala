@@ -71,7 +71,7 @@ sealed trait Rx[+T] { self =>
     * changes. Returns an [[Obs]] if you want to keep track of this trigger or
     * kill it later.
     */
-  def trigger(thunk: => Unit) = {
+  def trigger(thunk: => Unit)(implicit ownerCtx: rx.Ctx.Owner): Obs = {
     thunk
     triggerLater(thunk)
   }
@@ -80,8 +80,11 @@ sealed trait Rx[+T] { self =>
     * not immediately. Returns an [[Obs]] if you want to keep track of this trigger or
     * kill it later.
     */
-  def triggerLater(thunk: => Unit): Obs = {
+  def triggerLater(thunk: => Unit)(implicit ownerCtx: rx.Ctx.Owner): Obs = {
     val o = new Obs(() => thunk, this)
+    if(ownerCtx != Ctx.Owner.Unsafe) {
+      ownerCtx.contextualRx.Internal.ownedObservers.add(o)
+    }
     Internal.observers.add(o)
     o
   }
@@ -135,7 +138,7 @@ object Rx{
         seen.add(min)
       }
     }
-    observers.foreach(_.thunk())
+    observers.filter(!_.Internal.dead).foreach(_.thunk())
   }
 
   /**
@@ -162,10 +165,18 @@ object Rx{
       var dead = false
       val upStream = mutable.Set.empty[Rx[_]]
       val owned = mutable.Set.empty[Rx.Dynamic[_]]
+      val ownedObservers = mutable.Set.empty[Obs]
 
       override def clearDownstream() = {
         Internal.downStream.foreach(_.Internal.upStream.remove(self))
         Internal.downStream.clear()
+      }
+
+      def clearOwned() = {
+        Internal.owned.foreach(_.ownerKilled())
+        Internal.owned.clear()
+        Internal.ownedObservers.foreach(_.kill())
+        Internal.ownedObservers.clear()
       }
 
       def clearUpstream() = {
@@ -175,8 +186,7 @@ object Rx{
 
       def calc(): Try[T] = {
         Internal.clearUpstream()
-        Internal.owned.foreach(_.ownerKilled())
-        Internal.owned.clear()
+        clearOwned()
         Try(func(new Ctx.Owner(self), new Ctx.Data(self)))
       }
 
@@ -198,8 +208,7 @@ object Rx{
       Internal.dead = true
       Internal.clearDownstream()
       Internal.clearUpstream()
-      Internal.owned.foreach(_.ownerKilled())
-      Internal.owned.clear()
+      Internal.clearOwned()
     }
 
     override def kill(): Unit = {
