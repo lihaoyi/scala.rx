@@ -10,7 +10,7 @@ package object async {
   implicit class FutureCombinators[T](val f: Future[T]) extends AnyVal {
     def toRx(initial: T)(implicit ec: ExecutionContext, ctx: Ctx.Owner): Rx[T] = {
       @volatile var completed: T = initial
-      val ret: Rx.Dynamic[T] = Rx.build { (owner, data)  => completed }(ctx)
+      val ret = Rx.build { (owner, data)  => completed }(ctx)
       f.map { v => completed = v ; ret.recalc() }
       ret
     }
