@@ -43,15 +43,7 @@ val scalarx = crossProject.settings(
           <name>Li Haoyi</name>
           <url>https://github.com/lihaoyi</url>
         </developer>
-      </developers>,
-  unmanagedSourceDirectories in Compile ++= {
-    if (scalaVersion.value startsWith "2.10.") Seq(baseDirectory.value / ".."/"shared"/"src"/ "main" / "scala-2.10")
-    else Seq(baseDirectory.value / ".."/"shared" / "src"/"main" / "scala-2.11")
-  },
-  unmanagedSourceDirectories in Test ++= {
-    if (scalaVersion.value startsWith "2.10.") Seq(baseDirectory.value / ".."/"shared"/"src"/ "test" / "scala-2.10")
-    else Seq(baseDirectory.value / ".."/"shared" / "src" / "test" / "scala-2.11")
-  }
+      </developers>
 ).jsSettings(
   libraryDependencies ++= Seq(
     "org.scala-js" %%% "scalajs-dom" % "0.8.2" % "provided"
