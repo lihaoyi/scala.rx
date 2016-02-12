@@ -345,13 +345,12 @@ error: This Rx might leak! Either explicitly mark it unsafe (Rx.unsafe) or ensur
            val html = Rx{"Home Page! time: " + time()}
 ```
 
-In earlier versions of this library, the possiblity of 'leaking' an Rx was actually a significant problem that had to be carefully thought about. As an example, consider this slight modification to the first example:
+To understand `ownership` it is important to understand the problem it fixes: `leaks`. As an example, consider this slight modification to the first example:
 
 ```scala
-//Note: this won't compile in 0.3.0, but would in earlier versions
 var count = 0
 val a = Var(1); val b = Var(2)
-def mkRx(i: Int) = Rx { count += 1; i + b() }
+def mkRx(i: Int) = Rx.unsafe { count += 1; i + b() }
 val c = Rx{ 
   val newRx = mkRx(a()) 
   newRx() 
@@ -381,7 +380,7 @@ println(c.now, count) //(104,211) -- 211!!!
 
 In this example, even though `b` is only updated a few times, the count value starts to soar as `a` is modified. This is `mkRx` leaking! That is, every time `c` is recomputed, it builds a whole new `Rx` that sticks around and keeps on evaluating, even after it is no longer reachable as a data dependency and forgotten. So after running that `(0 to 100).foreach` statment, there are over 100 `Rx`s that all fire every time `b` is changed. This clearly is not desirable. 
 
-In 0.3.0 however, this situation now generates a compile time error instead of leaking at runtime, and a much better result can be had by passing along the owning context:
+However, by adding an explicit `owner` (and removing `unsafe`), we can fix the leak:
 
 ```scala
 var count = 0
@@ -402,15 +401,11 @@ b() = 4
 println(c.now,count) //(104,107)
 ```
 
-The difference is as of `0.3.0` the concept of ownership has been made explicit and the rules of `Rx` propagation have been changed such that whenever an `Rx` recaculates, it first kills all of its owned dependencies, ensuring they do not leak. In this example, `c` is the owner of the `Rx` created in `mkRx` and kills it automatically every time `c` recalculates. We can, however, decide to mark mkRx explicitly unsafe and recreate the behavior of earlier versions of scala.rx:
-
-```scala
-def mkRx(i: Int) = Rx.unsafe { count += 1; i + b() } //explicitly allow the leak, no compile time exception
-```
+Ownership fixes leaks by keeping allowing a parent `Rx` to track its "owned" nested `Rx`. That is whenever an `Rx` recaculates, it first kills all of its owned dependencies, ensuring they do not leak. In this example, `c` is the owner of all the `Rx`s which are created in `mkRx` and kills them automatically every time `c` recalculates.
 
 Data Context
 ------------
-Given either a [Rx][1] or a [Var][3] using `()` unwraps the current value and adds itself as a dependency to whatever `Rx` that is currently evaluating. Alternatively, `.now` can be used to simply unwrap the value and skips over becoming a data dependency:
+Given either a [Rx][1] or a [Var][3] using `()` (aka `apply`) unwraps the current value and adds itself as a dependency to whatever `Rx` that is currently evaluating. Alternatively, `.now` can be used to simply unwrap the value and skips over becoming a data dependency:
 
 ```scala
 val a = Var(1); val b = Var(2)
@@ -421,10 +416,7 @@ println(c.now) // 3
 b() = 5
 println(c.now) // 3 
 ```
-
-In earlier versions of scala.rx, the programmer was free to choose whichever operator to get a value out of an [Rx][1] or [Var][3] at any time. While in most cases apply could be used safely, this did lead to situations of unexpected data dependencies where some [Rx][1] would end up with a dependency on some seemingly unrelated [Var][3]. For example, in code that dealt with implicit conversions of an [Rx][1], an errant `apply` could lead to very subtle and hard to debug bugs. 
-
-With the introduction of `Ctx.Owner` there was also room for another kind of data dependency bug, consider:
+To understand the need for a `Data` context and how `Data` contexts differ from `Owner` contexts, consider the following example:
 
 ```scala
 def foo()(implicit ctx: Ctx.Owner) = {
@@ -442,7 +434,7 @@ With the concept of ownership, if `a()` is allowed to create a data dependency o
         a()
 ```
 
-If we explicitly allow for data dependencies, we can force the stack to blow up:
+We can "fix" the error by explicitly allowing the data dependencies (and see that the stack blows up):
 
 ```scala
 def foo()(implicit ctx: Ctx.Owner, data: Ctx.Data) = {
@@ -464,33 +456,28 @@ at rx.Rx$Dynamic$Internal$$anonfun$calc$2.apply(Core.scala:180)
   at scala.util.Try$.apply(Try.scala:192)
 ...
 ```
+The `Data` context is the mechanism that an `Rx` uses to decide when to recaculate. `Ownership` fixes the problem of leaking. Mixing the two can lead to infinite recursion: when something is both owned and a data dependency of the same parent Rx. 
 
-When dealing with dynamic graphs, it is almost always the case that only the ownership context is needed, ie functions most often have the form:
+Luckily though it is almost always the case that only one or the other context is needed. when dealing with dynamic graphs, it is almost always the case that only the ownership context is needed, ie functions most often have the form:
 
 ```scala
 def f(...)(implicit ctx: Ctx.Owner) = Rx { ... }
 ```
 
-And in some cases where it might be desirable to DRY up some repeated `Rx` code, for example, it might be valuable to define a function of this form:
+The `Data` context is needed less often and is useful in, as an example, the case where it is desirable to DRY up some repeated `Rx` code. Such a funtion would have this form:
 
 ```scala
 def f(...)(implicit data: Ctx.Data) = ...
 ```
 
-Which would allow some shared data dependency to be pulled out of the body of each `Rx` and into the shared function.
+This would allow some shared data dependency to be pulled out of the body of each `Rx` and into the shared function.
 
-However, it is very likely the case that it will be rare for a function that explicitly would need to do both and have a function signature like
-
-```scala
-def f(...)(implicit ctx: Ctx.Owner, data: Ctx.Data) = ...
-```
-
-With the introduction of `Ctx.Data`, the use of `apply` can now only be within some `Rx` context. This limits the problem of accidentally introducing unintentional data dependencies as well as the possiblity of infinite recursion as outlined above. 
+By splitting up the orthogonal concepts of `ownership` and `data` dependencies the problem of infinite recursion as outlined above is greatly limited. Explicit `data` dependencies also make it more clear when the use of a `Var` or `Rx` is meant to be a data dependency, and not just a simple read of the current value (ie `.now`). Without this distiction, it is easier to introduce "accidental" data dependencies that are unexpected and unintended.
 
 Additional Operations
 ---------------------
 
-Apart from the basic building blocks of [Var][3]/[Rx][1]/[Obs][2], Scala.Rx also provides a set of combinators which allow your to easily transform your [Rx][1]s; this allows the programmer to avoid constantly re-writing logic for the common ways of constructing the dataflow graph. The five basic combinators: `map()`, `flatMap`, `filter()`, `reduce()` and `fold` are all modelled after the scala collections library, and provide an easy way of transforming the values coming out of an [Rx][1].
+Apart from the basic building blocks of [Var][3]/[Rx][1]/[Obs][2], Scala.Rx also provides a set of combinators which allow your to easily transform your [Rx][1]s; this allows the programmer to avoid constantly re-writing logic for the common ways of constructing the dataflow graph. The five basic combinators: `map()`, `flatMap`, `filter()`, `reduce()` and `fold()` are all modelled after the scala collections library, and provide an easy way of transforming the values coming out of an [Rx][1].
 
 ###Map
 
@@ -663,7 +650,7 @@ println(count) // 8
 println(count) // 13
 ```
 
-A [Timer][8] is a [Rx][1] that generates events on a regular basis. In the example above, the for-loop checks that the value of the timer `t()` increases over time from 0 to 5, and then checks that `count` has been incremented at least that many times.
+A [Timer][8] is a [Rx][1] that generates events on a regular basis. In the example above, using println in the console show that the value `t()` has increased over time.
 
 The scheduled task is cancelled automatically when the [Timer][8] object becomes unreachable, so it can be garbage collected. This means you do not have to worry about managing the life-cycle of the [Timer][8]. On the other hand, this means the programmer should ensure that the reference to the [Timer][8] is held by the same object as that holding any [Rx][1] listening to it. This will ensure that the exact moment at which the [Timer][8] is garbage collected will not matter, since by then the object holding it (and any [Rx][1] it could possibly affect) are both unreachable.
 
@@ -899,6 +886,21 @@ This idea of change propagation, with time-varying values which notify any value
 All of these projects are filled with good ideas. However, generally they are generally very much research projects: in exchange for the benefits of FRP, they require you to write your entire program in an obscure variant of an obscure language, with little hope inter-operating with existing, non-FRP code.
 
 Writing production software in an unfamiliar paradigm such as FRP is already a significant risk. On top of that, writing production software in an unfamiliar language is an additional variable, and writing production software in an unfamiliar paradigm in an unfamiliar language *with no inter-operability with existing code* is downright reckless. Hence it is not surprising that these libraries have not seen significant usage. Scala.Rx aims to solve these problems by providing the benefits of FRP in a familiar language, with seamless interop between FRP and more traditional imperative or object-oriented code.
+
+Version History
+===============
+
+0.3.1
+-----
+* Fixed leak with observers (they also require an owning context).
+
+* Fixed type issue with `flatMap`
+
+0.3.0
+-----
+* Introduced `Owner` and `Data` context. This is a completely different implementation of dependency and lifetime managment that allows for safe construction of runtime dynamic graphs. 
+
+* More default combinators: `fold` and `flatMap` are now implemented by default.
 
 Credits
 =======

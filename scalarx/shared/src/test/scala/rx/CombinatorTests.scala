@@ -88,7 +88,6 @@ object CombinatorTests extends TestSuite{
         assert(c.now == 1337)
         assert(d.toTry == Success("java.lang.ArithmeticException: / by zero"))
       }
-
       "flatMapForComprehension" - {
         val a = Var(10)
         val b = for {
@@ -102,7 +101,11 @@ object CombinatorTests extends TestSuite{
         a() = 100
         assert(b.now == 100 + 105 + 2)
       }
-
+      "flatMapVar" - {
+        val a = Var(0)
+        val b = a.flatMap(a => Var(Option.empty[String]))
+        assert(b.now == Option.empty[String])
+      }
       "filter" - {
         val a = Var(10)
         val b = a.filter(_ > 5)
@@ -403,6 +406,5 @@ object CombinatorTests extends TestSuite{
     "moreCombinators" - {
       MoarCombinators.wat()
     }
-
   }
 }

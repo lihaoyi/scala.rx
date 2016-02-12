@@ -108,7 +108,7 @@ trait Operators[T, Wrap[_]]{
   def unwrap[V](t: Wrap[V]): V
   def prefix: Rx[T]
 
-  def flatMappedImpl[V](call: (rx.Ctx.Owner, rx.Ctx.Data) => Wrap[T] => Wrap[Rx.Dynamic[V]],
+  def flatMappedImpl[V](call: (rx.Ctx.Owner, rx.Ctx.Data) => Wrap[T] => Wrap[Rx[V]],
                         enclosing: rx.Ctx.Owner): Rx.Dynamic[V] = {
 
     Rx.build { (ownerCtx, dataCtx) =>

@@ -263,7 +263,7 @@ object AdvancedTests extends TestSuite{
       )
     }
 
-    "leakyRxCtx" - {
+    "leakyRx" - {
       var testY = 0
       var testZ = 0
       val a = Var(10)
@@ -273,6 +273,28 @@ object AdvancedTests extends TestSuite{
 
       //This way will leak an Rx (ie exponential blow up in cpu time), but is not caught at compile time
       def z() = Rx.unsafe { testZ += 1; a() }
+
+      val yy = Rx.unsafe { a() ; for (i <- 0 until 100) yield y() }
+      val zz = Rx.unsafe { a() ; for (i <- 0 until 100) yield z() }
+      a() = 1
+      a() = 2
+      a() = 3
+      a() = 4
+      assert(testY == 500)
+      assert(testZ == 1500)
+    }
+
+    "leakyObs" - {
+      var testY = 0
+      var testZ = 0
+      val a = Var(10)
+
+      //Correct way to implement a def: Obs
+      def y()(implicit zzz: Ctx.Owner) = a.trigger(testY += 1)
+
+
+      //This way will leak the Obs (ie exponential blow up in cpu time), but is not caught at compile time
+      def z() = a.trigger(testZ += 1)(Ctx.Owner.Unsafe)
 
       val yy = Rx.unsafe { a() ; for (i <- 0 until 100) yield y() }
       val zz = Rx.unsafe { a() ; for (i <- 0 until 100) yield z() }
