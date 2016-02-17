@@ -4,7 +4,7 @@ val scalarx = crossProject.settings(
   organization := "com.lihaoyi",
   name := "scalarx",
   scalaVersion := "2.11.7",
-  version := "0.3.1-SNAPSHOT",
+  version := "0.3.1",
 
   libraryDependencies ++= Seq(
     "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
