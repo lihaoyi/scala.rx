@@ -103,15 +103,15 @@ object Rx{
     * track of which other [[Rx]]s are used within that block (via their
     * `apply` methods) so this [[Rx]] can recalculate when upstream changes.
     */
-  def apply[T](func: => T)(implicit ownerCtx: rx.Ctx.Owner): Rx.Dynamic[T] = macro Factories.rxApplyMacro[T]
+  def apply[T](func: => T)(implicit ownerCtx: rx.Ctx.Owner, name: sourcecode.Name): Rx.Dynamic[T] = macro Factories.rxApplyMacro[T]
 
-  def unsafe[T](func: => T): Rx[T] = macro Factories.buildUnsafe[T]
+  def unsafe[T](func: => T)(implicit name: sourcecode.Name): Rx[T] = macro Factories.buildUnsafe[T]
 
   /**
     * Constructs a new [[Rx]] from an expression (which explicitly takes an
     * [[Ctx.Owner]]) and an optional `owner` [[Ctx.Owner]].
     */
-  def build[T](func: (Ctx.Owner, Ctx.Data) => T)(implicit owner: Ctx.Owner): Rx.Dynamic[T] = {
+  def build[T](func: (Ctx.Owner, Ctx.Data) => T)(implicit owner: Ctx.Owner, name: sourcecode.Name): Rx.Dynamic[T] = {
     require(owner != null, "owning RxCtx was null! Perhaps mark the caller lazy?")
     new Rx.Dynamic(func, if(owner == Ctx.Owner.Unsafe) None else Some(owner))
   }
@@ -148,7 +148,7 @@ object Rx{
     * automatically when the [[owner]] recalculates, in order to avoid
     * memory leaks from un-used [[Rx]]s hanging around.
     */
-  class Dynamic[+T](func: (Ctx.Owner, Ctx.Data) => T, owner: Option[Ctx.Owner]) extends Rx[T] { self =>
+  class Dynamic[+T](func: (Ctx.Owner, Ctx.Data) => T, owner: Option[Ctx.Owner])(implicit name: sourcecode.Name) extends Rx[T] { self =>
 
     owner.foreach { o =>
       o.contextualRx.Internal.owned.add(self)
@@ -223,7 +223,7 @@ object Rx{
         Rx.doRecalc(Internal.downStream, Internal.observers)
     }
 
-    override def toString() = s"Rx@${Integer.toHexString(hashCode()).take(2)}($now)"
+    override def toString() = s"${name.value}:Rx@${Integer.toHexString(hashCode()).take(2)}($now)"
   }
 }
 
@@ -248,7 +248,7 @@ object Var{
   /**
     * Create a [[Var]] from an initial value
     */
-  def apply[T](initialValue: T) = new Var(initialValue)
+  def apply[T](initialValue: T)(implicit name: sourcecode.Name) = new Var(initialValue)
 
   /**
     * Set the value of multiple [[Var]]s at the same time; in doing so,
@@ -268,7 +268,7 @@ object Var{
   * A smart variable that can be set manually, and will notify downstream
   * [[Rx]]s and run any triggers whenever its value changes.
   */
-class Var[T](initialValue: T) extends Rx[T]{
+class Var[T](initialValue: T)(implicit name: sourcecode.Name) extends Rx[T]{
 
   object Internal extends Internal{
     def depth = 0
@@ -296,7 +296,7 @@ class Var[T](initialValue: T) extends Rx[T]{
     Internal.clearDownstream()
   }
 
-  override def toString() = s"Var@${Integer.toHexString(hashCode()).take(2)}($now)"
+  override def toString() = s"${name.value}:Var@${Integer.toHexString(hashCode()).take(2)}($now)"
 }
 
 object Ctx{

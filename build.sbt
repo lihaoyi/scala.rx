@@ -9,6 +9,7 @@ val scalarx = crossProject.settings(
   libraryDependencies ++= Seq(
     "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
     "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
+    "com.lihaoyi" %%% "sourcecode" % "0.1.1",
     "com.lihaoyi" %%% "utest" % "0.3.1" % "test",
     "com.lihaoyi" %% "acyclic" % "0.1.3" % "provided"
   ) ++ (
