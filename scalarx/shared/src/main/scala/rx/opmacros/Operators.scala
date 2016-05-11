@@ -109,32 +109,32 @@ trait Operators[T, Wrap[_]]{
   def prefix: Rx[T]
 
   def flatMappedImpl[V](call: (rx.Ctx.Owner, rx.Ctx.Data) => Wrap[T] => Wrap[Rx[V]],
-                        enclosing: rx.Ctx.Owner): Rx.Dynamic[V] = {
+                        enclosing: rx.Ctx.Owner)(implicit name: sourcecode.Name): Rx.Dynamic[V] = {
 
     Rx.build { (ownerCtx, dataCtx) =>
       prefix.Internal.addDownstream(dataCtx)
       this.unwrap(call(ownerCtx, dataCtx)(this.get(prefix))).apply()(dataCtx)
-    }(enclosing)
+    }(enclosing,name)
   }
   def mappedImpl[V](call: (rx.Ctx.Owner, rx.Ctx.Data) => Wrap[T] => Wrap[V],
-                    enclosing: rx.Ctx.Owner): Rx.Dynamic[V] = {
+                    enclosing: rx.Ctx.Owner)(implicit name: sourcecode.Name): Rx.Dynamic[V] = {
 
     Rx.build { (ownerCtx, dataCtx) =>
       prefix.Internal.addDownstream(dataCtx)
       this.unwrap(call(ownerCtx, dataCtx)(this.get(prefix)))
-    }(enclosing)
+    }(enclosing,name)
   }
 
   def foldImpl[V](start: Wrap[V],
                   f: (rx.Ctx.Owner, rx.Ctx.Data) => (Wrap[V], Wrap[T]) => Wrap[V],
-                  enclosing: rx.Ctx.Owner): Rx.Dynamic[V] = {
+                  enclosing: rx.Ctx.Owner)(implicit name: sourcecode.Name): Rx.Dynamic[V] = {
 
     var prev: Wrap[V] = start
     Rx.build { (ownerCtx, dataCtx) =>
       prefix.Internal.addDownstream(dataCtx)
       prev = f(ownerCtx, dataCtx)(prev, this.get(prefix))
       this.unwrap(prev)
-    }(enclosing)
+    }(enclosing,name)
   }
 
   /**
@@ -142,7 +142,7 @@ trait Operators[T, Wrap[_]]{
     */
   def reducedImpl(initValue: Wrap[T],
                   reduceFunc: (rx.Ctx.Owner, rx.Ctx.Data) => (Wrap[T], Wrap[T]) => Wrap[T],
-                  enclosing: rx.Ctx.Owner): Rx.Dynamic[T] = {
+                  enclosing: rx.Ctx.Owner)(implicit name: sourcecode.Name): Rx.Dynamic[T] = {
     var init = true
     def getPrev = this.get(prefix)
 
@@ -160,12 +160,12 @@ trait Operators[T, Wrap[_]]{
         prev = reduceFunc(ownerCtx, dataCtx)(prev, getPrev)
         next
       }
-    }(enclosing)
+    }(enclosing,name)
   }
 
   def filterImpl(start: => Wrap[T],
                  f: (rx.Ctx.Owner, rx.Ctx.Data) => Wrap[T] => Boolean,
-                 enclosing: rx.Ctx.Owner) = {
+                 enclosing: rx.Ctx.Owner)(implicit name: sourcecode.Name) = {
 
     var init = true
     var prev = this.get(prefix)
@@ -177,7 +177,7 @@ trait Operators[T, Wrap[_]]{
       }
 
       this.unwrap(prev)
-    }(enclosing)
+    }(enclosing,name)
   }
 
 }

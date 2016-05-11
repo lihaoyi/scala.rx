@@ -8,16 +8,16 @@ import scala.concurrent.duration.{Deadline, FiniteDuration}
 package object async {
   import acyclic.pkg
   implicit class FutureCombinators[T](val f: Future[T]) extends AnyVal {
-    def toRx(initial: T)(implicit ec: ExecutionContext, ctx: Ctx.Owner): Rx[T] = {
+    def toRx(initial: T)(implicit ec: ExecutionContext, ctx: Ctx.Owner, name: sourcecode.Name): Rx[T] = {
       @volatile var completed: T = initial
-      val ret = Rx.build { (owner, data)  => completed }(ctx)
+      val ret = Rx.build { (owner, data)  => completed }(ctx,name)
       f.map { v => completed = v ; ret.recalc() }
       ret
     }
   }
 
   implicit class AsyncCombinators[T](val n: rx.Rx[T]) extends AnyVal {
-    def debounce(interval: FiniteDuration)(implicit scheduler: Scheduler, ctx: Ctx.Owner): Rx[T] = {
+    def debounce(interval: FiniteDuration)(implicit scheduler: Scheduler, ctx: Ctx.Owner, name: sourcecode.Name): Rx[T] = {
       @volatile var npt = Deadline.now
       @volatile var task = Option.empty[Cancelable]
       lazy val ret: Rx.Dynamic[T] = Rx.build { (owner, data) =>
@@ -32,11 +32,11 @@ package object async {
           })
           ret()(data)
         }
-      }(ctx)
+      }(ctx,name)
       ret
     }
 
-    def delay(amount: FiniteDuration)(implicit scheduler: Scheduler, ctx: Ctx.Owner): Rx[T] = {
+    def delay(amount: FiniteDuration)(implicit scheduler: Scheduler, ctx: Ctx.Owner, name: sourcecode.Name): Rx[T] = {
       @volatile var fired = Deadline.now - amount
       @volatile var waiting = 0
       val next: Var[T] = Var(n.now)
@@ -53,13 +53,13 @@ package object async {
           }
         }
       }
-      Rx.build { (owner, data)  => next.Internal.addDownstream(data); next.now }(ctx)
+      Rx.build { (owner, data)  => next.Internal.addDownstream(data); next.now }(ctx,name)
     }
   }
 
   object Timer {
     import scala.concurrent.duration._
-    def apply(interval: FiniteDuration)(implicit scheduler: Scheduler, ctx: Ctx.Owner): Rx[Long] = {
+    def apply(interval: FiniteDuration)(implicit scheduler: Scheduler, ctx: Ctx.Owner, name: sourcecode.Name): Rx[Long] = {
       @volatile var tick = 0l
       lazy val ret: Rx.Dynamic[Long] = Rx.build { (owner, data)  =>
         val task = scheduler.scheduleOnce(interval) {
@@ -67,7 +67,7 @@ package object async {
           ret.recalc()
         }
         tick
-      }(ctx)
+      }(ctx,name)
       ret
     }
   }
