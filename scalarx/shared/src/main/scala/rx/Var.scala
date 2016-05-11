@@ -21,14 +21,15 @@ trait Var[T] extends Rx[T] {
     clearDownstream()
   }
 
-  override def toString = s"Var@${Integer.toHexString(hashCode()).take(2)}($now)"
+  def name: sourcecode.Name
+  override def toString = s"${name.value}:Var@${Integer.toHexString(hashCode()).take(2)}($now)"
 }
 
 object Var {
   /**
     * Create a [[Var]] from an initial value
     */
-  def apply[T](initialValue: T): Var[T] = new Base(initialValue)
+  def apply[T](initialValue: T)(implicit name: sourcecode.Name): Var[T] = new Base(initialValue)
 
   /**
     * Set the value of multiple [[Var]]s at the same time; in doing so,
@@ -67,7 +68,7 @@ object Var {
     * A smart variable that can be set manually, and will notify downstream
     * [[Rx]]s and run any triggers whenever its value changes.
     */
-  class Base[T](initialValue: T) extends Var[T] {
+  class Base[T](initialValue: T)(implicit val name: sourcecode.Name) extends Var[T] {
 
     private[rx] var value = initialValue
 
@@ -85,7 +86,7 @@ object Var {
     }
   }
 
-  class Composed[T](base:Var[T], rx:Rx[T]) extends Var[T] {
+  class Composed[T](base:Var[T], rx:Rx[T])(implicit val name: sourcecode.Name) extends Var[T] {
 
     // Proxy Rx
     override def now: T = rx.now
@@ -104,14 +105,14 @@ object Var {
     }
   }
 
-  class Isomorphic[T, S](base: Var[T], read: T => S, write: S => T)(implicit ownerCtx: Ctx.Owner) extends Var[S] {
+  class Isomorphic[T, S](base: Var[T], read: T => S, write: S => T)(implicit ownerCtx: Ctx.Owner, val name: sourcecode.Name) extends Var[S] {
     self =>
 
     //  private[rx] val rx = base.map(read)
     private[rx] val rx = Rx.build { (ownerCtx, dataCtx) =>
       base.addDownstream(dataCtx)
       read(base.now)
-    }(ownerCtx)
+    }(ownerCtx, name)
 
 
     // Proxy Rx
@@ -141,13 +142,13 @@ object Var {
   }
 
 
-  class Zoomed[T, S](base: Var[T], read: T => S, write: (T, S) => T)(implicit ownerCtx: Ctx.Owner) extends Var[S] {
+  class Zoomed[T, S](base: Var[T], read: T => S, write: (T, S) => T)(implicit ownerCtx: Ctx.Owner, val name: sourcecode.Name) extends Var[S] {
 
     //  private[rx] val rx = base.map(read)
     private[rx] val rx = Rx.build { (ownerCtx, dataCtx) =>
       base.addDownstream(dataCtx)
       read(base.now)
-    }(ownerCtx)
+    }(ownerCtx, name)
 
     // Proxy Rx
     override def now: S = rx.now
