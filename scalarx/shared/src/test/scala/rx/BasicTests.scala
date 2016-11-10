@@ -58,11 +58,13 @@ object BasicTests extends TestSuite{
         "implicitConversions" - {
           val a = Var(1); val b = Var(2)
           val c = Rx{
-            a() to b()
+            val t1 = a() + " and " + b()
+            val t2 = a() to b()
+            t1 + ": " + t2
           }
-          assert(c.now == (1 to 2))
+          assert(c.now == "1 and 2: " + (1 to 2).toString)
           a() = 0
-          assert(c.now == (0 to 2))
+          assert(c.now == "0 and 2: " + (0 to 2).toString)
         }
         "useInByNameParameters" - {
           val a = Var(1)
