@@ -9,9 +9,9 @@ A simple example which demonstrates the behavior is:
 import rx._
 val a = Var(1); val b = Var(2)
 val c = Rx{ a() + b() }
-println(c.now)) // 3
+println(c.now) // 3
 a() = 4
-println(c.now)) // 6
+println(c.now) // 6
 ```
 
 The idea being that 99% of the time, when you re-calculate a variable, you re-calculate it the same way you initially calculated it. Furthermore, you only re-calculate it when one of the values it depends on changes. Scala.Rx does this for you automatically, and handles all the tedious update logic for you so you can focus on other, more interesting things!
