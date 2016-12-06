@@ -1,9 +1,9 @@
-crossScalaVersions := Seq("2.10.6", "2.11.8", "2.12.0")
+crossScalaVersions := Seq("2.10.6", "2.11.8", "2.12.1")
 
 val scalarx = crossProject.settings(
   organization := "com.lihaoyi",
   name := "scalarx",
-  scalaVersion := "2.12.0",
+  scalaVersion := "2.12.1",
   version := "0.3.2",
 
   libraryDependencies ++= Seq(
@@ -28,7 +28,7 @@ val scalarx = crossProject.settings(
   autoCompilerPlugins := true,
   // Sonatype
 
-  publishTo := Some("releases"  at "https://oss.sonatype.org/service/local/staging/deploy/maven2"),
+  publishTo := Some("releases" at "https://oss.sonatype.org/service/local/staging/deploy/maven2"),
 
   pomExtra :=
     <url>https://github.com/lihaoyi/scalatags</url>
@@ -64,7 +64,7 @@ val scalarx = crossProject.settings(
     if (scalaVersion.value.startsWith("2.10."))
       "com.typesafe.akka" %% "akka-actor" % "2.3.15" % "provided"
     else
-      "com.typesafe.akka" %% "akka-actor" % "2.4.12" % "provided")
+      "com.typesafe.akka" %% "akka-actor" % "2.4.14" % "provided")
 )
 
 lazy val js = scalarx.js
