@@ -57,7 +57,7 @@ libraryDependencies += "com.lihaoyi" %%% "scalarx" % "0.3.2"
 
 There are some minor differences between running Scala.Rx on the JVM and in Javascript particularly around [asynchronous operations](#timer), the [parallelism model](#parralelism-and-scalajs) and [memory model](#memory-and-scalajs). In general, though, all the examples given in the documentation below will work perfectly when cross-compiled to javascript and run in the browser!
 
-Scala.rx 0.3.2 is only compatible with ScalaJS 0.6.5+.
+Scala.rx 0.3.2 is only compatible with ScalaJS 0.6.5+. Check out a ToDo mvc app written in just over 100 lines of code using Scala.rx and ScalaJS [here](http://www.lihaoyi.com/workbench-example-app/todo.html). You may want to use the very tiny Framework.scala from the source code of the app to help you easily use `Rx` objects with ScalaJS. 
 
 Using Scala.Rx
 ==============
@@ -116,7 +116,7 @@ As can be seen above, changing the value of `a` causes the change to propagate a
 
 The changes propagate through the dataflow graph in *waves*. Each update to a [Var][3] touches off a propagation, which pushes the changes from that [Var][3] to any [Rx][1] which is (directly or indirectly) dependent on its value. In the process, it is possible for a [Rx][1] to be re-calculated more than once.
 
-###Observers
+### Observers
 
 As mentioned, [Obs][2] s can be created from [Rx][1] s or [Var][3] s and be used to perform side effects when they change:
 
@@ -194,7 +194,7 @@ In general, Scala.Rx revolves around constructing dataflow graphs which automati
 - [Rx][1]s as the intermediate nodes in the dataflow graphs
 - [Obs][2]s as the output from the dataflow graph back into the imperative world
 
-###Complex Reactives
+### Complex Reactives
 
 [Rx][1]s are not limited to `Int`s. `String`s, `Seq[Int]`s, `Seq[String]`s, anything can go inside an [Rx][1]:
 
@@ -215,7 +215,7 @@ println(f.now) // "omgomgomgwtfbbq"
 
 As shown, you can use Scala.Rx's reactive variables to model problems of arbitrary complexity, not just trivial ones which involve primitive numbers.
 
-###Error Handling
+### Error Handling
 
 Since the body of an [Rx][1] can be any arbitrary Scala code, it can throw exceptions. Propagating the exception up the call stack would not make much sense, as the code evaluating the [Rx][1] is probably not in control of the reason it failed. Instead, any exceptions are caught by the [Rx][1] itself and stored internally as a `Try`.
 
@@ -274,7 +274,7 @@ In this example, initially all the values for `a`, `b`, `c`, `d`, `e`, `f` and `
 
 `c` and `e` both result in exceptions, and the exception from `c` propagates to `g`. Attempting to extract the value from `g` using `g.now`, for example, will re-throw the ArithmeticException. Again, using `toTry` works too.
 
-###Nesting
+### Nesting
 
 [Rx][1]s can contain other [Rx][1]s, arbitrarily deeply. This example shows the [Rx][1]s nested two levels deep:
 
@@ -479,7 +479,7 @@ Additional Operations
 
 Apart from the basic building blocks of [Var][3]/[Rx][1]/[Obs][2], Scala.Rx also provides a set of combinators which allow your to easily transform your [Rx][1]s; this allows the programmer to avoid constantly re-writing logic for the common ways of constructing the dataflow graph. The five basic combinators: `map()`, `flatMap`, `filter()`, `reduce()` and `fold()` are all modelled after the scala collections library, and provide an easy way of transforming the values coming out of an [Rx][1].
 
-###Map
+### Map
 
 ```scala
 val a = Var(10)
@@ -495,7 +495,7 @@ println(d.now) // 6
 
 `map` does what you would expect, creating a new [Rx][1] with the value of the old [Rx][1] transformed by some function. For example, `a.map(_*2)` is essentially equivalent to `Rx{ a() * 2 }`, but somewhat more convenient to write.
 
-###FlatMap
+### FlatMap
 
 ```scala
 val a = Var(10)
@@ -563,7 +563,7 @@ println(b.now) // 24
 
 The `reduce` operator combines subsequent values of an [Rx][1] together, starting from the initial value. Every change to the original [Rx][1] is combined with the previously-stored value and becomes the new value of the reduced [Rx][1].
 
-###Fold
+### Fold
 
 ```scala
 val a = Var(1)
@@ -586,7 +586,7 @@ These are combinators which do more than simply transforming a value from one to
 
 Note that none of these combinators are doing anything that cannot be done via a combination of [Obs][2]s and [Var][3]s; they simply encapsulate the common patterns, saving you manually writing them over and over, and reducing the potential for bugs.
 
-###Future
+### Future
 
 ```scala
 import scala.concurrent.Promise
@@ -632,7 +632,7 @@ The value of `b()` updates as you would expect as the series of `Future`s comple
 
 This is handy if your dependency graph contains some asynchronous elements. For example, you could have a [Rx][1] which depends on another [Rx][1], but requires an asynchronous web request to calculate its final value. With `async`, the results from the asynchronous web request will be pushed back into the dataflow graph automatically when the `Future` completes, starting off another propagation run and conveniently updating the rest of the graph which depends on the new result.
 
-###Timer
+### Timer
 
 ```scala
 import rx.async._
@@ -654,7 +654,7 @@ A [Timer][8] is a [Rx][1] that generates events on a regular basis. In the examp
 
 The scheduled task is cancelled automatically when the [Timer][8] object becomes unreachable, so it can be garbage collected. This means you do not have to worry about managing the life-cycle of the [Timer][8]. On the other hand, this means the programmer should ensure that the reference to the [Timer][8] is held by the same object as that holding any [Rx][1] listening to it. This will ensure that the exact moment at which the [Timer][8] is garbage collected will not matter, since by then the object holding it (and any [Rx][1] it could possibly affect) are both unreachable.
 
-###Delay
+### Delay
 
 ```scala
 import rx.async._
@@ -793,7 +793,7 @@ Hence, we cannot start all our Rxs evaluating in parallel as some may finish bef
 
 Thus, we have no choice but to have the initial definitions of Rxs happen serially. If necessary, a programmer can manually create independent Rxs [in parallel using Futures](http://stackoverflow.com/questions/12923429/easy-parallel-evaluation-of-tuples-in-scala).
 
-###Glitchiness and Redundant Computation
+### Glitchiness and Redundant Computation
 
 In the context of FRP, a glitch is a temporary inconsistency in the dataflow graph. Due to the fact that updates do not happen instantaneously, but instead take time to computer, the values within an FRP system may be transiently out of sync during the update process. Furthermore, depending on the nature of the FRP system, it is possible to have nodes be updated more than once in a propagation.
 
