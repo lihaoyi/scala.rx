@@ -14,6 +14,7 @@ import scala.util.Try
   * downstream [[Rx]]s when its value changes.
   */
 sealed trait Rx[+T] { self =>
+
   /**
     * Get the current value of this [[Rx]] at this very moment,
     * without listening for updates
@@ -90,6 +91,9 @@ sealed trait Rx[+T] { self =>
   }
 
   def toTry: Try[T]
+
+  def downstreamWasRebuilt(): Unit = ()
+
 }
 
 
@@ -185,9 +189,12 @@ object Rx{
       }
 
       def calc(): Try[T] = {
+        val oldUpstream = Set.empty ++ Internal.upStream
         Internal.clearUpstream()
         clearOwned()
-        Try(func(new Ctx.Owner(self), new Ctx.Data(self)))
+        val res = Try(func(new Ctx.Owner(self), new Ctx.Data(self)))
+        oldUpstream.foreach(_.downstreamWasRebuilt())
+        res
       }
 
       def update() = {
