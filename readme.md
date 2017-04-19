@@ -57,7 +57,7 @@ libraryDependencies += "com.lihaoyi" %%% "scalarx" % "0.3.2"
 
 There are some minor differences between running Scala.Rx on the JVM and in Javascript particularly around [asynchronous operations](#timer), the [parallelism model](#parralelism-and-scalajs) and [memory model](#memory-and-scalajs). In general, though, all the examples given in the documentation below will work perfectly when cross-compiled to javascript and run in the browser!
 
-Scala.rx 0.3.2 is only compatible with ScalaJS 0.6.5+.
+Scala.rx 0.3.2 is only compatible with ScalaJS 0.6.5+. Check out a ToDo mvc app written in just over 100 lines of code using Scala.rx and ScalaJS [here](http://www.lihaoyi.com/workbench-example-app/todo.html). You may want to use the very tiny Framework.scala from the source code of the app to help you easily use `Rx` objects with ScalaJS. 
 
 Using Scala.Rx
 ==============
