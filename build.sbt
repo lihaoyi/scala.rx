@@ -4,12 +4,12 @@ val scalarx = crossProject.settings(
   organization := "com.lihaoyi",
   name := "scalarx",
   scalaVersion := "2.12.0",
-  version := "0.3.2",
+  version := "0.3.3-SNAPSHOT",
 
   libraryDependencies ++= Seq(
     "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
     "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
-    "com.lihaoyi" %%% "utest" % "0.4.4" % "test",
+    "com.lihaoyi" %%% "utest" % "0.5.3" % "test",
     "com.lihaoyi" %% "acyclic" % "0.1.5" % "provided"
   ) ++ (
     CrossVersion.partialVersion(scalaVersion.value) match {
