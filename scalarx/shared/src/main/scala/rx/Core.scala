@@ -13,7 +13,7 @@ import scala.util.Try
   * other [[Rx]]s that depend on it, running any triggers and notifying
   * downstream [[Rx]]s when its value changes.
   */
-sealed trait Rx[+T] { self =>
+trait Rx[+T] { self =>
   /**
     * Get the current value of this [[Rx]] at this very moment,
     * without listening for updates
@@ -232,16 +232,24 @@ object Rx{
   * actually setting it.
   */
 object VarTuple{
-  implicit def tuple2VarTuple[T](t: (Var[T], T)): VarTuple[T] = {
+  implicit def tuple2VarTuple[T](t: (WriteVar[T] with Rx[_], T)): VarTuple[T] = {
     VarTuple(t._1, t._2)
   }
 
-  implicit def tuples2VarTuple[T](ts: Seq[(Var[T], T)]): Seq[VarTuple[T]] = {
+  implicit def tuples2VarTuple[T](ts: Seq[(WriteVar[T] with Rx[_], T)]): Seq[VarTuple[T]] = {
     ts.map(t => VarTuple(t._1, t._2))
   }
 }
-case class VarTuple[T](v: Var[T], value: T){
-  def set() = v.Internal.value = value
+case class VarTuple[T](v: WriteVar[T] with Rx[_], value: T){
+  def set() = v.setInternalValue(value)
+}
+
+trait WriteVar[T] {
+  private[rx] def internalVar: Var[_]
+  private[rx] def setInternalValue(newValue: T): Unit
+  def update(newValue: T): Unit
+  def kill(): Unit
+  def recalc():Unit
 }
 
 object Var{
@@ -258,17 +266,16 @@ object Var{
   def set(args: VarTuple[_]*) = {
     args.foreach(_.set())
     Rx.doRecalc(
-      args.flatMap(_.v.Internal.downStream),
-      args.flatMap(_.v.Internal.observers)
+      args.flatMap(_.v.internalVar.Internal.downStream),
+      args.flatMap(_.v.internalVar.Internal.observers)
     )
   }
-
 }
 /**
   * A smart variable that can be set manually, and will notify downstream
   * [[Rx]]s and run any triggers whenever its value changes.
   */
-class Var[T](initialValue: T) extends Rx[T]{
+class Var[T](initialValue: T) extends Rx[T] with WriteVar[T] {
 
   object Internal extends Internal{
     def depth = 0
@@ -296,7 +303,46 @@ class Var[T](initialValue: T) extends Rx[T]{
     Internal.clearDownstream()
   }
 
+  private[rx] def internalVar = this
+  private[rx] def setInternalValue(newValue: T): Unit = Internal.value = newValue
+
   override def toString() = s"Var@${Integer.toHexString(hashCode()).take(2)}($now)"
+}
+
+
+class RxVar[S, A](write: WriteVar[S], rx: Rx[A])(implicit ctx: Ctx.Owner) extends Rx[A] with WriteVar[S] {
+  object Internal extends Internal {
+    override val downStream = rx.Internal.downStream
+    override val observers = rx.Internal.observers
+
+    override def clearDownstream() = rx.Internal.clearDownstream()
+    override def depth = rx.Internal.depth
+    override def addDownstream(ctx: Ctx.Data) = rx.Internal.addDownstream(ctx)
+  }
+
+  def kill(): Unit = {rx.kill(); write.kill()}
+  def recalc(): Unit = write.recalc()
+  def toTry: scala.util.Try[A] = rx.toTry
+  override def update(newValue: S) = write() = newValue
+
+  def now = rx.now
+  def foreach(f: A => Unit)(implicit ctx: Ctx.Owner) = rx.foreach(f)
+
+  def writeProjection[T](to: T => S)(implicit ctx: Ctx.Owner): RxVar[T, A] = RxVar(new WriteVar[T] {
+    private[rx] def internalVar = write.internalVar
+    private[rx] def setInternalValue(newValue: T): Unit = write.setInternalValue(to(newValue))
+    def update(newValue: T) = write() = to(newValue)
+    def kill(): Unit = write.kill()
+    def recalc(): Unit = write.recalc()
+  } , rx)
+
+  private[rx] def internalVar = write.internalVar
+  private[rx] def setInternalValue(newValue: S): Unit = write.setInternalValue(newValue)
+}
+
+object RxVar {
+  def apply[S, A](write: WriteVar[S], rx: Rx[A])(implicit ctx: Ctx.Owner): RxVar[S, A] = new RxVar(write, rx)
+  def apply[S](value: S)(implicit ctx: Ctx.Owner): RxVar[S, S] = {val inner = Var(value); RxVar(inner, inner)}
 }
 
 object Ctx{
