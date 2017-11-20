@@ -1,7 +1,7 @@
 package rx
 import utest._
 object CompileErrorTests extends TestSuite{
-  val tests = TestSuite{
+  val tests = utest.Tests {
     "compileTimeChecks" - {
       "simpleDef" - {
         compileError("def fail() = Rx { }")

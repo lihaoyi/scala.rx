@@ -11,7 +11,7 @@ import scala.reflect.macros._
   */
 object Factories {
 
-  def buildSafeCtx[T: c.WeakTypeTag](c: Context)(): c.Expr[T] = {
+  def buildSafeCtx[T: c.WeakTypeTag](c: whitebox.Context)(): c.Expr[T] = {
     import c.universe._
 
     val inferredCtx = c.inferImplicitValue(c.weakTypeOf[rx.Ctx.Owner], withMacrosDisabled = true)
@@ -30,15 +30,15 @@ object Factories {
   }
 
   def rxApplyMacro[T: c.WeakTypeTag]
-                  (c: Context)
+                  (c: whitebox.Context)
                   (func: c.Expr[T])
                   (ownerCtx: c.Expr[rx.Ctx.Owner])
                   : c.Expr[Rx.Dynamic[T]] = {
     import c.universe._
 
     val dataCtx = c.inferImplicitValue(c.weakTypeOf[rx.Ctx.Data])
-    val newDataCtx =  c.fresh[TermName]("rxDataCtx")
-    val newOwnerCtx =  c.fresh[TermName]("rxOwnerCtx")
+    val newDataCtx =  c.freshName(TermName("rxDataCtx"))
+    val newOwnerCtx =  c.freshName(TermName("rxOwnerCtx"))
 
     val isCompileTimeCtx = ownerCtx.tree.tpe =:= c.weakTypeOf[rx.Ctx.Owner.CompileTime.type]
 
@@ -52,7 +52,7 @@ object Factories {
     }""")
   }
 
-  def buildUnsafe[T: c.WeakTypeTag](c: Context)(func: c.Expr[T]): c.Expr[Rx[T]] = {
+  def buildUnsafe[T: c.WeakTypeTag](c: whitebox.Context)(func: c.Expr[T]): c.Expr[Rx[T]] = {
     import c.universe._
 
     val inferredOwner = c.inferImplicitValue(c.weakTypeOf[rx.Ctx.Owner])
@@ -60,8 +60,8 @@ object Factories {
 
     require(!inferredOwner.isEmpty)
 
-    val newDataCtx =  c.fresh[TermName]("rxDataCtx")
-    val newOwnerCtx =  c.fresh[TermName]("rxOwnerCtx")
+    val newDataCtx =  c.freshName(TermName("rxDataCtx"))
+    val newOwnerCtx =  c.freshName(TermName("rxOwnerCtx"))
 
     val unsafeOwner =
       if(inferredOwner.tpe =:= c.weakTypeOf[rx.Ctx.Owner.CompileTime.type])
@@ -78,7 +78,7 @@ object Factories {
     }($unsafeOwner)""")
   }
 
-  def automaticOwnerContext[T: c.WeakTypeTag](c: Context): c.Expr[T] = {
+  def automaticOwnerContext[T: c.WeakTypeTag](c: whitebox.Context): c.Expr[T] = {
     import c.universe._
     val inferredCtx = c.inferImplicitValue(c.weakTypeOf[T], withMacrosDisabled = true)
     val isCompileTime = inferredCtx.isEmpty

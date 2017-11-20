@@ -70,7 +70,7 @@ object AdvancedTests extends TestSuite{
     }
   }
 
-  def tests = TestSuite {
+  def tests = utest.Tests {
     'perf{
 //      'init{
 //        val start = System.currentTimeMillis()

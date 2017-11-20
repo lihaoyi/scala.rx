@@ -2,10 +2,9 @@ package rx
 
 import rx.opmacros.{Factories, Utils}
 
-import scala.reflect.internal.annotations.compileTimeOnly
+import scala.annotation.compileTimeOnly
 import scala.language.experimental.macros
 import scala.collection.mutable
-import scala.reflect.macros.Context
 import scala.util.Try
 
 /**
