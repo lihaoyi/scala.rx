@@ -11,7 +11,7 @@ import scala.reflect.macros._
   */
 object Factories {
 
-  def buildSafeCtx[T: c.WeakTypeTag](c: Context)(): c.Expr[T] = {
+  def buildSafeCtx[T: c.WeakTypeTag](c: blackbox.Context)(): c.Expr[T] = {
     import c.universe._
 
     val inferredCtx = c.inferImplicitValue(c.weakTypeOf[rx.Ctx.Owner], withMacrosDisabled = true)
@@ -30,15 +30,15 @@ object Factories {
   }
 
   def rxApplyMacro[T: c.WeakTypeTag]
-                  (c: Context)
+                  (c: blackbox.Context)
                   (func: c.Expr[T])
                   (ownerCtx: c.Expr[rx.Ctx.Owner])
                   : c.Expr[Rx.Dynamic[T]] = {
     import c.universe._
 
     val dataCtx = c.inferImplicitValue(c.weakTypeOf[rx.Ctx.Data])
-    val newDataCtx =  c.fresh[TermName]("rxDataCtx")
-    val newOwnerCtx =  c.fresh[TermName]("rxOwnerCtx")
+    val newDataCtx =  c.freshName(TermName("rxDataCtx"))
+    val newOwnerCtx =  c.freshName(TermName("rxOwnerCtx"))
 
     val isCompileTimeCtx = ownerCtx.tree.tpe =:= c.weakTypeOf[rx.Ctx.Owner.CompileTime.type]
 
@@ -52,7 +52,7 @@ object Factories {
     }""")
   }
 
-  def buildUnsafe[T: c.WeakTypeTag](c: Context)(func: c.Expr[T]): c.Expr[Rx[T]] = {
+  def buildUnsafe[T: c.WeakTypeTag](c: blackbox.Context)(func: c.Expr[T]): c.Expr[Rx[T]] = {
     import c.universe._
 
     val inferredOwner = c.inferImplicitValue(c.weakTypeOf[rx.Ctx.Owner])
@@ -60,14 +60,19 @@ object Factories {
 
     require(!inferredOwner.isEmpty)
 
-    val newDataCtx =  c.fresh[TermName]("rxDataCtx")
-    val newOwnerCtx =  c.fresh[TermName]("rxOwnerCtx")
+    val newDataCtx =  c.freshName(TermName("rxDataCtx"))
+    val newOwnerCtx =  c.freshName(TermName("rxOwnerCtx"))
 
     val unsafeOwner =
       if(inferredOwner.tpe =:= c.weakTypeOf[rx.Ctx.Owner.CompileTime.type])
         q"_root_.rx.Ctx.Owner.Unsafe"
       else if(inferredOwner.isEmpty)
         q"_root_.rx.Ctx.Owner.Unsafe"
+      else if(inferredOwner.symbol.fullName == "rx.Ctx.Owner.voodoo") {
+        if(implicitOwnerTree(c).equalsStructure(q"${c.prefix}.CompileTime")) {
+          q"_root_.rx.Ctx.Owner.Unsafe"
+        } else inferredOwner
+      }
       else
         inferredOwner
 
@@ -78,7 +83,7 @@ object Factories {
     }($unsafeOwner)""")
   }
 
-  def automaticOwnerContext[T: c.WeakTypeTag](c: Context): c.Expr[T] = {
+  def implicitOwnerTree[T: c.WeakTypeTag](c: blackbox.Context): c.Tree = {
     import c.universe._
     val inferredCtx = c.inferImplicitValue(c.weakTypeOf[T], withMacrosDisabled = true)
     val isCompileTime = inferredCtx.isEmpty
@@ -87,7 +92,10 @@ object Factories {
       if(isCompileTime && staticContext) q"${c.prefix}.Unsafe"
       else if(isCompileTime && !staticContext) q"${c.prefix}.CompileTime"
       else q"$inferredCtx"
+    implicitCtx
+  }
 
-    resetExpr[T](c)(implicitCtx)
+  def automaticOwnerContext[T: c.WeakTypeTag](c: blackbox.Context): c.Expr[T] = {
+    resetExpr[T](c)(implicitOwnerTree(c))
   }
 }

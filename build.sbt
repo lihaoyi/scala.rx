@@ -4,7 +4,7 @@ lazy val scalarx = crossProject.settings(
   organization := "com.lihaoyi",
   name := "scalarx",
   scalaVersion := "2.12.4",
-  version := "0.3.2",
+  version := "0.3.3-SNAPSHOT",
 
   libraryDependencies ++= Seq(
     "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
@@ -40,7 +40,6 @@ lazy val scalarx = crossProject.settings(
     "-Ypartial-unification" ::
     "-Yno-adapted-args" ::
     "-Ywarn-infer-any" ::
-    "-Ywarn-value-discard" ::
     "-Ywarn-nullary-override" ::
     "-Ywarn-nullary-unit" ::
     Nil,

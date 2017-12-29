@@ -1,11 +1,10 @@
 package rx
 
-import rx.opmacros.{Factories, Utils}
+import rx.opmacros.Factories
 
-import scala.reflect.internal.annotations.compileTimeOnly
+import scala.annotation.compileTimeOnly
 import scala.language.experimental.macros
 import scala.collection.mutable
-import scala.reflect.macros.Context
 import scala.util.Try
 
 /**
@@ -24,9 +23,9 @@ sealed trait Rx[+T] { self =>
     val downStream = mutable.Set.empty[Rx.Dynamic[_]]
     val observers = mutable.Set.empty[Obs]
 
-    def clearDownstream() = Internal.downStream.clear()
+    def clearDownstream(): Unit = Internal.downStream.clear()
     def depth: Int
-    def addDownstream(ctx: Ctx.Data) = {
+    def addDownstream(ctx: Ctx.Data): Unit = {
       downStream.add(ctx.contextualRx)
       ctx.contextualRx.Internal.upStream.add(self)
       ctx.contextualRx.Internal.depth = ctx.contextualRx.Internal.depth max (Internal.depth + 1)
@@ -41,7 +40,7 @@ sealed trait Rx[+T] { self =>
     * [[Ctx.Data]] is available), and the contextual/implicit [[Rx]] is the
     * one that will update when the value of this [[Rx]] changes.
     */
-  def apply()(implicit ctx: Ctx.Data) = {
+  def apply()(implicit ctx: Ctx.Data): T = {
     Internal.addDownstream(ctx)
     now
   }
@@ -117,7 +116,7 @@ object Rx{
   }
 
   def doRecalc(rxs: Iterable[Rx.Dynamic[_]], obs: Iterable[Obs]): Unit = {
-    implicit val ordering = Ordering.by[Rx.Dynamic[_], Int](-_.Internal.depth)
+    implicit val ordering: Ordering[Rx.Dynamic[_]] = Ordering.by[Rx.Dynamic[_], Int](-_.Internal.depth)
     val queue = rxs.to[mutable.PriorityQueue]
     val seen = mutable.Set.empty[Rx.Dynamic[_]]
     val observers = obs.to[mutable.Set]
@@ -167,19 +166,19 @@ object Rx{
       val owned = mutable.Set.empty[Rx.Dynamic[_]]
       val ownedObservers = mutable.Set.empty[Obs]
 
-      override def clearDownstream() = {
+      override def clearDownstream(): Unit = {
         Internal.downStream.foreach(_.Internal.upStream.remove(self))
         Internal.downStream.clear()
       }
 
-      def clearOwned() = {
+      def clearOwned(): Unit  = {
         Internal.owned.foreach(_.ownerKilled())
         Internal.owned.clear()
         Internal.ownedObservers.foreach(_.kill())
         Internal.ownedObservers.clear()
       }
 
-      def clearUpstream() = {
+      def clearUpstream(): Unit  = {
         Internal.upStream.foreach(_.Internal.downStream.remove(self))
         Internal.upStream.clear()
       }
@@ -190,7 +189,7 @@ object Rx{
         Try(func(new Ctx.Owner(self), new Ctx.Data(self)))
       }
 
-      def update() = {
+      def update(): Unit  = {
         cached = calc()
       }
     }
@@ -241,7 +240,7 @@ object VarTuple{
   }
 }
 case class VarTuple[T](v: Var[T], value: T){
-  def set() = v.Internal.value = value
+  def set(): Unit = v.Internal.value = value
 }
 
 object Var{
@@ -255,7 +254,7 @@ object Var{
     * reduces the redundant updates that would normally occur setting
     * them one by one
     */
-  def set(args: VarTuple[_]*) = {
+  def set(args: VarTuple[_]*): Unit = {
     args.foreach(_.set())
     Rx.doRecalc(
       args.flatMap(_.v.Internal.downStream),
@@ -272,10 +271,10 @@ class Var[T](initialValue: T) extends Rx[T]{
 
   object Internal extends Internal{
     def depth = 0
-    var value = initialValue
+    var value: T = initialValue
   }
 
-  override def now = Internal.value
+  override def now: T = Internal.value
 
   def toTry = util.Success(now)
 
@@ -292,11 +291,11 @@ class Var[T](initialValue: T) extends Rx[T]{
 
   override def recalc(): Unit = propagate()
 
-  override def kill() = {
+  override def kill(): Unit = {
     Internal.clearDownstream()
   }
 
-  override def toString() = s"Var@${Integer.toHexString(hashCode()).take(2)}($now)"
+  override def toString: String = s"Var@${Integer.toHexString(hashCode()).take(2)}($now)"
 }
 
 object Ctx{

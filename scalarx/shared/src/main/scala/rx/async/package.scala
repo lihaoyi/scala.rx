@@ -1,7 +1,5 @@
 package rx
 
-import rx.async.Scheduler
-
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.{Deadline, FiniteDuration}
 
@@ -62,7 +60,7 @@ package object async {
     def apply(interval: FiniteDuration)(implicit scheduler: Scheduler, ctx: Ctx.Owner): Rx[Long] = {
       @volatile var tick = 0l
       lazy val ret: Rx.Dynamic[Long] = Rx.build { (owner, data)  =>
-        val task = scheduler.scheduleOnce(interval) {
+        scheduler.scheduleOnce(interval) {
           tick += 1
           ret.recalc()
         }
