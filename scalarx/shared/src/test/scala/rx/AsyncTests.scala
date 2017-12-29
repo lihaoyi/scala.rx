@@ -7,13 +7,13 @@ import scala.concurrent.{ExecutionContext, Promise}
 object AsyncTests extends TestSuite {
 
   implicit val executionContext = new ExecutionContext {
-    def reportFailure(t: Throwable) { t.printStackTrace() }
-    def execute(runnable: Runnable) {runnable.run()}
+    def reportFailure(t: Throwable): Unit = { t.printStackTrace() }
+    def execute(runnable: Runnable): Unit = {runnable.run()}
   }
 
   import Ctx.Owner.Unsafe._
 
-  def tests = TestSuite {
+  def tests = utest.Tests {
 //    "async" - {
 //      "basicExample" - {
 //        val p = Promise[Int]()

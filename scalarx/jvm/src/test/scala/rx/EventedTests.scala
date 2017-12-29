@@ -12,7 +12,7 @@ object EventedTests extends TestSuite {
   import Ctx.Owner.Unsafe._
 
 
-  def tests = TestSuite {
+  def tests = utest.Tests {
 //    "debounce" - {
 //      "simple" - {
 //        val a = Var(10)
