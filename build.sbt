@@ -1,24 +1,29 @@
-crossScalaVersions := Seq("2.10.5", "2.11.8")
+crossScalaVersions := Seq("2.10.7", "2.11.12", "2.12.4")
 
 val scalarx = crossProject.settings(
   organization := "com.lihaoyi",
   name := "scalarx",
-  scalaVersion := "2.11.8",
-  version := "0.3.2-SNAPSHOT",
+  scalaVersion := "2.12.4",
+  version := "0.3.3-SNAPSHOT",
 
   libraryDependencies ++= Seq(
     "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
     "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
-    "com.lihaoyi" %%% "utest" % "0.3.1" % "test",
-    "com.lihaoyi" %% "acyclic" % "0.1.3" % "provided"
+    "com.lihaoyi" %%% "utest" % "0.4.4" % "test",
+    "com.lihaoyi" %% "acyclic" % "0.1.5" % "provided"
   ) ++ (
-    if (scalaVersion.value startsWith "2.11.") Nil
-    else Seq(
-      compilerPlugin("org.scalamacros" % "paradise" % "2.0.1" cross CrossVersion.full),
-      "org.scalamacros" %% s"quasiquotes" % "2.0.0"
-    )
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      // if scala 2.11+ is used, quasiquotes are merged into scala-reflect
+      case Some((2, scalaMajor)) if scalaMajor >= 11 =>
+        Nil
+      // in Scala 2.10, quasiquotes are provided by macro paradise
+      case Some((2, 10)) =>
+        Seq(
+          compilerPlugin("org.scalamacros" % "paradise" % "2.0.1" cross CrossVersion.full),
+          "org.scalamacros" %% "quasiquotes" % "2.0.0" cross CrossVersion.binary)
+    }
   ),
-  addCompilerPlugin("com.lihaoyi" %% "acyclic" % "0.1.3"),
+  addCompilerPlugin("com.lihaoyi" %% "acyclic" % "0.1.5"),
   testFrameworks += new TestFramework("utest.runner.Framework"),
   autoCompilerPlugins := true,
   // Sonatype
@@ -46,7 +51,7 @@ val scalarx = crossProject.settings(
       </developers>
 ).jsSettings(
   libraryDependencies ++= Seq(
-    "org.scala-js" %%% "scalajs-dom" % "0.8.2" % "provided"
+    "org.scala-js" %%% "scalajs-dom" % "0.9.2" % "provided"
   ),
   scalaJSStage in Test := FullOptStage,
   scalacOptions ++= (if (isSnapshot.value) Seq.empty else Seq({
@@ -56,8 +61,10 @@ val scalarx = crossProject.settings(
   }))
 ).jvmSettings(
   libraryDependencies ++= Seq(
-    "com.typesafe.akka" %% "akka-actor" % "2.3.12" % "provided"
-  )
+    if (scalaVersion.value.startsWith("2.10."))
+      "com.typesafe.akka" %% "akka-actor" % "2.3.15" % "provided"
+    else
+      "com.typesafe.akka" %% "akka-actor" % "2.4.12" % "provided")
 )
 
 lazy val js = scalarx.js
