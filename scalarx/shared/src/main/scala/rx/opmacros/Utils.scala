@@ -14,7 +14,7 @@ object Utils {
     * implicits have already been resolved, so we cannot rely on implicit
     * resolution to do this for us
     */
-  def injectRxCtx[T](c: Context)
+  def injectRxCtx[T](c: blackbox.Context)
                     (src: c.Tree,
                      newCtx: c.universe.TermName,
                      curCtxTree: c.Tree,
@@ -41,7 +41,7 @@ object Utils {
   /**
     * Injects both the Owner and Data contexts into the given snippet
     */
-  def doubleInject(c: Context)
+  def doubleInject(c: blackbox.Context)
                   (src: c.Tree,
                    newOwner: c.TermName,
                    owner: c.Tree,
@@ -63,7 +63,7 @@ object Utils {
     )
     newFunc2
   }
-  def ensureStaticEnclosingOwners(c: Context)(chk: c.Symbol, abortOnFail: Boolean): Boolean = {
+  def ensureStaticEnclosingOwners(c: blackbox.Context)(chk: c.Symbol, abortOnFail: Boolean): Boolean = {
     import c.universe._
     //Failed due to an enclosing trait or abstract class
     if(!chk.isModuleClass && chk.isClass) {
@@ -89,7 +89,7 @@ object Utils {
   }
 
 
-  def enclosingCtx(c: Context)(ctx: c.Tree): c.Tree = {
+  def enclosingCtx(c: blackbox.Context)(ctx: c.Tree): c.Tree = {
     import c.universe._
     val isCompileTimeCtx = ctx.tpe =:= c.weakTypeOf[rx.Ctx.Owner.CompileTime.type]
 
@@ -103,7 +103,7 @@ object Utils {
     enclosingCtx
   }
 
-  def resetExpr[T](c: Context)(t: c.Tree) = c.Expr[T](c.resetLocalAttrs(t))
+  def resetExpr[T](c: blackbox.Context)(t: c.Tree) = c.Expr[T](c.untypecheck(t))
 
 
   type Id[T] = T

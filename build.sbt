@@ -1,6 +1,6 @@
 crossScalaVersions := Seq("2.10.7", "2.11.12", "2.12.4")
 
-val scalarx = crossProject.settings(
+lazy val scalarx = crossProject.settings(
   organization := "com.lihaoyi",
   name := "scalarx",
   scalaVersion := "2.12.4",
@@ -9,8 +9,8 @@ val scalarx = crossProject.settings(
   libraryDependencies ++= Seq(
     "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
     "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
-    "com.lihaoyi" %%% "utest" % "0.4.4" % "test",
-    "com.lihaoyi" %% "acyclic" % "0.1.5" % "provided"
+    "com.lihaoyi" %%% "utest" % "0.6.0" % "test",
+    "com.lihaoyi" %% "acyclic" % "0.1.7" % "provided"
   ) ++ (
     CrossVersion.partialVersion(scalaVersion.value) match {
       // if scala 2.11+ is used, quasiquotes are merged into scala-reflect
@@ -23,13 +23,29 @@ val scalarx = crossProject.settings(
           "org.scalamacros" %% "quasiquotes" % "2.0.0" cross CrossVersion.binary)
     }
   ),
-  addCompilerPlugin("com.lihaoyi" %% "acyclic" % "0.1.5"),
+  addCompilerPlugin("com.lihaoyi" %% "acyclic" % "0.1.7"),
   testFrameworks += new TestFramework("utest.runner.Framework"),
   autoCompilerPlugins := true,
+
+  scalacOptions ++=
+    "-encoding" :: "UTF-8" ::
+    "-unchecked" ::
+    "-deprecation" ::
+    "-explaintypes" ::
+    "-feature" ::
+    "-language:_" ::
+    "-Xcheckinit" ::
+    "-Xfuture" ::
+    "-Xlint" ::
+    "-Ypartial-unification" ::
+    "-Yno-adapted-args" ::
+    "-Ywarn-infer-any" ::
+    "-Ywarn-nullary-override" ::
+    "-Ywarn-nullary-unit" ::
+    Nil,
+
   // Sonatype
-
   publishTo := Some("releases"  at "https://oss.sonatype.org/service/local/staging/deploy/maven2"),
-
   pomExtra :=
     <url>https://github.com/lihaoyi/scalatags</url>
       <licenses>
@@ -50,23 +66,13 @@ val scalarx = crossProject.settings(
         </developer>
       </developers>
 ).jsSettings(
-  libraryDependencies ++= Seq(
-    "org.scala-js" %%% "scalajs-dom" % "0.9.2" % "provided"
-  ),
   scalaJSStage in Test := FullOptStage,
   scalacOptions ++= (if (isSnapshot.value) Seq.empty else Seq({
     val a = baseDirectory.value.toURI.toString.replaceFirst("[^/]+/?$", "")
     val g = "https://raw.githubusercontent.com/lihaoyi/scala.rx"
     s"-P:scalajs:mapSourceURI:$a->$g/v${version.value}/"
   }))
-).jvmSettings(
-  libraryDependencies ++= Seq(
-    if (scalaVersion.value.startsWith("2.10."))
-      "com.typesafe.akka" %% "akka-actor" % "2.3.15" % "provided"
-    else
-      "com.typesafe.akka" %% "akka-actor" % "2.4.12" % "provided")
 )
 
 lazy val js = scalarx.js
-
 lazy val jvm = scalarx.jvm

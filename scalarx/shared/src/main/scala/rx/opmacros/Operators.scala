@@ -3,18 +3,17 @@ package rx.opmacros
 import rx.opmacros.Utils._
 import rx.Rx
 
-import scala.language.experimental.macros
 import scala.reflect.macros._
 
 /**
   * Implementations for the various macros that Scala.rx defines for its operators.
   */
 object Operators {
-  def initialize(c: Context)(f: c.Tree, owner: c.Tree) = {
+  def initialize(c: blackbox.Context)(f: c.Tree, owner: c.Tree) = {
     import c.universe._
     val data = c.inferImplicitValue(c.weakTypeOf[rx.Ctx.Data])
-    val newDataCtx =  c.fresh[TermName]("rxDataCtx")
-    val newOwnerCtx =  c.fresh[TermName]("rxOwnerCtx")
+    val newDataCtx =  c.freshName(TermName("rxDataCtx"))
+    val newOwnerCtx =  c.freshName(TermName("rxOwnerCtx"))
     val newFunc2 = doubleInject(c)(f, newOwnerCtx, owner, newDataCtx, data)
     val enclosingCtx = Utils.enclosingCtx(c)(owner)
     val newTree = q"($newOwnerCtx: _root_.rx.Ctx.Owner, $newDataCtx: _root_.rx.Ctx.Data) => $newFunc2"
@@ -22,7 +21,7 @@ object Operators {
   }
 
   def filter[In: c.WeakTypeTag, T: c.WeakTypeTag]
-              (c: Context)
+              (c: blackbox.Context)
               (f: c.Expr[In => Boolean])
               (ownerCtx: c.Expr[rx.Ctx.Owner]): c.Expr[Rx.Dynamic[T]] = {
     import c.universe._
@@ -34,7 +33,7 @@ object Operators {
   }
 
   def fold[T: c.WeakTypeTag, V: c.WeakTypeTag, Wrap[_]]
-          (c: Context)
+          (c: blackbox.Context)
           (start: c.Expr[Wrap[V]])
           (f: c.Expr[(Wrap[V], Wrap[T]) => Wrap[V]])
           (ownerCtx: c.Expr[rx.Ctx.Owner])
@@ -48,7 +47,7 @@ object Operators {
   }
 
   def map[T: c.WeakTypeTag, V: c.WeakTypeTag, Wrap[_]]
-         (c: Context)
+         (c: blackbox.Context)
          (f: c.Expr[Wrap[T] => Wrap[V]])
          (ownerCtx: c.Expr[rx.Ctx.Owner])
          (implicit w: c.WeakTypeTag[Wrap[_]]): c.Expr[Rx.Dynamic[V]] = {
@@ -62,7 +61,7 @@ object Operators {
   }
 
   def flatMap[T: c.WeakTypeTag, V: c.WeakTypeTag, Wrap[_]]
-             (c: Context)
+             (c: blackbox.Context)
              (f: c.Expr[Wrap[T] => Wrap[Rx[V]]])
              (ownerCtx: c.Expr[rx.Ctx.Owner])
              (implicit w: c.WeakTypeTag[Wrap[_]])
@@ -78,7 +77,7 @@ object Operators {
 
 
   def reduce[T: c.WeakTypeTag, Wrap[_]]
-            (c: Context)
+            (c: blackbox.Context)
             (f: c.Expr[(Wrap[T], Wrap[T]) => Wrap[T]])
             (ownerCtx: c.Expr[rx.Ctx.Owner])
             (implicit w: c.WeakTypeTag[Wrap[_]]): c.Expr[Rx.Dynamic[T]] = {
@@ -165,7 +164,7 @@ trait Operators[T, Wrap[_]]{
 
   def filterImpl(start: => Wrap[T],
                  f: (rx.Ctx.Owner, rx.Ctx.Data) => Wrap[T] => Boolean,
-                 enclosing: rx.Ctx.Owner) = {
+                 enclosing: rx.Ctx.Owner): Rx.Dynamic[T] = {
 
     var init = true
     var prev = this.get(prefix)
