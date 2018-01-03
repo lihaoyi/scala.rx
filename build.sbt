@@ -1,5 +1,5 @@
 crossScalaVersions := Seq("2.10.7", "2.11.12", "2.12.4")
-val monocleVersion = "1.5.0-cats-M2"
+val monocleVersion = "1.5.0-cats"
 
 lazy val scalarx = crossProject.settings(
   organization := "com.lihaoyi",
