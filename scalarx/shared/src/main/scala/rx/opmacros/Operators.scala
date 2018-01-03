@@ -113,7 +113,9 @@ trait Operators[T, Wrap[_]] {
 
     Rx.build { (ownerCtx, dataCtx) =>
       prefix.addDownstream(dataCtx)
-      this.unwrap(call(ownerCtx, dataCtx)(this.get(prefix))).apply()(dataCtx)
+      val inner = this.unwrap(call(ownerCtx, dataCtx)(this.get(prefix)))
+      inner.downStream.add(dataCtx.contextualRx)
+      inner.now
     }(enclosing)
   }
 
