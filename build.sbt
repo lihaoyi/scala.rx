@@ -67,11 +67,11 @@ lazy val scalarx = crossProject.settings(
       </developers>
 ).jsSettings(
   scalaJSStage in Test := FullOptStage,
-  scalacOptions ++= (if (isSnapshot.value) Seq.empty else Seq({
-    val a = baseDirectory.value.toURI.toString.replaceFirst("[^/]+/?$", "")
-    val g = "https://raw.githubusercontent.com/lihaoyi/scala.rx"
-    s"-P:scalajs:mapSourceURI:$a->$g/v${version.value}/"
-  }))
+  scalacOptions += {
+    val local = baseDirectory.value.toURI
+    val remote = s"https://raw.githubusercontent.com/lihaoyi/scala.rx/${git.gitHeadCommit.value.get}/"
+    s"-P:scalajs:mapSourceURI:$local->$remote"
+  }
 )
 
 lazy val js = scalarx.js
