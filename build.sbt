@@ -36,7 +36,7 @@ lazy val scalarx = crossProject.settings(
     "-language:_" ::
     "-Xcheckinit" ::
     "-Xfuture" ::
-    "-Xlint" ::
+    "-Xlint:-unused" :: // too many false positives for unused because of acyclic, macros, local vals in tests
     "-Ypartial-unification" ::
     "-Yno-adapted-args" ::
     "-Ywarn-infer-any" ::
