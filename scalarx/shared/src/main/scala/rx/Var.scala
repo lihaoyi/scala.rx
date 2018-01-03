@@ -1,6 +1,6 @@
 package rx
 
-import scala.util.Try
+import scala.util.{Success, Try}
 
 trait Var[T] extends Rx[T] {
   def update(newValue: T): Unit
@@ -84,6 +84,92 @@ object Var {
       }
     }
   }
+
+  class Composed[T](base:Var[T], rx:Rx[T]) extends Var[T] {
+
+    // Proxy Rx
+    override def now: T = rx.now
+
+    override private[rx] val downStream = rx.downStream
+    override private[rx] val observers = rx.observers
+
+
+    // Proxy Var
+    private[rx] var value = now
+
+    def update(newValue: T): Unit = {
+      // We do a regular update of the base-var, since we do not know if
+      // rx.now will be newValue
+      base.update(newValue)
+    }
+  }
+
+  class Isomorphic[T, S](base: Var[T], read: T => S, write: S => T)(implicit ownerCtx: Ctx.Owner) extends Var[S] {
+    self =>
+
+    //  private[rx] val rx = base.map(read)
+    private[rx] val rx = Rx.build { (ownerCtx, dataCtx) =>
+      base.addDownstream(dataCtx)
+      read(base.now)
+    }(ownerCtx)
+
+
+    // Proxy Rx
+    override def now: S = rx.now
+
+    override private[rx] val downStream = rx.downStream
+    override private[rx] val observers = rx.observers
+
+    // Proxy Var
+    override def update(newValue: S): Unit = {
+      //TODO: ignore if already equal, like in BaseVar.update
+      value = newValue
+      // avoid triggering rx, because we already
+      // know the current value: newValue
+      Rx.doRecalc(
+        rx.downStream ++ (base.downStream - rx),
+        rx.observers ++ base.observers
+      )
+    }
+
+    override private[rx] def value = rx.now
+
+    override private[rx] def value_=(newValue: S): Unit = {
+      rx.cached = Success(newValue)
+      base.value = write(newValue)
+    }
+  }
+
+
+  class Zoomed[T, S](base: Var[T], read: T => S, write: (T, S) => T)(implicit ownerCtx: Ctx.Owner) extends Var[S] {
+
+    //  private[rx] val rx = base.map(read)
+    private[rx] val rx = Rx.build { (ownerCtx, dataCtx) =>
+      base.addDownstream(dataCtx)
+      read(base.now)
+    }(ownerCtx)
+
+    // Proxy Rx
+    override def now: S = rx.now
+
+    override private[rx] val downStream = rx.downStream
+    override private[rx] val observers = rx.observers
+
+    // Porxy Var
+    override def update(newValue: S): Unit = {
+      rx.cached = Success(newValue)
+      base.value = write(base.value, newValue)
+      // avoid triggering rx, because we already
+      // know the current value: newValue
+      Rx.doRecalc(
+        rx.downStream ++ (base.downStream - rx),
+        rx.observers ++ base.observers
+      )
+    }
+
+    override private[rx] def value = rx.now
+
+    override private[rx] def value_=(newValue: S): Unit = base.value = write(base.value, newValue)
+  }
+
 }
-
-
