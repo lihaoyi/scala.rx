@@ -48,19 +48,19 @@ trait Rx[+T] {
     * even when not-in-use it will continue to be referenced by the other [[Rx]]s
     * it depends on.
     */
-  private[rx] def kill(): Unit
+  def kill(): Unit
 
   /**
     * Force trigger/notifications of any downstream [[Rx]]s, without changing the current value
     */
-  private[rx] def propagate(): Unit = Rx.doRecalc(downStream.toSet, observers)
+  def propagate(): Unit = Rx.doRecalc(downStream.toSet, observers)
 
   /**
     * Force this [[Rx]] to recompute (whether or not any upstream [[Rx]]s
     * changed) and propagate changes downstream. Does nothing if the [[Rx]]
     * has been [[kill]]ed
     */
-  private[rx] def recalc(): Unit
+  def recalc(): Unit
 
   /**
     * Run the given function immediately, and again whenever this [[Rx]]s value
@@ -202,12 +202,12 @@ object Rx {
       clearOwned()
     }
 
-    private[rx] override def kill(): Unit = {
+    override def kill(): Unit = {
       owner.foreach(_.contextualRx.owned.remove(this))
       ownerKilled()
     }
 
-    private[rx] override def recalc(): Unit = if (!dead) {
+    override def recalc(): Unit = if (!dead) {
       val oldValue = toTry
       update()
       if (oldValue != toTry)

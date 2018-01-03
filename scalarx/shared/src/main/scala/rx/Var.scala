@@ -15,9 +15,9 @@ trait Var[T] extends Rx[T] {
 
   def toTry: Try[T] = util.Success(now)
 
-  private[rx] override def recalc(): Unit = propagate()
+  override def recalc(): Unit = propagate()
 
-  private[rx] override def kill(): Unit = {
+  override def kill(): Unit = {
     clearDownstream()
   }
 
