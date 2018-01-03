@@ -121,7 +121,7 @@ object BasicTests extends TestSuite{
         var i = 0
         val o = a.trigger(i += 1)
         assert(
-          a.Internal.observers.size == 1,
+          a.observers.size == 1,
           i == 1
         )
         a() = 2
@@ -129,7 +129,7 @@ object BasicTests extends TestSuite{
         o.kill()
         a() = 3
         assert(
-          a.Internal.observers.size == 0,
+          a.observers.size == 0,
           i == 2
         )
 

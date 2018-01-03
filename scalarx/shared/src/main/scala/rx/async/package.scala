@@ -19,7 +19,7 @@ package object async {
       @volatile var npt = Deadline.now
       @volatile var task = Option.empty[Cancelable]
       lazy val ret: Rx.Dynamic[T] = Rx.build { (owner, data) =>
-        n.Internal.addDownstream(data)
+        n.addDownstream(data)
         if(Deadline.now >= npt) {
           npt = Deadline.now + interval
           n.now
@@ -51,7 +51,7 @@ package object async {
           }
         }
       }
-      Rx.build { (owner, data)  => next.Internal.addDownstream(data); next.now }(ctx)
+      Rx.build { (owner, data)  => next.addDownstream(data); next.now }(ctx)
     }
   }
 
