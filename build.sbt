@@ -1,4 +1,5 @@
 crossScalaVersions := Seq("2.10.7", "2.11.12", "2.12.4")
+val monocleVersion = "1.5.0-cats"
 
 lazy val scalarx = crossProject.settings(
   organization := "com.lihaoyi",
@@ -7,6 +8,9 @@ lazy val scalarx = crossProject.settings(
   version := "0.3.3-SNAPSHOT",
 
   libraryDependencies ++= Seq(
+    "com.github.julien-truffaut" %%% "monocle-core" % monocleVersion,
+    "com.github.julien-truffaut" %%% "monocle-macro" % monocleVersion % "test",
+
     "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
     "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
     "com.lihaoyi" %%% "utest" % "0.6.0" % "test",

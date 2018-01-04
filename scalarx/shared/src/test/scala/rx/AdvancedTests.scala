@@ -238,8 +238,8 @@ object AdvancedTests extends TestSuite{
       val c = Rx(Rx(a() + b()) -> (a() - b()))
 
       assert(
-        a.Internal.downStream.size == 2,
-        b.Internal.downStream.size == 2,
+        a.downStream.size == 2,
+        b.downStream.size == 2,
         c.now._1.now == 3,
         c.now._2 == -1
       )
@@ -247,8 +247,8 @@ object AdvancedTests extends TestSuite{
       a() = 2
 
       assert(
-        a.Internal.downStream.size == 2,
-        b.Internal.downStream.size == 2,
+        a.downStream.size == 2,
+        b.downStream.size == 2,
         c.now._1.now == 4,
         c.now._2 == 0
       )
@@ -256,8 +256,8 @@ object AdvancedTests extends TestSuite{
       b() = 3
 
       assert(
-        a.Internal.downStream.size == 2,
-        b.Internal.downStream.size == 2,
+        a.downStream.size == 2,
+        b.downStream.size == 2,
         c.now._1.now == 5,
         c.now._2 == -1
       )
