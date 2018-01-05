@@ -1,4 +1,5 @@
 crossScalaVersions := Seq("2.10.7", "2.11.12", "2.12.4")
+val monocleVersion = "1.5.0-cats"
 
 lazy val scalarx = crossProject.settings(
   organization := "com.lihaoyi",
@@ -7,6 +8,9 @@ lazy val scalarx = crossProject.settings(
   version := "0.3.3-SNAPSHOT",
 
   libraryDependencies ++= Seq(
+    "com.github.julien-truffaut" %%% "monocle-core" % monocleVersion,
+    "com.github.julien-truffaut" %%% "monocle-macro" % monocleVersion % "test",
+
     "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
     "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
     "com.lihaoyi" %%% "utest" % "0.6.0" % "test",
@@ -36,7 +40,7 @@ lazy val scalarx = crossProject.settings(
     "-language:_" ::
     "-Xcheckinit" ::
     "-Xfuture" ::
-    "-Xlint" ::
+    "-Xlint:-unused" :: // too many false positives for unused because of acyclic, macros, local vals in tests
     "-Ypartial-unification" ::
     "-Yno-adapted-args" ::
     "-Ywarn-infer-any" ::
@@ -67,11 +71,11 @@ lazy val scalarx = crossProject.settings(
       </developers>
 ).jsSettings(
   scalaJSStage in Test := FullOptStage,
-  scalacOptions ++= (if (isSnapshot.value) Seq.empty else Seq({
-    val a = baseDirectory.value.toURI.toString.replaceFirst("[^/]+/?$", "")
-    val g = "https://raw.githubusercontent.com/lihaoyi/scala.rx"
-    s"-P:scalajs:mapSourceURI:$a->$g/v${version.value}/"
-  }))
+  scalacOptions += {
+    val local = baseDirectory.value.toURI
+    val remote = s"https://raw.githubusercontent.com/lihaoyi/scala.rx/${git.gitHeadCommit.value.get}/"
+    s"-P:scalajs:mapSourceURI:$local->$remote"
+  }
 )
 
 lazy val js = scalarx.js

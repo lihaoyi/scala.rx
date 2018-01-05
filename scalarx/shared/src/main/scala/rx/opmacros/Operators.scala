@@ -1,7 +1,7 @@
 package rx.opmacros
 
 import rx.opmacros.Utils._
-import rx.Rx
+import rx.{Rx,Var}
 
 import scala.reflect.macros._
 
@@ -89,7 +89,6 @@ object Operators {
     resetExpr[Rx.Dynamic[T]](c)(q"""
       ${c.prefix}.macroImpls.reducedImpl($initValue, $reduceFunc, $enclosingCtx)
     """)
-
   }
 }
 
@@ -101,25 +100,28 @@ object Operators {
   * Provides a small number of helpers to deal with generically dealing with
   * `Wrap[T]`s
   */
-trait Operators[T, Wrap[_]]{
+trait Operators[T, Wrap[_]] {
 
   def get[V](t: Rx[V]): Wrap[V]
+
   def unwrap[V](t: Wrap[V]): V
+
   def prefix: Rx[T]
 
   def flatMappedImpl[V](call: (rx.Ctx.Owner, rx.Ctx.Data) => Wrap[T] => Wrap[Rx[V]],
                         enclosing: rx.Ctx.Owner): Rx.Dynamic[V] = {
 
     Rx.build { (ownerCtx, dataCtx) =>
-      prefix.Internal.addDownstream(dataCtx)
+      prefix.addDownstream(dataCtx)
       this.unwrap(call(ownerCtx, dataCtx)(this.get(prefix))).apply()(dataCtx)
     }(enclosing)
   }
+
   def mappedImpl[V](call: (rx.Ctx.Owner, rx.Ctx.Data) => Wrap[T] => Wrap[V],
                     enclosing: rx.Ctx.Owner): Rx.Dynamic[V] = {
 
     Rx.build { (ownerCtx, dataCtx) =>
-      prefix.Internal.addDownstream(dataCtx)
+      prefix.addDownstream(dataCtx)
       this.unwrap(call(ownerCtx, dataCtx)(this.get(prefix)))
     }(enclosing)
   }
@@ -130,7 +132,7 @@ trait Operators[T, Wrap[_]]{
 
     var prev: Wrap[V] = start
     Rx.build { (ownerCtx, dataCtx) =>
-      prefix.Internal.addDownstream(dataCtx)
+      prefix.addDownstream(dataCtx)
       prev = f(ownerCtx, dataCtx)(prev, this.get(prefix))
       this.unwrap(prev)
     }(enclosing)
@@ -143,6 +145,7 @@ trait Operators[T, Wrap[_]]{
                   reduceFunc: (rx.Ctx.Owner, rx.Ctx.Data) => (Wrap[T], Wrap[T]) => Wrap[T],
                   enclosing: rx.Ctx.Owner): Rx.Dynamic[T] = {
     var init = true
+
     def getPrev = this.get(prefix)
 
     var prev = getPrev
@@ -150,8 +153,8 @@ trait Operators[T, Wrap[_]]{
     def next: T = this.unwrap(prev)
 
     Rx.build { (ownerCtx, dataCtx) =>
-      prefix.Internal.addDownstream(dataCtx)
-      if(init) {
+      prefix.addDownstream(dataCtx)
+      if (init) {
         init = false
         prev = initValue
         next
@@ -162,15 +165,16 @@ trait Operators[T, Wrap[_]]{
     }(enclosing)
   }
 
+
   def filterImpl(start: => Wrap[T],
                  f: (rx.Ctx.Owner, rx.Ctx.Data) => Wrap[T] => Boolean,
                  enclosing: rx.Ctx.Owner): Rx.Dynamic[T] = {
 
     var init = true
     var prev = this.get(prefix)
-    Rx.build {  (ownerCtx, dataCtx) =>
-      prefix.Internal.addDownstream(dataCtx)
-      if(f(ownerCtx, dataCtx)(this.get(prefix)) || init) {
+    Rx.build { (ownerCtx, dataCtx) =>
+      prefix.addDownstream(dataCtx)
+      if (f(ownerCtx, dataCtx)(this.get(prefix)) || init) {
         init = false
         prev = start
       }
@@ -178,5 +182,34 @@ trait Operators[T, Wrap[_]]{
       this.unwrap(prev)
     }(enclosing)
   }
+}
 
+object MapReadMacro {
+  def impl[T : c.WeakTypeTag](c: blackbox.Context)(read: c.Expr[Var[T] => T])(ownerCtx: c.Expr[rx.Ctx.Owner]): c.Expr[Var[T]] = {
+    import c.universe._
+
+    val dataCtx = c.inferImplicitValue(c.weakTypeOf[rx.Ctx.Data])
+    val newDataCtx =  c.freshName(TermName("rxDataCtx"))
+    val newOwnerCtx =  c.freshName(TermName("rxOwnerCtx"))
+    val baseValue = c.freshName(TermName("base"))
+    val functionValue = c.freshName(TermName("function"))
+    val rxPkg = q"_root_.rx"
+
+    val isCompileTimeCtx = ownerCtx.tree.tpe =:= c.weakTypeOf[rx.Ctx.Owner.CompileTime.type]
+
+    if(isCompileTimeCtx)
+      Utils.ensureStaticEnclosingOwners(c)(c.internal.enclosingOwner, abortOnFail = true)
+
+    val q"($param) => $body" = read.tree
+    val injected2 = Utils.doubleInject(c)(body, newOwnerCtx, ownerCtx.tree, newDataCtx, dataCtx)
+
+    val tType = weakTypeOf[T]
+    val tree = q"""
+      val $baseValue = ${c.prefix}.base
+      val $functionValue = ($param, $newOwnerCtx: $rxPkg.Ctx.Owner, $newDataCtx: $rxPkg.Ctx.Data) => $injected2
+      new $rxPkg.Var.Composed[$tType]($baseValue, $rxPkg.Rx.build { (owner,data) => $functionValue($baseValue, owner, data) })
+    """
+
+    resetExpr[Var[T]](c)(tree)
+  }
 }
