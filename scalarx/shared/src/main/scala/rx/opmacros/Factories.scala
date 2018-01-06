@@ -19,11 +19,11 @@ object Factories {
     val isCompileTimeCtx = inferredCtx.isEmpty || inferredCtx.tpe =:= c.weakTypeOf[rx.Ctx.Owner.CompileTime.type]
 
     if(isCompileTimeCtx)
-      Utils.ensureStaticEnclosingOwners(c)(rx.opmacros.Compat.enclosingName(c), abortOnFail = true)
+      Utils.ensureStaticEnclosingOwners(c)(c.internal.enclosingOwner, abortOnFail = true)
 
     val safeCtx =
       if(isCompileTimeCtx) q"_root_.rx.Ctx.Owner.Unsafe"
-      else if(rx.opmacros.Compat.enclosingName(c).fullName == inferredCtx.symbol.fullName) q"_root_.rx.Ctx.Owner.Unsafe"
+      else if(c.internal.enclosingOwner.fullName == inferredCtx.symbol.fullName) q"_root_.rx.Ctx.Owner.Unsafe"
       else q"$inferredCtx"
 
     c.Expr[T](safeCtx)
@@ -43,7 +43,7 @@ object Factories {
     val isCompileTimeCtx = ownerCtx.tree.tpe =:= c.weakTypeOf[rx.Ctx.Owner.CompileTime.type]
 
     if(isCompileTimeCtx)
-      Utils.ensureStaticEnclosingOwners(c)(rx.opmacros.Compat.enclosingName(c), abortOnFail = true)
+      Utils.ensureStaticEnclosingOwners(c)(c.internal.enclosingOwner, abortOnFail = true)
 
     val injected2 = Utils.doubleInject(c)(func.tree, newOwnerCtx, ownerCtx.tree, newDataCtx, dataCtx)
 
@@ -87,7 +87,7 @@ object Factories {
     import c.universe._
     val inferredCtx = c.inferImplicitValue(c.weakTypeOf[T], withMacrosDisabled = true)
     val isCompileTime = inferredCtx.isEmpty
-    val staticContext = Utils.ensureStaticEnclosingOwners(c)(rx.opmacros.Compat.enclosingName(c), abortOnFail = false)
+    val staticContext = Utils.ensureStaticEnclosingOwners(c)(c.internal.enclosingOwner, abortOnFail = false)
     val implicitCtx =
       if(isCompileTime && staticContext) q"${c.prefix}.Unsafe"
       else if(isCompileTime && !staticContext) q"${c.prefix}.CompileTime"
