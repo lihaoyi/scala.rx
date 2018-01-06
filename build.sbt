@@ -5,7 +5,7 @@ lazy val scalarx = crossProject.settings(
   organization := "com.lihaoyi",
   name := "scalarx",
   scalaVersion := "2.12.4",
-  version := "0.3.3-SNAPSHOT",
+  version := "0.4.0-SNAPSHOT",
 
   libraryDependencies ++= Seq(
     "com.github.julien-truffaut" %%% "monocle-core" % monocleVersion,
