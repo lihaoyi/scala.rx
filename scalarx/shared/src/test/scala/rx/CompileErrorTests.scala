@@ -10,16 +10,14 @@ object CompileErrorTests extends TestSuite {
         compileError("object Fail { def fail() = Rx { } }")
       }
       "nestedSafeCtx" - {
-        compileError(
-          "object Fail { def fail() = { implicit val ctx = RxCtx.safe() ; Rx { } } }")
+        compileError("object Fail { def fail() = { implicit val ctx = RxCtx.safe() ; Rx { } } }")
       }
       "simpleUnsafeDef" - {
         //heh
         compileError("""compileError("def ok() = Rx.unsafe { }")""")
       }
       "nestedUnsafeCtx" - {
-        compileError(
-          """compileError("object Fail { def fail() = { implicit val ctx = Ctx.Owner.Unsafe ; Rx { } } }")""")
+        compileError("""compileError("object Fail { def fail() = { implicit val ctx = Ctx.Owner.Unsafe ; Rx { } } }")""")
       }
     }
     'separateOwnerData - {
