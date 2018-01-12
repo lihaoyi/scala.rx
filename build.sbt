@@ -11,8 +11,6 @@ lazy val scalarx = crossProject.settings(
     "com.github.julien-truffaut" %%% "monocle-core" % monocleVersion,
     "com.github.julien-truffaut" %%% "monocle-macro" % monocleVersion % "test",
 
-    "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
-    "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
     "com.lihaoyi" %%% "utest" % "0.6.3" % "test",
     "com.lihaoyi" %% "acyclic" % "0.1.7" % "provided"
   ),
