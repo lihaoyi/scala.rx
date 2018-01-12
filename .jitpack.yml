@@ -1,0 +1,8 @@
+# workaround for https://github.com/jitpack/jitpack.io/issues/1887
+
+jdk:
+  - oraclejdk8
+before_install:
+   - wget http://central.maven.org/maven2/org/scala-sbt/sbt-launch/1.1.0/sbt-launch-1.1.0.jar
+install:
+   - java -jar sbt-launch-1.1.0.jar publishM2
