@@ -33,6 +33,7 @@ lazy val scalarx = crossProject.settings(
     "-Ypartial-unification" ::
     "-Yno-adapted-args" ::
     "-Ywarn-infer-any" ::
+    "-Ywarn-value-discard" ::
     "-Ywarn-nullary-override" ::
     "-Ywarn-nullary-unit" ::
     Nil,
