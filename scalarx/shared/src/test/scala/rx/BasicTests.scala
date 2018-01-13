@@ -8,7 +8,7 @@ object BasicTests extends TestSuite{
   //We dont care about potential Rx leaks in BasicTest
   import Ctx.Owner.Unsafe._
 
-  def tests = TestSuite{
+  def tests = utest.Tests {
     "sigTests" - {
       "basic" - {
         "rxHelloWorld" - {

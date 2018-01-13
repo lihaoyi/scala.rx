@@ -44,7 +44,7 @@ object CombinatorTests extends TestSuite{
     def wat(): Unit = ()
   }
 
-  def tests = TestSuite {
+  def tests = utest.Tests {
     "combinators" - {
       import Ctx.Owner.Unsafe._
       "foreach" - {
