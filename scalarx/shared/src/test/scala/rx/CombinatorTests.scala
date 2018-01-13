@@ -109,6 +109,7 @@ object CombinatorTests extends TestSuite{
         val flatMapTriggered = mutable.ArrayBuffer.empty[(Int,Int)]
         var nestedRxTriggered = mutable.ArrayBuffer.empty[(Int,Int)]
         var rxTriggered = mutable.ArrayBuffer.empty[(Int,Int)]
+        var forTriggered = mutable.ArrayBuffer.empty[(Int,Int)]
 
         Rx {
           val b = rxb()
@@ -123,30 +124,35 @@ object CombinatorTests extends TestSuite{
           m()
         }
 
-        // for {
-        //   b <- rxb
-        //   c <- rxc
-        // } { flatMapTriggered += ((b,c)) }
         rxb.flatMap(b => rxc.map(c => flatMapTriggered += ((b,c))))
 
-        assert(rxTriggered.toList       == List((3,3)))
-        assert(nestedRxTriggered.toList == List((3,3)))
-        assert(flatMapTriggered.toList  == List((3,3)))
+        for {
+          b <- rxb
+          c <- rxc
+        } yield { forTriggered += ((b,c)) }
+        
+        assert(rxTriggered.toList == List((3, 3)))
+        assert(nestedRxTriggered.toList == List((3, 3)))
+        assert(flatMapTriggered.toList == List((3, 3)))
+        assert(forTriggered.toList == List((3, 3)))
 
         rxa() = 12
-        assert(rxTriggered.toList       == List((3,3), (13,13)))
-        assert(nestedRxTriggered.toList == List((3,3), (13,13)))
-        assert(flatMapTriggered.toList  == List((3,3), (13,13)))
-        
+        assert(rxTriggered.toList == List((3, 3), (13, 13)))
+        assert(nestedRxTriggered.toList == List((3, 3), (13, 13)))
+        assert(flatMapTriggered.toList == List((3, 3), (13, 13)))
+        assert(forTriggered.toList == List((3, 3), (13, 13)))
+
         rxa() = 22
-        assert(rxTriggered.toList       == List((3,3), (13,13), (23,23)))
-        assert(nestedRxTriggered.toList == List((3,3), (13,13), (23,23)))
-        assert(flatMapTriggered.toList  == List((3,3), (13,13), (23,23)))
+        assert(rxTriggered.toList == List((3, 3), (13, 13), (23, 23)))
+        assert(nestedRxTriggered.toList == List((3, 3), (13, 13), (23, 23)))
+        assert(flatMapTriggered.toList == List((3, 3), (13, 13), (23, 23)))
+        assert(forTriggered.toList == List((3, 3), (13, 13), (23, 23)))
 
         rxa() = 32
-        assert(rxTriggered.toList       == List((3,3), (13,13), (23,23), (33,33)))
-        assert(nestedRxTriggered.toList == List((3,3), (13,13), (23,23), (33,33)))
-        assert(flatMapTriggered.toList  == List((3,3), (13,13), (23,23), (33,33)))
+        assert(rxTriggered.toList == List((3, 3), (13, 13), (23, 23), (33, 33)))
+        assert(nestedRxTriggered.toList == List((3, 3), (13, 13), (23, 23), (33, 33)))
+        assert(flatMapTriggered.toList == List((3, 3), (13, 13), (23, 23), (33, 33)))
+        assert(forTriggered.toList == List((3, 3), (13, 13), (23, 23), (33, 33)))
       }
       "flatMapVar" - {
         val a = Var(0)
