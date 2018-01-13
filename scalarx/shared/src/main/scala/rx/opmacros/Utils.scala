@@ -94,7 +94,7 @@ object Utils {
     val isCompileTimeCtx = ctx.tpe =:= c.weakTypeOf[rx.Ctx.Owner.CompileTime.type]
 
     if(isCompileTimeCtx)
-      Utils.ensureStaticEnclosingOwners(c)(rx.opmacros.Compat.enclosingName(c), abortOnFail = true)
+      Utils.ensureStaticEnclosingOwners(c)(c.internal.enclosingOwner, abortOnFail = true)
 
     val enclosingCtx =
       if(isCompileTimeCtx) q"_root_.rx.Ctx.Owner.Unsafe"
