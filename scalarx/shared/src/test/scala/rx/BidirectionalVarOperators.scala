@@ -205,32 +205,35 @@ object TransformedVarTests extends TestSuite {
       assert(selectedItem.now == Some(4))
     }
 
-    //TODO:
-    // "multiset transformed Var" - {
-    //   import Ctx.Owner.Unsafe._
+    "multiset zoomed Var" - {
+      import Ctx.Owner.Unsafe._
 
-    //   val x:Var[(Int,String)] = Var((0,"Wurst"))
-    //   val a:Var[Int] = x.zoom(_._1)((x, a) => x.copy(_1 = a))
-    //   val b:Var[String] = x.zoom(_._2)((x, b) => x.copy(_2 = b))
+      val x:Var[(Int,String)] = Var((0,"Wurst"))
+      val y = x.map(_.toString)
+      val a:Var[Int] = x.zoom(_._1)((x, a) => x.copy(_1 = a))
+      val b:Var[String] = x.zoom(_._2)((x, b) => x.copy(_2 = b))
 
-    //   var ix = 0; x.trigger { ix += 1 }
-    //   var ia = 0; a.trigger { ia += 1 }
-    //   var ib = 0; b.trigger { ib += 1 }
+      var ix = 0; x.trigger { ix += 1 }
+      var iy = 0; y.trigger { iy += 1 }
+      var ia = 0; a.trigger { ia += 1 }
+      var ib = 0; b.trigger { ib += 1 }
 
-    //   assert(ix == 1)
-    //   assert(ia == 1)
-    //   assert(ib == 1)
-    //   Var.set(
-    //     a -> 7,
-    //     b -> "Kartoffel"
-    //   )
+      assert(ix == 1)
+      assert(iy == 1)
+      assert(ia == 1)
+      assert(ib == 1)
 
-    //   assert(x.now == ((7,"Kartoffel")))
-
-    //   assert(ix == 2)
-    //   assert(ia == 1)
-    //   assert(ib == 1)
-    // }
+      Var.set(
+        a -> 7,
+        b -> "Kartoffel"
+      )
+      assert(x.now == ((7,"Kartoffel")))
+      assert(y.now == "(7,Kartoffel)")
+      assert(ix == 2)
+      assert(iy == 2)
+      assert(ia == 2)
+      assert(ib == 2)
+    }
   }
 }
 

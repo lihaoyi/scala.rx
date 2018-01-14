@@ -170,7 +170,10 @@ object Var {
 
     override private[rx] def value = rx.now
 
-    override private[rx] def value_=(newValue: S): Unit = base.value = write(base.value, newValue)
+    override private[rx] def value_=(newValue: S): Unit = {
+      rx.cached = Success(newValue)
+      base.value = write(base.value, newValue)
+    }
   }
 
 }
