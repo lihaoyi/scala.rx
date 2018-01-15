@@ -71,6 +71,30 @@ object CombinatorTests extends TestSuite{
         assert(d.now == 6)
         assert(e.now == 5)
       }
+      "mapObs" - {
+        val v1 = Var(0)
+        val v2 = v1.map(identity)
+        val v3 = v1.map(identity).map(identity).map(identity)
+        def q(implicit trackDependency: Ctx.Data) = {
+          if (v1() == 0) v2()
+          else {
+            if (v3() != v2())
+              103
+            else
+              17
+          }
+        }
+        val v = Rx { q }
+        var result = List.empty[Int]
+        val obs = v.trigger { result = result :+ v.now }
+        assert(result == List(0))
+        v1() = 1
+        assert(result == List(0,17))
+        v1() = 2
+        assert(result == List(0,17))
+        v1() = 3
+        assert(result == List(0,17))
+      }
       "mapAll" - {
         val a = Var(10L)
         val b = Rx{ 100 / a() }

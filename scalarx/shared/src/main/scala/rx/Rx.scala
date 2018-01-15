@@ -111,6 +111,7 @@ object Rx {
     new Rx.Dynamic(func, if (owner == Ctx.Owner.Unsafe) None else Some(owner))
   }
 
+
   private[rx] def doRecalc(rxs: Iterable[Rx.Dynamic[_]], obs: Iterable[Obs]): Unit = {
     implicit val ordering: Ordering[Dynamic[_]] = Ordering.by[Rx.Dynamic[_], Int](-_.depth)
     val queue = rxs.to[mutable.PriorityQueue]
@@ -119,18 +120,23 @@ object Rx {
     var currentDepth = 0
     while (queue.nonEmpty) {
       val min = queue.dequeue()
-      if (min.depth > currentDepth) {
+      if (min.depth < currentDepth) {
         currentDepth = min.depth
-        seen.clear()
-      }
-      if (!seen(min) && !min.dead) {
-        val prev = min.toTry
-        min.update()
-        if (min.toTry != prev) {
-          queue ++= min.downStream
-          observers ++= min.observers
+        queue.enqueue(min)
+      } else {
+        if (min.depth > currentDepth) {
+          currentDepth = min.depth
+          seen.clear()
         }
-        seen.add(min)
+        if (!seen(min) && !min.dead) {
+          val prev = min.toTry
+          min.update()
+          if (min.toTry != prev) {
+            queue ++= min.downStream
+            observers ++= min.observers
+          }
+          seen.add(min)
+        }
       }
     }
     observers.filter(!_.dead).foreach(_.thunk())
