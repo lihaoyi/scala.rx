@@ -111,7 +111,6 @@ object Rx {
     new Rx.Dynamic(func, if (owner == Ctx.Owner.Unsafe) None else Some(owner))
   }
 
-
   private[rx] def doRecalc(rxs: Iterable[Rx.Dynamic[_]], obs: Iterable[Obs]): Unit = {
     implicit val ordering: Ordering[Dynamic[_]] = Ordering.by[Rx.Dynamic[_], Int](-_.depth)
     val queue = rxs.to[mutable.PriorityQueue]
