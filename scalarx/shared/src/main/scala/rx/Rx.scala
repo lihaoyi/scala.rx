@@ -119,7 +119,10 @@ object Rx {
     var currentDepth = 0
     while (queue.nonEmpty) {
       val min = queue.dequeue()
-      if (min.depth > currentDepth) {
+      if(min.depth < currentDepth) {
+        currentDepth = min.depth
+      }
+      else if (min.depth > currentDepth) {
         currentDepth = min.depth
         seen.clear()
       }
