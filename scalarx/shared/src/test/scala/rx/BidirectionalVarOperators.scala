@@ -48,7 +48,7 @@ object TransformedVarTests extends TestSuite {
       assert(c.now == "2q")
     }
 
-    "zoomed Var" - {
+    "zoomedVar" - {
       import Ctx.Owner.Unsafe._
 
       val a: Var[(Int, String)] = Var((0, "Wurst"))
@@ -205,7 +205,7 @@ object TransformedVarTests extends TestSuite {
       assert(selectedItem.now == Some(4))
     }
 
-    "multiset zoomed Var" - {
+    "multisetZoomedVar" - {
       import Ctx.Owner.Unsafe._
 
       val x:Var[(Int,String)] = Var((0,"Wurst"))

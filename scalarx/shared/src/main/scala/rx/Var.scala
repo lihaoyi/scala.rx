@@ -138,6 +138,8 @@ object Var {
     override private[rx] def value_=(newValue: S): Unit = {
       rx.cached = Success(newValue)
       base.value = write(newValue)
+      downStream ++= rx.downStream ++ (base.downStream - rx)
+      observers ++=  rx.observers ++ base.observers
     }
   }
 
@@ -153,13 +155,14 @@ object Var {
     // Proxy Rx
     override def now: S = rx.now
 
-    override private[rx] val downStream = rx.downStream
+    override private[rx] val downStream =  rx.downStream
     override private[rx] val observers = rx.observers
 
-    // Porxy Var
+    // Proxy Var
     override def update(newValue: S): Unit = {
       rx.cached = Success(newValue)
       base.value = write(base.value, newValue)
+
       // avoid triggering rx, because we already
       // know the current value: newValue
       Rx.doRecalc(
@@ -173,6 +176,8 @@ object Var {
     override private[rx] def value_=(newValue: S): Unit = {
       rx.cached = Success(newValue)
       base.value = write(base.value, newValue)
+      downStream ++= rx.downStream ++ (base.downStream - rx)
+      observers ++=  rx.observers ++ base.observers
     }
   }
 
