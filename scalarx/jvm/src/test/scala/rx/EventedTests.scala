@@ -35,7 +35,7 @@ object EventedTests extends TestSuite {
         a() = 5
         a() = 42
 
-        assert(b.now == 2)
+        assert(b.now != 42 && b.now != 5)
 
         eventually {
           b.now == 42
