@@ -108,7 +108,7 @@ object EventedTests extends TestSuite {
         a() = 6
         assert(b.now == 4)
         eventually(
-          b.now == 5
+          b.now == 5 || b.now == 6
         )
         eventually(
           b.now == 6
