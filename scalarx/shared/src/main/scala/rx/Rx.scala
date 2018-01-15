@@ -119,23 +119,21 @@ object Rx {
     var currentDepth = 0
     while (queue.nonEmpty) {
       val min = queue.dequeue()
-      if (min.depth < currentDepth) {
+      if(min.depth < currentDepth) {
         currentDepth = min.depth
-        queue.enqueue(min)
-      } else {
-        if (min.depth > currentDepth) {
-          currentDepth = min.depth
-          seen.clear()
+      }
+      else if (min.depth > currentDepth) {
+        currentDepth = min.depth
+        seen.clear()
+      }
+      if (!seen(min) && !min.dead) {
+        val prev = min.toTry
+        min.update()
+        if (min.toTry != prev) {
+          queue ++= min.downStream
+          observers ++= min.observers
         }
-        if (!seen(min) && !min.dead) {
-          val prev = min.toTry
-          min.update()
-          if (min.toTry != prev) {
-            queue ++= min.downStream
-            observers ++= min.observers
-          }
-          seen.add(min)
-        }
+        seen.add(min)
       }
     }
     observers.filter(!_.dead).foreach(_.thunk())
