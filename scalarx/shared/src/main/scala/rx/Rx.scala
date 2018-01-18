@@ -149,7 +149,7 @@ object Rx {
     */
   class Dynamic[+T](func: (Ctx.Owner, Ctx.Data) => T, owner: Option[Ctx.Owner])(implicit name: sourcecode.Name) extends Rx[T] { self =>
 
-    private[rx]  var cached: Try[T @uncheckedVariance] = _
+    private[rx] var cached: Try[T @uncheckedVariance] = _
 
     private[rx] var depth = 0
     private[rx] var dead = false
