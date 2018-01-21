@@ -145,6 +145,7 @@ object BasicTests extends TestSuite{
         a() = 0
         intercept[Exception]{
           b.now
+          ()
         }
         assertMatch(b.toTry){case Failure(_) =>}
       }

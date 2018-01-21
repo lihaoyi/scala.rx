@@ -2,6 +2,7 @@ package rx
 
 import rx.opmacros.Factories
 
+import scala.annotation.unchecked.uncheckedVariance
 import scala.collection.mutable
 import scala.util.Try
 
@@ -146,10 +147,9 @@ object Rx {
     * automatically when the [[owner]] recalculates, in order to avoid
     * memory leaks from un-used [[Rx]]s hanging around.
     */
-  class Dynamic[T](func: (Ctx.Owner, Ctx.Data) => T, owner: Option[Ctx.Owner])(implicit name: sourcecode.Name) extends Rx[T] { self =>
-    //TODO: Be Covariant over T, (currently IsomorphicVar writes into cache, therefore Invariant)
+  class Dynamic[+T](func: (Ctx.Owner, Ctx.Data) => T, owner: Option[Ctx.Owner])(implicit name: sourcecode.Name) extends Rx[T] { self =>
 
-    private[rx] var cached: Try[T] = _
+    private[rx] var cached: Try[T @uncheckedVariance] = _
 
     private[rx] var depth = 0
     private[rx] var dead = false
