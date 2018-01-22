@@ -18,7 +18,6 @@ object EventedTests extends TestSuite {
         val a = Var(10)
         val b = a.debounce(75.millis)
         a() = 5
-        assert(b.now == 10)
 
         eventually {
           b.now == 5
