@@ -205,6 +205,61 @@ object TransformedVarTests extends TestSuite {
       assert(selectedItem.now == Some(4))
     }
 
+    "mapRead function calls" - {
+      import Ctx.Owner.Unsafe._
+
+      var aReadCounter = 0
+      var bReadCounter = 0
+      var cReadCounter = 0
+      val a: Var[Int] = Var(0)
+      val nested: Var[Int] = Var(1)
+      val b: Var[Int] = a.mapRead { v => v() + nested() }
+      val c: Rx[Int] = b.map(_ + 1)
+      a.foreach { _ => aReadCounter += 1 }
+      b.foreach { _ => bReadCounter += 1 }
+      c.foreach { _ => cReadCounter += 1 }
+
+      assert(aReadCounter == 1)
+      assert(bReadCounter == 1)
+      assert(cReadCounter == 1)
+      assert(a.now == 0)
+      assert(b.now == 1)
+      assert(c.now == 2)
+
+      a() = 1
+      assert(aReadCounter == 2)
+      assert(bReadCounter == 2)
+      assert(cReadCounter == 2)
+      assert(a.now == 1)
+      assert(b.now == 2)
+      assert(c.now == 3)
+
+      b() = 2
+      assert(aReadCounter == 3)
+      assert(bReadCounter == 3)
+      assert(cReadCounter == 3)
+      assert(a.now == 2)
+      assert(b.now == 3)
+      assert(c.now == 4)
+
+      a() = 3
+      assert(aReadCounter == 4)
+      assert(bReadCounter == 4)
+      assert(cReadCounter == 4)
+      assert(a.now == 3)
+      assert(b.now == 4)
+      assert(c.now == 5)
+
+      nested() = 10
+      assert(aReadCounter == 4)
+      assert(bReadCounter == 5)
+      assert(cReadCounter == 5)
+      assert(a.now == 3)
+      assert(b.now == 13)
+      assert(c.now == 14)
+    }
+
+
     "multisetZoomedVar" - {
       import Ctx.Owner.Unsafe._
 
