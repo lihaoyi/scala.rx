@@ -289,6 +289,62 @@ object TransformedVarTests extends TestSuite {
       assert(ia == 2)
       assert(ib == 2)
     }
+
+    "multiple dependencies with Composed" - {
+      import Ctx.Owner.Unsafe._
+      for( _ <- 0 to 100) { // catch nondeterminism
+        val base = Var(0)
+        val num = new Var.Composed(base, Rx { base() + 1 })
+        val combined = Rx {
+          base()
+          num()
+        }
+
+        assert(base.now == 0)
+        assert(num.now == 1)
+        assert(combined.now == 1)
+
+        num() = 1
+
+        assert(base.now == 1)
+        assert(num.now == 2)
+        assert(combined.now == 2)
+
+        base() = 1
+
+        assert(base.now == 1)
+        assert(num.now == 2)
+        assert(combined.now == 2)
+      }
+    }
+
+    "multiple dependencies with mapRead" - {
+      import Ctx.Owner.Unsafe._
+      for( _ <- 0 to 100) { // catch nondeterminism
+        val base = Var(0)
+        val num = base.mapRead { num => num() + 1 }
+        val combined = Rx {
+          base()
+          num()
+        }
+
+        assert(base.now == 0)
+        assert(num.now == 1)
+        assert(combined.now == 1)
+
+        num() = 1
+
+        assert(base.now == 1)
+        assert(num.now == 2)
+        assert(combined.now == 2)
+
+        base() = 1
+
+        assert(base.now == 1)
+        assert(num.now == 2)
+        assert(combined.now == 2)
+      }
+    }
   }
 }
 

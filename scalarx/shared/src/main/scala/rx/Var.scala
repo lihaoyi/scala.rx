@@ -94,14 +94,23 @@ object Var {
     override private[rx] val downStream = rx.downStream
     override private[rx] val observers = rx.observers
 
-
     // Proxy Var
     private[rx] var value = now
+
+    override private[rx] def addDownstream(ctx: Ctx.Data): Unit = rx.addDownstream(ctx)
+    override private[rx] def clearDownstream(): Unit = rx.clearDownstream()
+    override private[rx] def depth = rx.depth
+
+    override def kill() = {
+      rx.kill()
+      base.kill()
+    }
 
     def update(newValue: T): Unit = {
       // We do a regular update of the base-var, since we do not know if
       // rx.now will be newValue
       base.update(newValue)
+      value = rx.now
     }
   }
 
