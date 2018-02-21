@@ -19,8 +19,8 @@ trait Rx[+T] {
     */
   def now: T
 
-  private[rx] val downStream = mutable.Set.empty[Rx.Dynamic[_]]
-  private[rx] val observers = mutable.Set.empty[Obs]
+  private[rx] def downStream: mutable.Set[Rx.Dynamic[_]]
+  private[rx] def observers: mutable.Set[Obs]
 
   private[rx] def clearDownstream(): Unit = downStream.clear()
 
@@ -148,6 +148,9 @@ object Rx {
     * memory leaks from un-used [[Rx]]s hanging around.
     */
   class Dynamic[+T](func: (Ctx.Owner, Ctx.Data) => T, owner: Option[Ctx.Owner])(implicit name: sourcecode.Name) extends Rx[T] { self =>
+
+    private[rx] val downStream = mutable.Set.empty[Rx.Dynamic[_]]
+    private[rx] val observers = mutable.Set.empty[Obs]
 
     private[rx] var cached: Try[T @uncheckedVariance] = _
 
