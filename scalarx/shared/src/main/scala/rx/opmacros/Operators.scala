@@ -209,7 +209,8 @@ object MapReadMacro {
     val tree = q"""
       val $baseValue = ${c.prefix}.base
       val $functionValue = ($param, $newOwnerCtx: $rxPkg.Ctx.Owner, $newDataCtx: $rxPkg.Ctx.Data) => $injected2
-      new $rxPkg.Var.Composed[$tType]($baseValue, $rxPkg.Rx.build { (owner,data) => $functionValue($baseValue, owner, data) })
+      val rx = $rxPkg.Rx.build { (owner,data) => $functionValue($baseValue, owner, data) }
+      new $rxPkg.Var.Composed[$tType]($baseValue, rx)
     """
 
     resetExpr[Var[T]](c)(tree)
