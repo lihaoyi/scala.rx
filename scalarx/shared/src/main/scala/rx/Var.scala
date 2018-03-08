@@ -132,14 +132,15 @@ object Var {
 
     // Proxy Var
     override def update(newValue: S): Unit = {
-      //TODO: ignore if already equal, like in BaseVar.update
-      value = newValue
-      // avoid triggering rx, because we already
-      // know the current value: newValue
-      Rx.doRecalc(
-        rx.downStream ++ (base.downStream - rx),
-        rx.observers ++ base.observers
-      )
+      if( value != newValue ) { // Assuming that read(write) == write(read) == identity
+        value = newValue
+        // avoid triggering rx, because we already
+        // know the current value: newValue
+        Rx.doRecalc(
+          rx.downStream ++ (base.downStream - rx),
+          rx.observers ++ base.observers
+        )
+      }
     }
 
     override private[rx] def value = rx.now
@@ -163,15 +164,18 @@ object Var {
 
     // Proxy Var
     override def update(newValue: S): Unit = {
-      rx.cached = Success(newValue)
-      base.value = write(base.value, newValue)
+      val newBaseValue = write(base.value, newValue)
+      if( value != newValue || base.value != newBaseValue ) {
+        rx.cached = Success(newValue)
+        base.value = newBaseValue
 
-      // avoid triggering rx, because we already
-      // know the current value: newValue
-      Rx.doRecalc(
-        rx.downStream ++ (base.downStream - rx),
-        rx.observers ++ base.observers
-      )
+        // avoid triggering rx, because we already
+        // know the current value: newValue
+        Rx.doRecalc(
+          rx.downStream ++ (base.downStream - rx),
+          rx.observers ++ base.observers
+        )
+      }
     }
 
     override private[rx] def value = rx.now
