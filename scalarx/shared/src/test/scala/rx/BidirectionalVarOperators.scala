@@ -4,7 +4,7 @@ import acyclic.file
 import monocle.macros.GenLens
 import utest._
 
-object TransformedVarTests extends TestSuite {
+object BidirectionalVarOperatorTests extends TestSuite {
   def tests = utest.Tests {
     "isomorphic Var" - {
       import Ctx.Owner.Unsafe._
