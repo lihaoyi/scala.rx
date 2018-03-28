@@ -84,6 +84,16 @@ object BasicTests extends TestSuite{
         a() = 4
         assert(count == 5)
       }
+      "helloWorld2" - {
+        val a = Var(1)
+        var count = 0
+        val o = a.trigger{ a =>
+          count = a + 1
+        }
+        assert(count == 2)
+        a() = 4
+        assert(count == 5)
+      }
       "skipInitial" - {
         val a = Var(1)
         var count = 0
@@ -97,6 +107,18 @@ object BasicTests extends TestSuite{
         assert(count == 1)
         a() = 3
         assert(count == 2)
+      }
+      "skipInitial2" - {
+        val a = Var(1)
+        var count = 0
+        val o = a.triggerLater{ a =>
+          count = a + 1
+        }
+        assert(count == 0)
+        a() = 2
+        assert(count == 3)
+        a() = 3
+        assert(count == 4)
       }
 
       "simpleExample" - {
