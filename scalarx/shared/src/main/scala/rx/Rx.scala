@@ -87,6 +87,10 @@ trait Rx[+T] {
     o
   }
 
+  def trigger(f: T => Unit)(implicit ownerCtx: Ctx.Owner): Obs = trigger(f(now))
+
+  def triggerLater(f: T => Unit)(implicit ownerCtx: Ctx.Owner): Obs = triggerLater(f(now))
+
   def toTry: Try[T]
 }
 
