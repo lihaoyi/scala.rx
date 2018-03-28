@@ -101,6 +101,12 @@ object Rx {
     */
   def apply[T](func: => T)(implicit ownerCtx: rx.Ctx.Owner, name: sourcecode.Name): Rx.Dynamic[T] = macro Factories.rxApplyMacro[T]
 
+  def create[T](seed: T)(f: Var[T] => Unit): Rx[T] = {
+    val v = Var[T](seed)
+    f(v)
+    v
+  }
+
   private[rx] def unsafe[T](func: => T)(implicit name: sourcecode.Name): Rx[T] = macro Factories.buildUnsafe[T]
 
   /**

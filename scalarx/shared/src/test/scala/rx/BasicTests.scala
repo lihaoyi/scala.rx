@@ -41,6 +41,19 @@ object BasicTests extends TestSuite{
           b() = Some(2)
           assert (c.now == Some(3))
         }
+        "rxcreate"-{
+          val trigger = Var(5)
+          val a = Rx.create[Int](0) { write =>
+            trigger.triggerLater {
+              write() = trigger.now
+            }
+          }
+
+          assert(a.now == 0)
+
+          trigger() = 7
+          assert(a.now == 7)
+        }
       }
       "languageFeatures" - {
         "patternMatching" - {
