@@ -166,12 +166,16 @@ object AdvancedTests extends TestSuite{
           i += 1
         }
         assert(i == 1)
+        assert(d.now == 3)
         a() = 2
         assert(i == 2)
+        assert(d.now == 4)
         b() = 2
         assert(i == 3)
+        assert(d.now == 5)
         c() = 2
         assert(i == 4)
+        assert(d.now == 6)
 
         Var.set(
           a -> 3,
@@ -180,6 +184,7 @@ object AdvancedTests extends TestSuite{
         )
 
         assert(i == 5)
+        assert(d.now == 9)
 
         Var.set(
           Seq(
@@ -190,6 +195,7 @@ object AdvancedTests extends TestSuite{
         )
 
         assert(i == 6)
+        assert(d.now == 15)
       }
       "webPage" - {
         import Ctx.Owner.Unsafe._
