@@ -47,10 +47,6 @@ lazy val scalarx = crossProject.settings(
           <url>http://www.opensource.org/licenses/mit-license.php</url>
         </license>
       </licenses>
-      <scm>
-        <url>git://github.com:lihaoyi/scala.rx.git</url>
-        <connection>scm:git://github.com:lihaoyi/scala.rx.git</connection>
-      </scm>
       <developers>
         <developer>
           <id>lihaoyi</id>
