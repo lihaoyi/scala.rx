@@ -40,7 +40,7 @@ lazy val scalarx = crossProject.settings(
   // Sonatype
   publishTo := Some("releases"  at "https://oss.sonatype.org/service/local/staging/deploy/maven2"),
   pomExtra :=
-    <url>https://github.com/lihaoyi/scalatags</url>
+    <url>https://github.com/lihaoyi/scala.rx</url>
       <licenses>
         <license>
           <name>MIT license</name>
@@ -48,8 +48,8 @@ lazy val scalarx = crossProject.settings(
         </license>
       </licenses>
       <scm>
-        <url>git://github.com/lihaoyi/scalatags.git</url>
-        <connection>scm:git://github.com/lihaoyi/scalatags.git</connection>
+        <url>git://github.com:lihaoyi/scala.rx.git</url>
+        <connection>scm:git://github.com:lihaoyi/scala.rx.git</connection>
       </scm>
       <developers>
         <developer>
