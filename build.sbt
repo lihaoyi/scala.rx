@@ -1,10 +1,10 @@
-crossScalaVersions := Seq("2.11.12", "2.12.4")
 val monocleVersion = "1.5.0-cats"
 
 lazy val scalarx = crossProject.settings(
   organization := "com.lihaoyi",
   name := "scalarx",
-  scalaVersion := "2.12.4",
+  crossScalaVersions := Seq("2.11.12", "2.12.4"),
+  scalaVersion := crossScalaVersions.value.last,
   version := "0.4.0",
 
   libraryDependencies ++= Seq(
@@ -28,14 +28,18 @@ lazy val scalarx = crossProject.settings(
     "-language:_" ::
     "-Xcheckinit" ::
     "-Xfuture" ::
-    "-Xlint:-unused" :: // too many false positives for unused because of acyclic, macros, local vals in tests
     "-Ypartial-unification" ::
     "-Yno-adapted-args" ::
     "-Ywarn-infer-any" ::
     "-Ywarn-value-discard" ::
     "-Ywarn-nullary-override" ::
     "-Ywarn-nullary-unit" ::
-    Nil,
+    (CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, v)) if v >= 12 =>
+        "-Xlint:-unused" :: // too many false positives for unused because of acyclic, macros, local vals in tests
+        Nil
+      case _ => Nil
+    }),
 
   // Sonatype
   publishTo := Some("releases"  at "https://oss.sonatype.org/service/local/staging/deploy/maven2"),
