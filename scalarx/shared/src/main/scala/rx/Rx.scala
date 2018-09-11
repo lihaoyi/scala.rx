@@ -79,10 +79,11 @@ trait Rx[+T] {
     * kill it later.
     */
   def triggerLater(thunk: => Unit)(implicit ownerCtx: rx.Ctx.Owner): Obs = {
-    val o = new Obs(() => thunk, this)
-    if (ownerCtx != Ctx.Owner.Unsafe) {
+    val o = if (ownerCtx != Ctx.Owner.Unsafe) {
+      val o = new Obs(() => thunk, this, Some(ownerCtx))
       ownerCtx.contextualRx.ownedObservers.add(o)
-    }
+      o
+    } else new Obs(() => thunk, this, None)
     observers.add(o)
     o
   }
