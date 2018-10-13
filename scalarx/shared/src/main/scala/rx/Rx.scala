@@ -111,7 +111,7 @@ object Rx {
     v
   }
 
-  private[rx] def unsafe[T](func: => T)(implicit name: sourcecode.Name): Rx[T] = macro Factories.buildUnsafe[T]
+  def unsafe[T](func: => T)(implicit name: sourcecode.Name): Rx[T] = macro Factories.buildUnsafe[T]
 
   /**
     * Constructs a new [[Rx]] from an expression (which explicitly takes an
