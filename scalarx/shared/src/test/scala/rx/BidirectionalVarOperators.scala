@@ -205,6 +205,28 @@ object BidirectionalVarOperatorTests extends TestSuite {
       assert(selectedItem.now == Some(4))
     }
 
+    "mapRead then zoom" - {
+      import Ctx.Owner.Unsafe._
+      case class Store(selected:Option[Int])
+
+      val list = Var(List(1, 2, 3))
+      val store = Var[Store](Store(Some(1))).mapRead {
+        store => store().copy(selected = store().selected.filter(list() contains _))
+      }
+      val selectedItem = store.zoom(_.selected)((store,selected) => store.copy(selected = selected))
+
+      assert(selectedItem.now == Some(1))
+
+      selectedItem() = Some(3)
+      assert(selectedItem.now == None) // fail: is Some(3) ...
+
+      list.update(4 :: _)
+      assert(selectedItem.now == None) // fail: still is Some(3)
+
+      selectedItem() = Some(4)
+      assert(selectedItem.now == Some(4))
+    }
+
     "mapRead function calls" - {
       import Ctx.Owner.Unsafe._
 
