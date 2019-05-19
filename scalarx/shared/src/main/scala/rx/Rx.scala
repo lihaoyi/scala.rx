@@ -22,7 +22,7 @@ trait Rx[+T] {
   private[rx] def downStream: mutable.Set[Rx.Dynamic[_]]
   private[rx] def observers: mutable.Set[Obs]
 
-  private[rx] def clearDownstream(): Unit = downStream.clear()
+  private[rx] def clearDownstream(): Unit
 
   private[rx] def depth: Int
 
@@ -221,6 +221,7 @@ object Rx {
     override def kill(): Unit = {
       owner.foreach(_.contextualRx.owned.remove(this))
       ownerKilled()
+      observers.foreach(_.kill())
     }
 
     override def recalc(): Unit = if (!dead) {
