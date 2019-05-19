@@ -20,6 +20,7 @@ trait Var[T] extends Rx[T] {
 
   override def kill(): Unit = {
     clearDownstream()
+    observers.foreach(_.kill())
   }
 
   def name: sourcecode.Name
@@ -73,6 +74,8 @@ object Var {
 
     private[rx] val downStream = mutable.Set.empty[Rx.Dynamic[_]]
     private[rx] val observers = mutable.Set.empty[Obs]
+
+    private[rx] def clearDownstream(): Unit = downStream.clear()
 
     private[rx] var value = initialValue
 

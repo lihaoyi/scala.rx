@@ -167,7 +167,42 @@ object BasicTests extends TestSuite{
           a.observers.size == 0,
           i == 2
         )
-
+      }
+      'killingInsideRx{
+        val a = Var(1)
+        var i = 0
+        Rx {
+          val o = a.trigger(i += 1)
+          assert(
+            a.observers.size == 1,
+            i == 1
+          )
+          a() = 2
+          assert(i == 2)
+          o.kill()
+          a() = 3
+          assert(
+            a.observers.size == 0,
+            i == 2
+          )
+        }
+      }
+      'killingVar{
+        val a = Var(1)
+        var i = 0
+        a.trigger(i += 1)
+        assert(
+          a.observers.size == 1,
+          i == 1
+        )
+        a() = 2
+        assert(i == 2)
+        a.kill()
+        a() = 3
+        assert(
+          a.observers.size == 0,
+          i == 2
+        )
       }
     }
 
