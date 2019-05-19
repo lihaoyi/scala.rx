@@ -22,7 +22,7 @@ object AdvancedTests extends TestSuite{
     def inner1(num: Int)(implicit topCtx: Ctx.Owner) = Rx.build { (owner, data) =>
       inner1Count += 1
       other()(data)
-    }(topCtx,implicitly[sourcecode.Name])
+    }(topCtx)
 
     def inner2(num: Int)(implicit topCtx: Ctx.Owner) = Rx {
       inner2Count += 1

@@ -32,7 +32,7 @@ object Factories {
   def rxApplyMacro[T: c.WeakTypeTag]
                   (c: blackbox.Context)
                   (func: c.Expr[T])
-                  (ownerCtx: c.Expr[rx.Ctx.Owner], name: c.Expr[sourcecode.Name])
+                  (ownerCtx: c.Expr[rx.Ctx.Owner])
                   : c.Expr[Rx.Dynamic[T]] = {
     import c.universe._
 
@@ -52,7 +52,7 @@ object Factories {
     }""")
   }
 
-  def buildUnsafe[T: c.WeakTypeTag](c: blackbox.Context)(func: c.Expr[T])(name: c.Expr[sourcecode.Name]): c.Expr[Rx[T]] = {
+  def buildUnsafe[T: c.WeakTypeTag](c: blackbox.Context)(func: c.Expr[T]): c.Expr[Rx[T]] = {
     import c.universe._
 
     val inferredOwner = c.inferImplicitValue(c.weakTypeOf[rx.Ctx.Owner])
@@ -80,7 +80,7 @@ object Factories {
 
     resetExpr[Rx[T]](c)(q"""_root_.rx.Rx.build{
       ($newOwnerCtx: _root_.rx.Ctx.Owner, $newDataCtx: _root_.rx.Ctx.Data) => $injected2
-    }($unsafeOwner,$name)""")
+    }($unsafeOwner)""")
   }
 
   def implicitOwnerTree[T: c.WeakTypeTag](c: blackbox.Context): c.Tree = {
