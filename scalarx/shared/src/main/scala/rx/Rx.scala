@@ -17,7 +17,7 @@ trait Rx[+T] {
     * Get the current value of this [[Rx]] at this very moment,
     * without listening for updates
     */
-  def now: T
+  @inline def now: T
 
   private[rx] def downStream: mutable.Set[Rx.Dynamic[_]]
   private[rx] def observers: mutable.Set[Obs]
@@ -54,7 +54,7 @@ trait Rx[+T] {
   /**
     * Force trigger/notifications of any downstream [[Rx]]s, without changing the current value
     */
-  def propagate(): Unit = Rx.doRecalc(downStream.toSet, observers)
+  @inline final def propagate(): Unit = Rx.doRecalcCopy(downStream, observers)
 
   /**
     * Force this [[Rx]] to recompute (whether or not any upstream [[Rx]]s
@@ -87,11 +87,11 @@ trait Rx[+T] {
     o
   }
 
-  def trigger(f: T => Unit)(implicit ownerCtx: Ctx.Owner): Obs = trigger(f(now))
+  @inline final def trigger(f: T => Unit)(implicit ownerCtx: Ctx.Owner): Obs = trigger(f(now))
 
-  def triggerLater(f: T => Unit)(implicit ownerCtx: Ctx.Owner): Obs = triggerLater(f(now))
+  @inline final def triggerLater(f: T => Unit)(implicit ownerCtx: Ctx.Owner): Obs = triggerLater(f(now))
 
-  def toTry: Try[T]
+  @inline def toTry: Try[T]
 }
 
 object Rx {
@@ -122,11 +122,13 @@ object Rx {
     new Rx.Dynamic(func, if (owner == Ctx.Owner.Unsafe) None else Some(owner))
   }
 
-  private[rx] def doRecalc(rxs: Iterable[Rx.Dynamic[_]], obs: Iterable[Obs]): Unit = {
-    implicit val ordering: Ordering[Dynamic[_]] = Ordering.by[Rx.Dynamic[_], Int](-_.depth)
-    val queue = rxs.to[mutable.PriorityQueue]
+  private[rx] implicit val ordering: Ordering[Dynamic[_]] = Ordering.by[Rx.Dynamic[_], Int](-_.depth)
+
+  @inline private[rx] def doRecalcCopy(rxs: Iterable[Rx.Dynamic[_]], obs: Iterable[Obs]): Unit = {
+    doRecalcMutable(rxs.to[mutable.PriorityQueue], obs.to[mutable.Set])
+  }
+  private[rx] def doRecalcMutable(queue: mutable.PriorityQueue[Rx.Dynamic[_]], observers: mutable.Set[Obs]): Unit = {
     val seen = mutable.Set.empty[Rx.Dynamic[_]]
-    val observers = obs.to[mutable.Set]
     var currentDepth = 0
     while (queue.nonEmpty) {
       val min = queue.dequeue()
@@ -147,7 +149,9 @@ object Rx {
         seen.add(min)
       }
     }
-    observers.filter(!_.dead).foreach(_.thunk())
+    observers.foreach { obs =>
+      if (!obs.dead) obs.thunk()
+    }
   }
 
   /**
@@ -204,12 +208,12 @@ object Rx {
 
     update()
 
-    override def now: T = cached.get
+    @inline override final def now: T = cached.get
 
     /**
       * @return the current value of this [[Rx]] as a `Try`
       */
-    def toTry: Try[T] = cached
+    @inline override final def toTry: Try[T] = cached
 
     private[rx] def ownerKilled(): Unit = {
       dead = true
@@ -228,7 +232,7 @@ object Rx {
       val oldValue = toTry
       update()
       if (oldValue != toTry)
-        Rx.doRecalc(downStream, observers)
+        Rx.doRecalcCopy(downStream, observers)
     }
 
     override def toString = s"${name.value}:Rx@${Integer.toHexString(hashCode()).take(2)}($now)"
