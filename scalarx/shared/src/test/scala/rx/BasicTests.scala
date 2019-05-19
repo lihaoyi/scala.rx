@@ -293,9 +293,9 @@ object BasicTests extends TestSuite{
       val v = Var(1).toString
       val r = Rx(1).toString
       assert(
-        v.startsWith("v:Var@"),
+        v.startsWith("Var@"),
         v.endsWith("(1)"),
-        r.startsWith("r:Rx@"),
+        r.startsWith("Rx@"),
         r.endsWith("(1)")
       )
       (r.toString, v.toString)

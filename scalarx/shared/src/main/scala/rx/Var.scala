@@ -23,15 +23,14 @@ trait Var[T] extends Rx[T] {
     observers.foreach(_.kill())
   }
 
-  def name: sourcecode.Name
-  override def toString = s"${name.value}:Var@${Integer.toHexString(hashCode()).take(2)}($now)"
+  override def toString = s"Var@${Integer.toHexString(hashCode()).take(2)}($now)"
 }
 
 object Var {
   /**
     * Create a [[Var]] from an initial value
     */
-  def apply[T](initialValue: T)(implicit name: sourcecode.Name): Var[T] = new Base(initialValue)
+  def apply[T](initialValue: T): Var[T] = new Base(initialValue)
 
   /**
     * Set the value of multiple [[Var]]s at the same time; in doing so,
@@ -70,7 +69,7 @@ object Var {
     * A smart variable that can be set manually, and will notify downstream
     * [[Rx]]s and run any triggers whenever its value changes.
     */
-  class Base[T](initialValue: T)(implicit val name: sourcecode.Name) extends Var[T] {
+  class Base[T](initialValue: T) extends Var[T] {
 
     private[rx] val downStream = mutable.Set.empty[Rx.Dynamic[_]]
     private[rx] val observers = mutable.Set.empty[Obs]
@@ -113,7 +112,7 @@ object Var {
     }
   }
 
-  class Composed[T](protected val base:Var[T], protected val rx:Rx[T])(implicit val name: sourcecode.Name) extends ForwardRxVar[T, T] {
+  class Composed[T](protected val base:Var[T], protected val rx:Rx[T]) extends ForwardRxVar[T, T] {
     // Proxy Var
     private[rx] var value = now
 
@@ -125,13 +124,13 @@ object Var {
     }
   }
 
-  class Isomorphic[T, S](protected val base: Var[T], read: T => S, write: S => T)(implicit ownerCtx: Ctx.Owner, val name: sourcecode.Name) extends ForwardRxVar[T, S] { self =>
+  class Isomorphic[T, S](protected val base: Var[T], read: T => S, write: S => T)(implicit ownerCtx: Ctx.Owner) extends ForwardRxVar[T, S] { self =>
 
     //  private[rx] val rx = base.map(read)
     protected val rx = Rx.build { (ownerCtx, dataCtx) =>
       base.addDownstream(dataCtx)
       read(base.now)
-    }(ownerCtx, name)
+    }(ownerCtx)
 
     // Proxy Var
     override def update(newValue: S): Unit = {
@@ -166,13 +165,13 @@ object Var {
   }
 
 
-  class Zoomed[T, S](protected val base: Var[T], read: T => S, write: (T, S) => T)(implicit ownerCtx: Ctx.Owner, val name: sourcecode.Name) extends ForwardRxVar[T, S] {
+  class Zoomed[T, S](protected val base: Var[T], read: T => S, write: (T, S) => T)(implicit ownerCtx: Ctx.Owner) extends ForwardRxVar[T, S] {
 
     //  private[rx] val rx = base.map(read)
     protected val rx = Rx.build { (ownerCtx, dataCtx) =>
       base.addDownstream(dataCtx)
       read(base.now)
-    }(ownerCtx, name)
+    }(ownerCtx)
 
     // Proxy Var
     override def update(newValue: S): Unit = {

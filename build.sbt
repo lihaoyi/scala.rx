@@ -42,7 +42,6 @@ lazy val scalarx = crossProject(JSPlatform, JVMPlatform)
       "com.github.julien-truffaut" %%% "monocle-core" % monocleVersion,
       "com.github.julien-truffaut" %%% "monocle-macro" % monocleVersion % "test",
 
-      "com.lihaoyi" %%% "sourcecode" % "0.1.7",
       "com.lihaoyi" %%% "utest" % "0.6.7" % "test",
       "com.lihaoyi" %% "acyclic" % acyclicVersion % "provided"
     ),
