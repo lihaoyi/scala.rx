@@ -1,20 +1,30 @@
 language: scala
+sudo: false
 
 scala:
   - 2.11.12
-  - 2.12.4
-
-sudo: false
+  - 2.12.8
 
 jdk:
   - oraclejdk8
+  - oraclejdk11
+
+env:
+  - SCALAJS_VERSION=0.6.28
+  # - SCALAJS_VERSION=1.0.0-M8
+
+script:
+- sbt ++$TRAVIS_SCALA_VERSION test
 
 cache:
   directories:
-    - "$HOME/.ivy2/cache"
-    - "$HOME/.sbt"
+  - $HOME/.ivy2/cache
+  - $HOME/.sbt
+  - $HOME/.coursier
 before_cache:
-  # Cleanup the cached directories to avoid unnecessary cache updates
+  # Tricks to avoid unnecessary cache updates
+  # https://www.scala-sbt.org/1.x/docs/Travis-CI-with-sbt.html#Caching
+  - rm -fv $HOME/.ivy2/.sbt.ivy.lock
   - find $HOME/.ivy2/cache -name "ivydata-*.properties" -print -delete
-  - find $HOME/.sbt -name "*.lock" -print -delete
+  - find $HOME/.sbt        -name "*.lock"               -print -delete
 

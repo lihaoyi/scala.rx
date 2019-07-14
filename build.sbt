@@ -1,24 +1,14 @@
-val monocleVersion = "1.5.0-cats"
+// shadow sbt-scalajs' crossProject and CrossType from Scala.js 0.6.x
+import sbtcrossproject.CrossPlugin.autoImport.{ crossProject, CrossType }
 
-lazy val scalarx = crossProject.settings(
-  organization := "com.lihaoyi",
-  name := "scalarx",
-  crossScalaVersions := Seq("2.11.12", "2.12.4"),
-  scalaVersion := crossScalaVersions.value.last,
+val monocleVersion = "1.5.1-cats"
+val acyclicVersion = "0.1.9"
+val crossScalaVersionList = Seq("2.11.12", "2.12.8")
+
+val sharedSettings = Seq(
+  crossScalaVersions := crossScalaVersionList,
+  scalaVersion := crossScalaVersionList.last,
   version := "0.4.0",
-
-  libraryDependencies ++= Seq(
-    "com.github.julien-truffaut" %%% "monocle-core" % monocleVersion,
-    "com.github.julien-truffaut" %%% "monocle-macro" % monocleVersion % "test",
-
-    "com.lihaoyi" %%% "sourcecode" % "0.1.4",
-    "com.lihaoyi" %%% "utest" % "0.6.3" % "test",
-    "com.lihaoyi" %% "acyclic" % "0.1.7" % "provided"
-  ),
-  addCompilerPlugin("com.lihaoyi" %% "acyclic" % "0.1.7"),
-  testFrameworks += new TestFramework("utest.runner.Framework"),
-  autoCompilerPlugins := true,
-
   scalacOptions ++=
     "-encoding" :: "UTF-8" ::
     "-unchecked" ::
@@ -40,6 +30,25 @@ lazy val scalarx = crossProject.settings(
         Nil
       case _ => Nil
     }),
+)
+
+lazy val scalarx = crossProject(JSPlatform, JVMPlatform)
+  .settings(sharedSettings)
+  .settings(
+    organization := "com.lihaoyi",
+    name := "scalarx",
+
+    libraryDependencies ++= Seq(
+      "com.github.julien-truffaut" %%% "monocle-core" % monocleVersion,
+      "com.github.julien-truffaut" %%% "monocle-macro" % monocleVersion % "test",
+
+      "com.lihaoyi" %%% "sourcecode" % "0.1.7",
+      "com.lihaoyi" %%% "utest" % "0.6.7" % "test",
+      "com.lihaoyi" %% "acyclic" % acyclicVersion % "provided"
+    ),
+    addCompilerPlugin("com.lihaoyi" %% "acyclic" % acyclicVersion),
+    testFrameworks += new TestFramework("utest.runner.Framework"),
+    autoCompilerPlugins := true,
 
   // Sonatype
   publishTo := Some("releases"  at "https://oss.sonatype.org/service/local/staging/deploy/maven2"),
