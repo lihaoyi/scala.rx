@@ -7,4 +7,4 @@ addSbtPlugin("org.portable-scala" % "sbt-scala-native-crossproject" % "0.6.1")
 addSbtPlugin("org.scala-js" % "sbt-scalajs" % scalaJSVersion)
 addSbtPlugin("org.scala-native" % "sbt-scala-native" % "0.3.9")
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-git" % "0.9.3")
+addSbtPlugin("com.typesafe.sbt" % "sbt-git" % "1.0.0")
