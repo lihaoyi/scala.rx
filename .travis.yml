@@ -6,8 +6,8 @@ scala:
   - 2.12.8
 
 jdk:
-  - oraclejdk8
-  - oraclejdk11
+  - openjdk8
+  - openjdk11
 
 env:
   - SCALAJS_VERSION=0.6.28
