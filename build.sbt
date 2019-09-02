@@ -1,9 +1,9 @@
 // shadow sbt-scalajs' crossProject and CrossType from Scala.js 0.6.x
 import sbtcrossproject.CrossPlugin.autoImport.{ crossProject, CrossType }
 
-val monocleVersion = "1.5.1-cats"
-val acyclicVersion = "0.1.9"
-val crossScalaVersionList = Seq("2.11.12", "2.12.9")
+val monocleVersion = "2.0.0-RC1"
+val acyclicVersion = "0.2.0"
+val crossScalaVersionList = Seq("2.11.12", "2.12.9", "2.13.0")
 
 val sharedSettings = Seq(
   crossScalaVersions := crossScalaVersionList,
@@ -17,12 +17,13 @@ val sharedSettings = Seq(
     "-feature" ::
     "-language:_" ::
     "-Xfuture" ::
-    "-Ypartial-unification" ::
-    "-Yno-adapted-args" ::
-    "-Ywarn-infer-any" ::
-    "-Ywarn-value-discard" ::
-    "-Ywarn-nullary-override" ::
-    "-Ywarn-nullary-unit" ::
+    // TODO:
+    // "-Ypartial-unification" ::
+    // "-Yno-adapted-args" ::
+    // "-Ywarn-infer-any" ::
+    // "-Ywarn-value-discard" ::
+    // "-Ywarn-nullary-override" ::
+    // "-Ywarn-nullary-unit" ::
     (CrossVersion.partialVersion(scalaVersion.value) match {
       case Some((2, v)) if v >= 12 =>
         "-Xlint:-unused" :: // too many false positives for unused because of acyclic, macros, local vals in tests
@@ -41,7 +42,7 @@ lazy val scalarx = crossProject(JSPlatform, JVMPlatform)
       "com.github.julien-truffaut" %%% "monocle-core" % monocleVersion,
       "com.github.julien-truffaut" %%% "monocle-macro" % monocleVersion % "test",
 
-      "com.lihaoyi" %%% "utest" % "0.6.7" % "test",
+      "com.lihaoyi" %%% "utest" % "0.6.9" % "test",
       "com.lihaoyi" %% "acyclic" % acyclicVersion % "provided"
     ),
     addCompilerPlugin("com.lihaoyi" %% "acyclic" % acyclicVersion),
