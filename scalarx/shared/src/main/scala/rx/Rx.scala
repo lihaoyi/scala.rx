@@ -5,6 +5,7 @@ import rx.opmacros.Factories
 import scala.annotation.unchecked.uncheckedVariance
 import scala.collection.mutable
 import scala.util.Try
+import scala.collection.compat._
 
 /**
   * A reactive value of type [[T]]. Keeps track of triggers and
@@ -125,7 +126,7 @@ object Rx {
   private[rx] implicit val ordering: Ordering[Dynamic[_]] = Ordering.by[Rx.Dynamic[_], Int](-_.depth)
 
   @inline private[rx] def doRecalcCopy(rxs: Iterable[Rx.Dynamic[_]], obs: Iterable[Obs]): Unit = {
-    doRecalcMutable(rxs.to[mutable.PriorityQueue], obs.to[mutable.Set])
+    doRecalcMutable(rxs.to(mutable.PriorityQueue), obs.to(mutable.Set))
   }
   private[rx] def doRecalcMutable(queue: mutable.PriorityQueue[Rx.Dynamic[_]], observers: mutable.Set[Obs]): Unit = {
     val seen = mutable.Set.empty[Rx.Dynamic[_]]

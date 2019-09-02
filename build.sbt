@@ -30,6 +30,7 @@ val sharedSettings = Seq(
           Nil
       case _ => Nil
     }),
+
 )
 
 lazy val scalarx = crossProject(JSPlatform, JVMPlatform)
@@ -42,13 +43,18 @@ lazy val scalarx = crossProject(JSPlatform, JVMPlatform)
       "com.github.julien-truffaut" %%% "monocle-core" % monocleVersion,
       "com.github.julien-truffaut" %%% "monocle-macro" % monocleVersion % "test",
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided,
-
+      "org.scala-lang.modules" %%% "scala-collection-compat" % "2.1.2",
       "com.lihaoyi" %%% "utest" % "0.6.9" % "test",
       "com.lihaoyi" %% "acyclic" % acyclicVersion % "provided"
     ),
+
     addCompilerPlugin("com.lihaoyi" %% "acyclic" % acyclicVersion),
     testFrameworks += new TestFramework("utest.runner.Framework"),
     autoCompilerPlugins := true,
+  /* scalafixDependencies in ThisBuild += "org.scala-lang.modules" %% "scala-collection-migrations" % "2.1.1", */
+  /* scalacOptions ++= List("-Yrangepos", "-P:semanticdb:synthetics:on"), */
+  /* addCompilerPlugin(scalafixSemanticdb), */
+  /* scalacOptions += "-Yrangepos", */
 
     // Sonatype
     publishTo := Some("releases" at "https://oss.sonatype.org/service/local/staging/deploy/maven2"),
