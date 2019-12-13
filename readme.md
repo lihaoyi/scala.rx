@@ -768,7 +768,7 @@ var c = Rx{
 }
 ```
 
-Where `a` and `b` are initially empty, I have basically two options:
+Where `a` and `b` are initially empty, I have basically four options:
 
 - Block the current thread which is computing `c`, waiting for `a` and then `b` to become available.
 - Throw an exception when `a()` and `b()` are requested, aborting the computation of `c` but registering it to be restarted when `a()` or `b()` become available.
