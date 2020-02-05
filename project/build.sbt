@@ -1,5 +1,5 @@
 // https://www.scala-js.org/news/2018/02/01/announcing-scalajs-1.0.0-M3/#cross-building-for-scalajs-06x-and-1x
-val scalaJSVersion = Option(System.getenv("SCALAJS_VERSION")).getOrElse("0.6.32")
+val scalaJSVersion = Option(System.getenv("SCALAJS_VERSION")).getOrElse("1.0.0")
 
 // https://github.com/portable-scala/sbt-crossproject
 addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "0.6.1")
