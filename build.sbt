@@ -1,9 +1,9 @@
 // shadow sbt-scalajs' crossProject and CrossType from Scala.js 0.6.x
 import sbtcrossproject.CrossPlugin.autoImport.{ crossProject, CrossType }
 
-val monocleVersion = "2.0.0-RC1"
+val monocleVersion = "2.0.1"
 val acyclicVersion = "0.2.0"
-val crossScalaVersionList = Seq("2.11.12", "2.12.9", "2.13.0")
+val crossScalaVersionList = Seq("2.11.12", "2.12.10", "2.13.1")
 
 val sharedSettings = Seq(
   crossScalaVersions := crossScalaVersionList,
@@ -43,7 +43,7 @@ lazy val scalarx = crossProject(JSPlatform, JVMPlatform)
       "com.github.julien-truffaut" %%% "monocle-core" % monocleVersion,
       "com.github.julien-truffaut" %%% "monocle-macro" % monocleVersion % "test",
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided,
-      "org.scala-lang.modules" %%% "scala-collection-compat" % "2.1.2",
+      "org.scala-lang.modules" %%% "scala-collection-compat" % "2.1.4",
       "com.lihaoyi" %%% "utest" % "0.6.9" % "test",
       "com.lihaoyi" %% "acyclic" % acyclicVersion % "provided"
     ),
