@@ -17,15 +17,17 @@ val sharedSettings = Seq(
     "-feature" ::
     "-language:_" ::
     "-Xfuture" ::
-    // TODO:
-    // "-Ypartial-unification" ::
-    // "-Yno-adapted-args" ::
-    // "-Ywarn-infer-any" ::
-    // "-Ywarn-value-discard" ::
-    // "-Ywarn-nullary-override" ::
-    // "-Ywarn-nullary-unit" ::
     (CrossVersion.partialVersion(scalaVersion.value) match {
-      case Some((2, v)) if v >= 12 =>
+      case Some((2, 12)) =>
+        "-Xlint:-unused" :: // too many false positives for unused because of acyclic, macros, local vals in tests
+        "-Ypartial-unification" ::
+        "-Yno-adapted-args" ::
+        "-Ywarn-infer-any" ::
+        "-Ywarn-value-discard" ::
+        "-Ywarn-nullary-override" ::
+        "-Ywarn-nullary-unit" ::
+          Nil
+      case Some((2, 13)) =>
         "-Xlint:-unused" :: // too many false positives for unused because of acyclic, macros, local vals in tests
           Nil
       case _ => Nil
