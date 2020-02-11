@@ -3,7 +3,7 @@ import sbtcrossproject.CrossPlugin.autoImport.{ crossProject, CrossType }
 
 val monocleVersion = "2.0.1"
 val acyclicVersion = "0.2.0"
-val crossScalaVersionList = Seq("2.11.12", "2.12.10", "2.13.1")
+val crossScalaVersionList = Seq("2.12.10", "2.13.1")
 
 val sharedSettings = Seq(
   crossScalaVersions := crossScalaVersionList,
@@ -30,7 +30,6 @@ val sharedSettings = Seq(
           Nil
       case _ => Nil
     }),
-
 )
 
 lazy val scalarx = crossProject(JSPlatform, JVMPlatform)
@@ -42,19 +41,15 @@ lazy val scalarx = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq(
       "com.github.julien-truffaut" %%% "monocle-core" % monocleVersion,
       "com.github.julien-truffaut" %%% "monocle-macro" % monocleVersion % "test",
+      "com.lihaoyi" %%% "utest" % "0.6.9" % "test",
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided,
       "org.scala-lang.modules" %%% "scala-collection-compat" % "2.1.4",
-      "com.lihaoyi" %%% "utest" % "0.6.9" % "test",
       "com.lihaoyi" %% "acyclic" % acyclicVersion % "provided"
     ),
 
     addCompilerPlugin("com.lihaoyi" %% "acyclic" % acyclicVersion),
     testFrameworks += new TestFramework("utest.runner.Framework"),
     autoCompilerPlugins := true,
-  /* scalafixDependencies in ThisBuild += "org.scala-lang.modules" %% "scala-collection-migrations" % "2.1.1", */
-  /* scalacOptions ++= List("-Yrangepos", "-P:semanticdb:synthetics:on"), */
-  /* addCompilerPlugin(scalafixSemanticdb), */
-  /* scalacOptions += "-Yrangepos", */
 
     // Sonatype
     publishTo := Some("releases" at "https://oss.sonatype.org/service/local/staging/deploy/maven2"),

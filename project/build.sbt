@@ -8,6 +8,3 @@ addSbtPlugin("org.scala-js" % "sbt-scalajs" % scalaJSVersion)
 addSbtPlugin("org.scala-native" % "sbt-scala-native" % "0.3.9")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-git" % "1.0.0")
-
-
-/* addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.9.6") */
