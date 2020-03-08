@@ -1,7 +1,8 @@
 package rx
 
 import scala.util.{Success, Try}
-import scala.collection.{breakOut, mutable}
+import scala.collection.mutable
+import scala.collection.compat._
 
 trait Var[T] extends Rx[T] {
   def update(newValue: T): Unit
@@ -40,8 +41,8 @@ object Var {
   def set(args: Assignment[_]*): Unit = {
     args.foreach(_.set())
     Rx.doRecalcMutable(
-      args.flatMap(_.v.downStream)(breakOut),
-      args.flatMap(_.v.observers)(breakOut)
+      args.iterator.flatMap(_.v.downStream).to(mutable.PriorityQueue),
+      args.iterator.flatMap(_.v.observers).to(mutable.Set)
     )
   }
 
