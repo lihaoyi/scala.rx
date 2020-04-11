@@ -82,39 +82,39 @@ lazy val scalarx = crossProject(JSPlatform, JVMPlatform)
 lazy val js = scalarx.js
 lazy val jvm = scalarx.jvm
 
-lazy val bench =
-  crossProject(JSPlatform, JVMPlatform)
-    .crossType(CrossType.Pure)
-    .settings(sharedSettings)
-    .dependsOn(scalarx)
-    .settings(
-      resolvers += ("jitpack" at "https://jitpack.io"),
-      libraryDependencies ++=
-        "com.github.fdietze.bench" %%% "bench" % "79e5861" ::
-        Nil,
-
-      scalacOptions ++= {
-        CrossVersion.partialVersion(scalaVersion.value) match {
-          case Some((2, major)) if major == 11 => (
-            "-Xdisable-assertions" ::
-            /* "-optimise" :: */
-            /* "-Yclosure-elim" :: */
-            /* "-Yinline" :: */
-            Nil
-          )
-          case Some((2, major)) if major >= 12 => (
-            "-Xdisable-assertions" ::
-            "-opt:l:method" ::
-            "-opt:l:inline" ::
-            "-opt-inline-from:**" ::
-            Nil
-          )
-          case _ => Seq.empty
-        }
-      },
-    )
-    .jsSettings(
-      scalaJSStage in Compile := FullOptStage,
-      scalaJSUseMainModuleInitializer := true,
-      scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)),
-    )
+// lazy val bench =
+//   crossProject(JSPlatform, JVMPlatform)
+//     .crossType(CrossType.Pure)
+//     .settings(sharedSettings)
+//     .dependsOn(scalarx)
+//     .settings(
+//       resolvers += ("jitpack" at "https://jitpack.io"),
+//       libraryDependencies ++=
+//         "com.github.fdietze.bench" %%% "bench" % "79e5861" ::
+//         Nil,
+// 
+//       scalacOptions ++= {
+//         CrossVersion.partialVersion(scalaVersion.value) match {
+//           case Some((2, major)) if major == 11 => (
+//             "-Xdisable-assertions" ::
+//             /* "-optimise" :: */
+//             /* "-Yclosure-elim" :: */
+//             /* "-Yinline" :: */
+//             Nil
+//           )
+//           case Some((2, major)) if major >= 12 => (
+//             "-Xdisable-assertions" ::
+//             "-opt:l:method" ::
+//             "-opt:l:inline" ::
+//             "-opt-inline-from:**" ::
+//             Nil
+//           )
+//           case _ => Seq.empty
+//         }
+//       },
+//     )
+//     .jsSettings(
+//       scalaJSStage in Compile := FullOptStage,
+//       scalaJSUseMainModuleInitializer := true,
+//       scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)),
+//     )
