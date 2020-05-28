@@ -8,7 +8,7 @@ val crossScalaVersionList = Seq("2.12.10", "2.13.1")
 val sharedSettings = Seq(
   crossScalaVersions := crossScalaVersionList,
   scalaVersion := crossScalaVersionList.last,
-  version := "0.4.2",
+  version := "0.4.3",
   scalacOptions ++=
     "-encoding" :: "UTF-8" ::
     "-unchecked" ::
