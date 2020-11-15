@@ -11,7 +11,7 @@ jdk:
 
 env:
   - SCALAJS_VERSION=0.6.32
-  - SCALAJS_VERSION=1.1.1
+  - SCALAJS_VERSION=1.3.1
 
 script:
 - sbt ++$TRAVIS_SCALA_VERSION test
