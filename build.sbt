@@ -43,7 +43,7 @@ lazy val scalarx = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq(
       "com.github.julien-truffaut" %%% "monocle-core" % monocleVersion,
       "com.github.julien-truffaut" %%% "monocle-macro" % monocleVersion % "test",
-      "com.lihaoyi" %%% "utest" % "0.7.4" % "test",
+      "com.lihaoyi" %%% "utest" % "0.7.7" % "test",
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided,
       "org.scala-lang.modules" %%% "scala-collection-compat" % "2.1.6",
       "com.lihaoyi" %% "acyclic" % acyclicVersion % "provided"
