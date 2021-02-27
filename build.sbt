@@ -3,7 +3,7 @@ import sbtcrossproject.CrossPlugin.autoImport.{ crossProject, CrossType }
 
 val monocleVersion = "2.0.4"
 val acyclicVersion = "0.2.0"
-val crossScalaVersionList = Seq("2.12.10", "2.13.1")
+val crossScalaVersionList = Seq("2.12.10", "2.13.5")
 
 val sharedSettings = Seq(
   crossScalaVersions := crossScalaVersionList,
