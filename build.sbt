@@ -1,7 +1,7 @@
 // shadow sbt-scalajs' crossProject and CrossType from Scala.js 0.6.x
 import sbtcrossproject.CrossPlugin.autoImport.{ crossProject, CrossType }
 
-val monocleVersion = "2.0.4"
+val monocleVersion = "2.0.5"
 val acyclicVersion = "0.2.0"
 val crossScalaVersionList = Seq("2.12.15", "2.13.8")
 
