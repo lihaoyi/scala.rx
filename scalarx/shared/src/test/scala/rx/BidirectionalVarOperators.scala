@@ -111,6 +111,73 @@ object BidirectionalVarOperatorTests extends TestSuite {
       assert(zipcode.now == 6)
     }
 
+    "zoomed Var chained" - {
+      import Ctx.Owner.Unsafe._
+
+      case class Company(name: String, zipcode: Int)
+      case class Employee(name: String, company: Company)
+
+      val employee = Var(Employee("jules", Company("wules", 7)))
+      val company = employee.zoom(_.company)((old, value) => old.copy(company = value))
+      val zipcode = company.zoom(_.zipcode)((old, value) => old.copy(zipcode = value))
+
+      assert(company.now == Company("wules", 7))
+      assert(employee.now == Employee("jules", Company("wules", 7)))
+      assert(zipcode.now == 7)
+
+      zipcode() = 8
+      assert(company.now == Company("wules", 8))
+      assert(employee.now == Employee("jules", Company("wules", 8)))
+      assert(zipcode.now == 8)
+
+      employee() = Employee("gula", Company("bori", 6))
+      assert(company.now == Company("bori", 6))
+      assert(employee.now == Employee("gula", Company("bori", 6)))
+      assert(zipcode.now == 6)
+
+      company() = Company("borislav", 13)
+      assert(company.now == Company("borislav", 13))
+      assert(employee.now == Employee("gula", Company("borislav", 13)))
+      assert(zipcode.now == 13)
+    }
+
+    "zoomed Var chained with observer" - {
+      import Ctx.Owner.Unsafe._
+
+      case class Company(name: String, zipcode: Int)
+      case class Employee(name: String, company: Company)
+
+      val employee = Var(Employee("jules", Company("wules", 7)))
+      val company = employee.zoom(_.company)((old, value) => old.copy(company = value))
+      val zipcode = company.zoom(_.zipcode)((old, value) => old.copy(zipcode = value))
+
+      var employeeNow = employee.now
+      employee.foreach { employeeNow = _ }
+
+      assert(company.now == Company("wules", 7))
+      assert(employeeNow == Employee("jules", Company("wules", 7)))
+      assert(employee.now == Employee("jules", Company("wules", 7)))
+      assert(zipcode.now == 7)
+
+      zipcode() = 8
+      assert(company.now == Company("wules", 8))
+      assert(employeeNow == Employee("jules", Company("wules", 8)))
+      assert(employee.now == Employee("jules", Company("wules", 8)))
+      assert(zipcode.now == 8)
+
+      employee() = Employee("gula", Company("bori", 6))
+      assert(company.now == Company("bori", 6))
+      assert(employeeNow == Employee("gula", Company("bori", 6)))
+      assert(employee.now == Employee("gula", Company("bori", 6)))
+      assert(zipcode.now == 6)
+
+      company() = Company("borislav", 13)
+      assert(company.now == Company("borislav", 13))
+      assert(employeeNow == Employee("gula", Company("borislav", 13)))
+      assert(employee.now == Employee("gula", Company("borislav", 13)))
+      assert(zipcode.now == 13)
+    }
+
     "isomorphic Var function calls" - {
       import Ctx.Owner.Unsafe._
 
@@ -203,6 +270,100 @@ object BidirectionalVarOperatorTests extends TestSuite {
 
       list.update(4 :: _)
       assert(selectedItem.now == Some(4))
+    }
+
+    "mapRead observer" - {
+      import Ctx.Owner.Unsafe._
+
+      val list = Var(List(1, 2, 3))
+      val selectedItem = Var[Option[Int]](Some(1)).mapRead {
+        selected => selected().filter(list() contains _)
+      }
+      var myNow: Option[Int] = None
+      selectedItem.foreach { myNow = _ }
+
+      assert(myNow == Some(1))
+
+      selectedItem() = Some(4)
+      assert(myNow == None)
+
+      list.update(4 :: _)
+      assert(myNow == Some(4))
+    }
+
+    "mapRead then zoom (write into outer)" - {
+      import Ctx.Owner.Unsafe._
+      case class SelectedWrapper(selected:Option[Int])
+
+      val list = Var(List(1, 2, 3))
+      val selWrapper = Var[SelectedWrapper](SelectedWrapper(Some(1))).mapRead {
+        selWrapper => selWrapper().copy(selected = selWrapper().selected.filter(list() contains _))
+      }
+      val selectedItem = selWrapper.zoom(_.selected)((selWrapper,selected) => selWrapper.copy(selected = selected))
+
+      assert(selWrapper.now.selected == Some(1))
+      assert(selectedItem.now == Some(1))
+
+      selWrapper() = SelectedWrapper(Some(4))
+      assert(selWrapper.now.selected == None)
+      assert(selectedItem.now == None) // fail: is Some(3) ...
+
+      list.update(4 :: _)
+      assert(selWrapper.now.selected == Some(4))
+      assert(selectedItem.now == Some(4)) // fail: still is Some(3)
+
+      selWrapper() = SelectedWrapper(Some(4))
+      assert(selWrapper.now.selected == Some(4))
+      assert(selectedItem.now == Some(4))
+    }
+
+    "mapRead then zoom (write into zoomed)" - {
+      import Ctx.Owner.Unsafe._
+      case class SelectedWrapper(selected:Option[Int])
+
+      val list = Var(List(1, 2, 3))
+      val selWrapper = Var[SelectedWrapper](SelectedWrapper(Some(1)))
+      val selWrapperFiltered = selWrapper.mapRead {
+        selWrapper => selWrapper().copy(selected = selWrapper().selected.filter(list() contains _))
+      }
+      val selectedItem = selWrapperFiltered.zoom(_.selected)((selWrapper,selected) => selWrapper.copy(selected = selected))
+
+      assert(selWrapper.now.selected == Some(1))
+      assert(selWrapperFiltered.now.selected == Some(1))
+      assert(selectedItem.now == Some(1))
+
+      selectedItem() = Some(4) // write indirectly into selWrapper
+      assert(selWrapper.now.selected == Some(4))
+      assert(selWrapperFiltered.now.selected == None)
+      assert(selectedItem.now == None) // fail: is Some(3) ...
+
+      list.update(4 :: _)
+      assert(selWrapper.now.selected == Some(4))
+      assert(selWrapperFiltered.now.selected == Some(4))
+      assert(selectedItem.now == Some(4)) // fail: still is Some(3)
+
+      selectedItem() = Some(4)
+      assert(selWrapper.now.selected == Some(4))
+      assert(selWrapperFiltered.now.selected == Some(4))
+      assert(selectedItem.now == Some(4))
+    }
+
+    "imap then zoom (write into zoomed)" - {
+      import Ctx.Owner.Unsafe._
+      case class Wrapper(x:Int)
+      val base = Var(Wrapper(5))
+      val imapped = base.imap(w => w.copy(x = w.x + 1))(w =>  w.copy(x = w.x - 1))
+      val zoomed = imapped.zoom(_.x)( (old, value) => old.copy(x = value))
+
+      zoomed() = 1
+      assert(zoomed.now == 1)
+      assert(imapped.now == Wrapper(1))
+      assert(base.now == Wrapper(0))
+
+      zoomed() = 2
+      assert(zoomed.now == 2)
+      assert(imapped.now == Wrapper(2))
+      assert(base.now == Wrapper(1))
     }
 
     "mapRead function calls" - {
